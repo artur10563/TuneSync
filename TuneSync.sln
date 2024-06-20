@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34707.107
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TuneSync.Domain", "TuneSync.Domain\TuneSync.Domain.csproj", "{50BA7275-2D08-4186-8766-5CB97E3DDB53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TuneSync.Application", "TuneSync.Application\TuneSync.Application.csproj", "{3DFA14D3-E45D-4EBD-BCB0-D8F26C4815E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TuneSync.Infrastructure", "TuneSync.Infrastructure\TuneSync.Infrastructure.csproj", "{3981F687-E275-4488-AC53-398CFC770D80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TuneSync.Api", "TuneSync.Api\TuneSync.Api.csproj", "{F2710F42-706F-44FC-AA17-9997087792AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{50BA7275-2D08-4186-8766-5CB97E3DDB53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50BA7275-2D08-4186-8766-5CB97E3DDB53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50BA7275-2D08-4186-8766-5CB97E3DDB53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50BA7275-2D08-4186-8766-5CB97E3DDB53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DFA14D3-E45D-4EBD-BCB0-D8F26C4815E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DFA14D3-E45D-4EBD-BCB0-D8F26C4815E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DFA14D3-E45D-4EBD-BCB0-D8F26C4815E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DFA14D3-E45D-4EBD-BCB0-D8F26C4815E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3981F687-E275-4488-AC53-398CFC770D80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3981F687-E275-4488-AC53-398CFC770D80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3981F687-E275-4488-AC53-398CFC770D80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3981F687-E275-4488-AC53-398CFC770D80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2710F42-706F-44FC-AA17-9997087792AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2710F42-706F-44FC-AA17-9997087792AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2710F42-706F-44FC-AA17-9997087792AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2710F42-706F-44FC-AA17-9997087792AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {656A4F62-3BF4-49B3-BCC7-C9E62E13E25F}
+	EndGlobalSection
+EndGlobal
