@@ -7,11 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3421" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Endpoints\" />
+    <ProjectReference Include="..\TuneSync.Application\TuneSync.Application.csproj" />
+    <ProjectReference Include="..\TuneSync.Domain\TuneSync.Domain.csproj" />
+    <ProjectReference Include="..\TuneSync.Infrastructure\TuneSync.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
