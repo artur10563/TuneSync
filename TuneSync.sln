@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TuneSync.Application", "Tun
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TuneSync.Infrastructure", "TuneSync.Infrastructure\TuneSync.Infrastructure.csproj", "{3981F687-E275-4488-AC53-398CFC770D80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TuneSync.Api", "TuneSync.Api\TuneSync.Api.csproj", "{F2710F42-706F-44FC-AA17-9997087792AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TuneSync.Api", "TuneSync.Api\TuneSync.Api.csproj", "{F2710F42-706F-44FC-AA17-9997087792AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{16D86BD1-1011-423F-9074-24E09DF8D708}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{F2710F42-706F-44FC-AA17-9997087792AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2710F42-706F-44FC-AA17-9997087792AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2710F42-706F-44FC-AA17-9997087792AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16D86BD1-1011-423F-9074-24E09DF8D708}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16D86BD1-1011-423F-9074-24E09DF8D708}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16D86BD1-1011-423F-9074-24E09DF8D708}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16D86BD1-1011-423F-9074-24E09DF8D708}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

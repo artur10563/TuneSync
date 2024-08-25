@@ -1,5 +1,9 @@
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Firestore;
 using TuneSync.Api.Endpoints;
+using TuneSync.Application.Repositories;
 using TuneSync.Application.Services;
+using TuneSync.Infrastructure.Repositories;
 using TuneSync.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +15,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+
+
 builder.Services.AddScoped<IYoutubeService, YoutubeService>();
+builder.Services.AddScoped<ISongRepository, SongRepository>();
 
 var app = builder.Build();
 

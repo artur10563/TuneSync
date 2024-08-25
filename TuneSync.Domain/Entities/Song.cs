@@ -1,12 +1,11 @@
-﻿using Google.Cloud.Firestore; //TODO: Clean arch violation
+﻿using Google.Cloud.Firestore;
+using TuneSync.Domain.Entities.Shared; //TODO: Clean arch violation
 
 namespace TuneSync.Domain.Entities
 {
 	[FirestoreData]
-	public class Song
+	public class Song : EntityBase
 	{
-		[FirestoreProperty]
-		public int Id { get; set; }
 
 		[FirestoreProperty]
 		public string Name { get; set; }
