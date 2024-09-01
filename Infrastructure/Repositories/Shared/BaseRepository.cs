@@ -1,11 +1,12 @@
 ﻿using Application.Repositories.Shared;
 using Domain.Entities.Shared;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 
 namespace Infrastructure.Repositories.Shared
 {
-	public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : EntityBase
+    public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : EntityBase
 	{
 
 		protected readonly AppDbContext _context;
