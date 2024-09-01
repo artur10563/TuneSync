@@ -1,6 +1,7 @@
 ﻿using Google.Cloud.Firestore;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,9 +37,9 @@ namespace TuneSync.Infrastructure.Repositories
 			throw new NotImplementedException();
 		}
 
-		public async Task<IEnumerable<TEntity>> GetAsync()
+		public async Task<IEnumerable<TEntity>> GetAsync(int limit = 50)
 		{
-			var snapshot = (await _collection.GetSnapshotAsync());
+			var snapshot = (await _collection.Limit(limit).GetSnapshotAsync());
 			List<TEntity> entities = new List<TEntity>();
 
 			foreach (var document in snapshot.Documents)
@@ -51,92 +52,78 @@ namespace TuneSync.Infrastructure.Repositories
 
 		}
 
-		public async Task<IEnumerable<object>> GetAsync(Expression<Func<TEntity, bool>> predicate)
+		/// <summary>
+		/// Groups 'AND' and 'OR' QueryFilters, executes Filter.Or, Filter.And on those groups
+		/// </summary>
+		/// <param name="filters">List of QueryFilters, which are translated to Firebase Filters</param>
+		/// <returns>Filtered records</returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public async Task<IEnumerable<TEntity>> GetAsync(List<QueryFilter> filters, int limit= 50)
 		{
-			var v = ExpressionToFirebase(predicate);
-			object vv = v;
-			await Task.CompletedTask;
-			return new List<object>() { v.leftV, v.operationV, v.rightV };
-		}
+			if (filters.Count == 0) return await GetAsync();
+			Query query = _collection;
 
-		private object GetValueFromClosure(MemberExpression memberExp)
-		{
-			object value = null;
-			string fieldName = memberExp?.Member.Name;
-			while (memberExp != null)
+			List<Filter> fbFiltersAnd = [];
+			List<Filter> fbFiltersOr = [];
+
+			
+			foreach (var filter in filters)
 			{
-				if (!(memberExp.Expression is ConstantExpression constantExpression))
+
+				var fbFilter = filter.Operation switch
 				{
-					memberExp = memberExp.Expression as MemberExpression;
-					continue;
-				}
+					"==" => Filter.EqualTo(filter.Field, filter.Value),
+					"!=" => Filter.NotEqualTo(filter.Field, filter.Value),
+					">" => Filter.GreaterThan(filter.Field, filter.Value),
+					"<" => Filter.LessThan(filter.Field, filter.Value),
+					">=" => Filter.GreaterThanOrEqualTo(filter.Field, filter.Value),
+					"<=" => Filter.LessThanOrEqualTo(filter.Field, filter.Value),
+					"Contains" => Filter.ArrayContains(filter.Field, filter.Value),
+					"In" => Filter.InArray(filter.Field, (IEnumerable)filter.Value),
+					_ => throw new InvalidOperationException($"Unsupported operation: {filter.Operation}")
+				};
 
-				value = GetValueFromConstant(constantExpression, fieldName);
-			}
-			return value;
-		}
-
-
-		private object GetValueFromConstant(ConstantExpression constantExp, string fieldName)
-		{
-			object value = null;
-			var closureClass = constantExp.Value;
-			var closureType = closureClass.GetType();
-
-			// Find the field or property in the closure class
-			FieldInfo fieldInfo = closureType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-											 .FirstOrDefault(f => f.FieldType == typeof(TEntity)); //Not always type of TEntity
-			PropertyInfo propertyInfo = closureType.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-												   .FirstOrDefault(p => p.PropertyType == typeof(TEntity));
-
-			if (fieldInfo != null)
-			{
-				// Get the value from the field
-				var fieldValue = fieldInfo.GetValue(closureClass);
-				if (fieldValue != null)
+				if (!string.IsNullOrEmpty(filter.Comparison))
 				{
-					// Get the property value from the field value
-					var property = fieldValue.GetType().GetProperty(fieldName);
-					value = property?.GetValue(fieldValue);
+					if (filter.Comparison == QueryComparison.And)
+					{
+						fbFiltersAnd.Add(fbFilter);
+					}
+					else if (filter.Comparison == QueryComparison.Or)
+					{
+						fbFiltersOr.Add(fbFilter);
+					}
 				}
 			}
-			else if (propertyInfo != null)
+			//TODO: broken is comparison is empty even if its last in list
+
+			//TODO: recheck Contains
+
+			//TODO: test if passed single QueryFilter, test results of monstrocity we made
+
+			if (fbFiltersAnd.Count > 0)
+				query = query.Where(Filter.And(fbFiltersAnd));
+
+			if (fbFiltersOr.Count > 0)
+				query = query.Where(Filter.Or(fbFiltersOr));
+
+
+			//TODO: replace with extension method as this code is repeated
+			var snapshot = await query.Limit(limit).GetSnapshotAsync();
+
+			var entities = new List<TEntity>();
+
+			foreach (var document in snapshot.Documents)
 			{
-				// Get the value from the property
-				var propertyValue = propertyInfo.GetValue(closureClass);
-				if (propertyValue != null)
-				{
-					// Get the property value from the property value
-					var property = propertyValue.GetType().GetProperty(fieldName);
-					value = property?.GetValue(propertyValue);
-				}
+				if (!document.Exists) continue;
+
+				entities.Add(document.ConvertTo<TEntity>());
 			}
-			return value;
+
+			return entities;
 		}
 
-		private (string leftV, string operationV, string rightV) ExpressionToFirebase(Expression<Func<TEntity, bool>> predicate)
-		{
-			var binaryExpression = predicate.Body as BinaryExpression ?? throw new ArgumentNullException(nameof(predicate));
-
-			var rightMember = binaryExpression.Right as MemberExpression;
-			object rightValue = null;
-
-			if (rightMember.Expression is ConstantExpression constant)
-				rightValue = GetValueFromConstant(constant, rightMember.Member.Name);
-
-			else if (rightMember.Expression is MemberExpression member)
-				rightValue = GetValueFromClosure(member);
-			var operation = binaryExpression.Method.Name;
-
-
-			string l = (binaryExpression.Left as MemberExpression).Member.Name;
-			return (l, operation, rightValue.ToString());
-
-		}
-		private string OperationToString()
-		{
-			return "";
-		}
+		
 
 		public void Update()
 		{

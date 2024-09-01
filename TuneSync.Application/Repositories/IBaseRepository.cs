@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
 using TuneSync.Domain.Entities.Shared;
 
 namespace TuneSync.Application.Repositories
@@ -11,7 +8,14 @@ namespace TuneSync.Application.Repositories
 		Task Create(TEntity newEntity);
 		void Update();
 		void Delete();
-		Task<IEnumerable<TEntity>> GetAsync();
-		Task<IEnumerable<object>> GetAsync(Expression<Func<TEntity, bool>> predicate);
+		Task<IEnumerable<TEntity>> GetAsync(int limit = 50);
+		Task<IEnumerable<TEntity>> GetAsync(List<QueryFilter> filters, int limit = 50);
+	}
+
+	public record QueryFilter(string Field, string Operation, object Value, string Comparison = QueryComparison.And);
+	public static class QueryComparison
+	{
+		public const string And = "&&";
+		public const string Or = "||";
 	}
 }

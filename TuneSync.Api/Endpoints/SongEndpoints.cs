@@ -30,19 +30,30 @@ namespace TuneSync.Api.Endpoints
 			app.MapGet("api/songs-firebase/{query}", async (string query, ISongRepository _songs) =>
 			{
 
-
-
+				//Class queryConstructor FieldName, operation, CompareTo.  Downside: clean architecture rip 
+				//_songs.Get(new queryFilter("Field", Operation.Equal, "Value"));
+				//songs.Get(new QueryFilter(nameof(x.Name), Operation.Equal), query)
 				////Find by song name
-				var t = new Song() { Name = "NewSong", AudioUrl = "deaf.com" };
-				var r = await _songs.GetAsync(x => x.Name == query);
+				///
+				
+				var filters = new List<QueryFilter>
+				{
+					new(nameof(Song.Name), "==", "qwerts", QueryComparison.And),
+					new(nameof(Song.VideoUrl), "Contains", ".com", QueryComparison.Or),
+					new("TestNumber", ">", 0),
+				};
+
+				//_songs.GetAsync(filters);
+				var r = await _songs.GetAsync(filters);
 
 				return Results.Ok(r);
 			});
 		}
 
 	}
+	//Add next operation instruction? Next: OR, AND, etc
+	//record QueryFilter(string Field, string Operation, object? Value, string? NextComparison = null);
 }
-
 
 //Search for a song:
 // Firstly search over firebase database. 

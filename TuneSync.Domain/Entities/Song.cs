@@ -1,5 +1,5 @@
 ﻿using Google.Cloud.Firestore;
-using TuneSync.Domain.Entities.Shared; //TODO: Clean arch violation
+using TuneSync.Domain.Entities.Shared;
 
 namespace TuneSync.Domain.Entities
 {
@@ -12,7 +12,7 @@ namespace TuneSync.Domain.Entities
 
 		[FirestoreProperty]
 		public string VideoUrl { get; set; }
-		
+
 		[FirestoreProperty]
 		public string AudioUrl { get; set; }
 	}
