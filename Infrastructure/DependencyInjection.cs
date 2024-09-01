@@ -1,7 +1,9 @@
 ﻿using Application.Repositories;
 using Application.Repositories.Shared;
+using Application.Services;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +23,9 @@ namespace Infrastructure
 
 			serviceCollection
 				.AddScoped<IUnitOfWork, UnitOfWork>()
-				.AddScoped<ISongRepository, SongRepository>();
+				.AddScoped<ISongRepository, SongRepository>()
+				.AddScoped<IYoutubeService, YoutubeService>()
+				.AddScoped<IFirebaseStorageService, FirebaseStorageService>();
 
 
 			return serviceCollection;
