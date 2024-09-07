@@ -1,6 +1,11 @@
-﻿using Application.Repositories.Shared;
+﻿using Application.CQ.Songs.Command.CreateSong;
+using Application.DTOs.Songs;
+using Application.Repositories.Shared;
 using Application.Services;
+using Domain.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Endpoints
 {
@@ -8,31 +13,40 @@ namespace Api.Endpoints
 	{
 		public static async Task RegisterSongsEndpoints(this IEndpointRouteBuilder app)
 		{
-			app.MapGet("api/song/youtube/{query}", async (
-				IYoutubeService _youtube,
-				IUnitOfWork _uow,
-				string query) =>
+			//Search on youtube
+			app.MapGet("api/song/youtube/{query}", async (IYoutubeService _youtube, string query) =>
 			{
 				var result = new List<VideoInfo>();
-
-
-				result = _uow.SongRepository.Where(s => s.Title.Contains(query) || s.Artist.Contains(query))
-					.Select(x => new VideoInfo(x.Title, "TestAuthor", "TestVideoId", "TestVideoUrl")).ToList();
-				if (result.Count > 0) return result;
-
 				result = (await _youtube.SearchAsync(query)).ToList();
 
 				return result;
 			});
 
-
-			//Upload file from PC
-			app.MapPost("api/song", async (IFormFile file, IFirebaseStorageService _fileStorage) =>
+			//Mass search from database
+			app.MapGet("api/song/{query}", async (IUnitOfWork _uow, string query) =>
 			{
-				using var memoryStream = new MemoryStream();
-				await file.CopyToAsync(memoryStream);
-				memoryStream.Position = 0;
-				await _fileStorage.UploadFile(memoryStream);
+				var result = new List<VideoInfo>();
+
+				result = _uow.SongRepository.Where(s => s.Guid.ToString() == query || s.Title.Contains(query) || s.Artist.Contains(query))
+					.Select(x => new VideoInfo(x.Title, x.Artist,"VideoUrl(youtube video id or null)", x.AudioPath)).ToList();
+
+				return result;
+			});
+
+			//Upload from file
+			app.MapPost("api/song", async (
+				IFormFile audioFile,
+				ISender sender) =>
+			{
+				using var stream = audioFile.OpenReadStream();
+				var command = new CreateSongCommand(audioFile.FileName, stream);
+				var result = await sender.Send(command);
+
+				if (result.IsSuccess)
+				{
+					return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
+				}
+				return Results.BadRequest(result.Error);
 
 			}).DisableAntiforgery(); //TODO: Add
 		}

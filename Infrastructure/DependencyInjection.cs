@@ -1,4 +1,5 @@
-﻿using Application.Repositories;
+﻿using Application.CQ.Songs.Command.CreateSong;
+using Application.Repositories;
 using Application.Repositories.Shared;
 using Application.Services;
 using Infrastructure.Data;
@@ -7,6 +8,7 @@ using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Infrastructure
 {
@@ -20,6 +22,7 @@ namespace Infrastructure
 			serviceCollection.AddDbContext<AppDbContext>(options =>
 				options.UseSqlServer(connectionString));
 
+			serviceCollection.AddMediatR(config => config.RegisterServicesFromAssembly(typeof(CreateSongCommand).Assembly));
 
 			serviceCollection
 				.AddScoped<IUnitOfWork, UnitOfWork>()

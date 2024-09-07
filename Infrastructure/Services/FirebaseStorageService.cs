@@ -21,7 +21,7 @@ namespace Infrastructure.Services
 		public async Task<string> UploadFile(Stream fileStream)
 		{
 			//Guid is used for name as files will get replaced if name is the same
-			var fileName = Guid.NewGuid().ToString() + "mp3";
+			var fileName = Guid.NewGuid().ToString() + ".mp3";
 			var uploadTask = _fileStorage.Child(fileName).PutAsync(fileStream: fileStream);
 
 			return await uploadTask;
