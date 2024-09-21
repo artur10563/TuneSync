@@ -18,7 +18,7 @@ namespace Infrastructure.Services
 		/// </summary>
 		/// <param name="fileStream">File as fileStream</param>
 		/// <returns>Path from which the file can be downloaded</returns>
-		public async Task<string> UploadFile(Stream fileStream)
+		public async Task<string> UploadFileAsync(Stream fileStream)
 		{
 			//Guid is used for name as files will get replaced if name is the same
 			var fileName = Guid.NewGuid().ToString() + ".mp3";
@@ -28,7 +28,7 @@ namespace Infrastructure.Services
 		}
 
 		//TODO: Test
-		public async Task<string> Get(string filePath)
+		public async Task<string> GetAsync(string filePath)
 		{
 
 			var fileUrl = await _fileStorage.Child(filePath).GetDownloadUrlAsync();

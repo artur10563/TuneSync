@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories.Shared
 			_set = _context.Set<TEntity>();
 		}
 
-		public void Create(TEntity entity)
+		public void Insert(TEntity entity)
 		{
 			_set.Add(entity);
 		}

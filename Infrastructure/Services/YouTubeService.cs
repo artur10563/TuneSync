@@ -1,10 +1,17 @@
-﻿using Google.Apis.YouTube.v3;
-using Google.Apis.Services;
-using Microsoft.Extensions.Configuration;
-using Google.Apis.YouTube.v3.Data;
+﻿using Microsoft.Extensions.Configuration;
 using Application.Services;
-
-
+using YoutubeExplode;
+using YoutubeExplode.Videos.Streams;
+using YoutubeExplode.Videos;
+using YoutubeExplode.Common;
+using Google.Apis.YouTube.v3;
+using Google.Apis.Services;
+using Application.DTOs.Songs;
+using Google.Apis.YouTube.v3.Data;
+using YoutubeVideo = Google.Apis.YouTube.v3.Data.Video;
+using YoutubeThumbnail = Google.Apis.YouTube.v3.Data.Thumbnail;
+using ExplodeVideo = YoutubeExplode.Videos.Video;
+using ExplodeThumbnail = YoutubeExplode.Common.Thumbnail;
 
 
 namespace Infrastructure.Services
@@ -12,6 +19,7 @@ namespace Infrastructure.Services
 	public class YoutubeService : IYoutubeService
 	{
 		private readonly YouTubeService _service;
+		private readonly YoutubeClient _youtubeExplode;
 
 		public YoutubeService(IConfiguration configuration)
 		{
@@ -20,27 +28,76 @@ namespace Infrastructure.Services
 				ApiKey = configuration["YouTubeApi:ApiKey"],
 				ApplicationName = this.GetType().ToString()
 			});
+			_youtubeExplode = new YoutubeClient();
 		}
 
 
-		public async Task<IEnumerable<VideoInfo>> SearchAsync(string query)
+		private const int MaxYoutubeSearchResults = 20;
+
+
+		// Youtube explode takes 30 times longer to fetch video, so youtube api is used
+		public async Task<IEnumerable<VideoInfo>> SearchAsync(string query, int maxResults = 5)
 		{
+			if (maxResults > MaxYoutubeSearchResults) maxResults = MaxYoutubeSearchResults;
+
 			var searchListRequest = _service.Search.List("snippet");
 			searchListRequest.Q = query;
-			searchListRequest.MaxResults = 5;
-
-			//items => videos
-			//items[i].Id.VideoId
-			//items[i].Snippet. ChannelId, ChannelTitle(Author), Title(SongName), Thumbnails(big, medium,small images URL)
+			searchListRequest.MaxResults = maxResults;
 			var searchListResponse = await searchListRequest.ExecuteAsync();
 
+			var start = DateTime.Now;
 			var result = searchListResponse.Items
-				.Where(item => !string.IsNullOrEmpty(item.Id.VideoId))
-				.Select(item => new VideoInfo(
-					item.Snippet.Title, item.Snippet.ChannelTitle, item.Id.VideoId, item.ETag)
-				);
+				.Where(item => !string.IsNullOrEmpty(item.Id.VideoId)) //Get only videos
+				.Select(x =>
+				{
+					SearchResultSnippet snippet = x.Snippet;
+					YoutubeThumbnail thumbnail = snippet.Thumbnails.High;
 
-			return result;
+					return new YoutubeSongInfo(
+						Id: x.Id.VideoId,
+						Title: snippet.Title,
+						Description: snippet.Description,
+						Author: new SongAuthor(snippet.ChannelId, snippet.ChannelTitle),
+						Thumbnail:
+						new SongThumbnail(
+							Height: (int)thumbnail?.Height,
+							Width: (int)thumbnail?.Width,
+							Url: thumbnail.Url
+							)
+						);
+				}).ToList();
+
+			return new List<VideoInfo>();
 		}
+
+
+		public async Task<(ExplodeVideo videoInfo, IStreamInfo streamInfo)> GetVideoInfoAsync(string url)
+		{
+			ExplodeVideo videoInfo = await _youtubeExplode.Videos.GetAsync(url);
+
+			IStreamInfo streamInfo = (await _youtubeExplode.Videos.Streams.GetManifestAsync(videoInfo.Url))
+				.GetAudioOnlyStreams()
+				.GetWithHighestBitrate();
+
+
+			return (videoInfo, streamInfo);
+		}
+
+		public async Task<Stream> GetAudioStreamAsync(string url)
+		{
+			var audioInfo = (await _youtubeExplode.Videos.Streams.GetManifestAsync(url))
+				.GetAudioOnlyStreams()
+				.GetWithHighestBitrate();
+
+			var audioStream = await _youtubeExplode.Videos.Streams.GetAsync(audioInfo);
+			return audioStream;
+		}
+
+		public async Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo)
+		{
+			var audioStream = await _youtubeExplode.Videos.Streams.GetAsync(streamInfo);
+			return audioStream;
+		}
+
 	}
 }

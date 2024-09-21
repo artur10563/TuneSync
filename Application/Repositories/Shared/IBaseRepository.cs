@@ -4,7 +4,7 @@ namespace Application.Repositories.Shared
 {
 	public interface IBaseRepository<TEntity> where TEntity : EntityBase
 	{
-		void Create(TEntity entity);
+		void Insert(TEntity entity);
 		void Update(TEntity entity);
 		void Delete(TEntity entity);
 

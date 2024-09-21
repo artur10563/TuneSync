@@ -2,7 +2,7 @@
 {
 	public interface IFirebaseStorageService
 	{
-		Task<string> Get(string fileName);
-		Task<string> UploadFile(Stream fileStream);
+		Task<string> GetAsync(string fileName);
+		Task<string> UploadFileAsync(Stream fileStream);
 	}
 }

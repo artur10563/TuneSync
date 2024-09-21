@@ -7,5 +7,6 @@ namespace Domain.Entities
 		public string Title { get; set; }
 		public string Artist { get; set; }
 		public string AudioPath { get; set; }
+		public string VideoId { get; set; }
 	}
 }

@@ -1,11 +1,8 @@
 ﻿using Application.CQ.Songs.Command.CreateSong;
-using Application.DTOs.Songs;
+using Application.CQ.Songs.Command.CreateSongFromYouTube;
 using Application.Repositories.Shared;
 using Application.Services;
-using Domain.Entities;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Endpoints
 {
@@ -28,7 +25,7 @@ namespace Api.Endpoints
 				var result = new List<VideoInfo>();
 
 				result = _uow.SongRepository.Where(s => s.Guid.ToString() == query || s.Title.Contains(query) || s.Artist.Contains(query))
-					.Select(x => new VideoInfo(x.Title, x.Artist,"VideoUrl(youtube video id or null)", x.AudioPath)).ToList();
+					.Select(x => new VideoInfo(x.Title, x.Artist, "VideoUrl(youtube video id or null)", x.AudioPath)).ToList();
 
 				return result;
 			});
@@ -42,13 +39,28 @@ namespace Api.Endpoints
 				var command = new CreateSongCommand(audioFile.FileName, stream);
 				var result = await sender.Send(command);
 
-				if (result.IsSuccess)
+				if (result.IsFailure)
 				{
-					return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
+					return Results.BadRequest(result.Error);
 				}
-				return Results.BadRequest(result.Error);
+				return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
 			}).DisableAntiforgery(); //TODO: Add
+
+
+			//Upload from youtube
+			app.MapPost("api/song/youtube/{videoLink}", async (string videoLink,
+				ISender _sender
+				) =>
+			{
+				var command = new CreateSongFromYoutubeCommand(videoLink);
+				var result = await _sender.Send(command);
+
+				if (result.IsFailure)
+					return Results.BadRequest(result.Error);
+				return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
+
+			});
 		}
 	}
 }

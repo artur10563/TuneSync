@@ -22,7 +22,7 @@ namespace Application.CQ.Songs.Command.CreateSong
 
 		public async Task<Result<Song>> Handle(CreateSongCommand request, CancellationToken cancellationToken)
 		{
-			var filePath = await _fileStorage.UploadFile(request.audioFileStream);
+			var filePath = await _fileStorage.UploadFileAsync(request.audioFileStream);
 
 			var newSong = new Song
 			{
@@ -31,7 +31,7 @@ namespace Application.CQ.Songs.Command.CreateSong
 				AudioPath = filePath
 			};
 
-			_uow.SongRepository.Create(newSong);
+			_uow.SongRepository.Insert(newSong);
 			await _uow.SaveChangesAsync();
 
 			return Result.Success(newSong);

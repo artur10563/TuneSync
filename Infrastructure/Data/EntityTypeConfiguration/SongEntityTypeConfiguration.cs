@@ -14,11 +14,11 @@ namespace Infrastructure.Data.EntityTypeConfiguration
 
 			builder.Property(s => s.Title)
 				.IsRequired()
-				.HasMaxLength(50); 
+				.HasMaxLength(255); 
 
 			builder.Property(s => s.Artist)
 				.IsRequired()
-				.HasMaxLength(50);
+				.HasMaxLength(255);
 
 			builder.Property(s => s.AudioPath)
 				.IsRequired();
