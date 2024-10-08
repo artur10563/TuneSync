@@ -11,6 +11,15 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.DIFromContainer(builder.Configuration);
 
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("AllowAngularClient", builder =>
+	{
+		builder.WithOrigins("http://localhost:4200") 
+			   .AllowAnyMethod() 
+			   .AllowAnyHeader();
+	});
+});
 
 var app = builder.Build();
 
@@ -22,7 +31,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAngularClient");
 //app.UseAuthorization();
 
 app.RegisterSongsEndpoints();

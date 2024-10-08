@@ -1,4 +1,5 @@
-﻿using YoutubeExplode.Videos;
+﻿using Application.DTOs.Songs;
+using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 
 namespace Application.Services
@@ -7,7 +8,7 @@ namespace Application.Services
 
 	public interface IYoutubeService
 	{
-		Task<IEnumerable<VideoInfo>> SearchAsync(string query, int maxResults = 5);
+		Task<IEnumerable<YoutubeSongInfo>> SearchAsync(string query, int maxResults = 5);
 		Task<Stream> GetAudioStreamAsync(string url);
 		Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo);
 		Task<(Video videoInfo, IStreamInfo streamInfo)> GetVideoInfoAsync(string url);

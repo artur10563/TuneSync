@@ -50,18 +50,23 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
 				AudioPath = filePath,
 				Artist = videoInfo.Author.ChannelTitle,
 				Title = videoInfo.Title,
-				VideoId = videoInfo.Id
+				SourceId = videoInfo.Id,
+				AudioSize = (int)streamInfo.Size.KiloBytes,
+				AudioLength = videoInfo.Duration!.Value
 			};
 			_uow.SongRepository.Insert(newsong);
 			await _uow.SaveChangesAsync();
 
+			//Replace with automaper
 			var dto = new SongDTO()
 			{
 				Guid = newsong.Guid,
 				AudioPath = newsong.AudioPath,
 				Artist = newsong.Artist,
 				Title = newsong.Title,
-				VideoId = newsong.VideoId
+				VideoId = newsong.SourceId,
+				AudioSize   = newsong.AudioSize,
+				AudioLength = newsong.AudioLength
 			};
 
 			return Result.Success(dto);
