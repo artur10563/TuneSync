@@ -12,6 +12,7 @@ using YoutubeVideo = Google.Apis.YouTube.v3.Data.Video;
 using YoutubeThumbnail = Google.Apis.YouTube.v3.Data.Thumbnail;
 using ExplodeVideo = YoutubeExplode.Videos.Video;
 using ExplodeThumbnail = YoutubeExplode.Common.Thumbnail;
+using System.Net;
 
 
 namespace Infrastructure.Services
@@ -36,7 +37,7 @@ namespace Infrastructure.Services
 
 
 		// Youtube explode takes 30 times longer to fetch video, so youtube api is used
-		public async Task<IEnumerable<VideoInfo>> SearchAsync(string query, int maxResults = 5)
+		public async Task<IEnumerable<YoutubeSongInfo>> SearchAsync(string query, int maxResults = 5)
 		{
 			if (maxResults > MaxYoutubeSearchResults) maxResults = MaxYoutubeSearchResults;
 
@@ -67,7 +68,7 @@ namespace Infrastructure.Services
 						);
 				}).ToList();
 
-			return new List<VideoInfo>();
+			return result;
 		}
 
 

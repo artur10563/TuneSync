@@ -7,5 +7,7 @@
 		public string Artist { get; set; }
 		public string VideoId { get; set; }
 		public string AudioPath { get; set; }
+		public int AudioSize { get; set; }
+		public TimeSpan AudioLength { get; set; }
 	}
 }

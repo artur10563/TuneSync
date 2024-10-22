@@ -13,8 +13,7 @@ namespace Api.Endpoints
 			//Search on youtube
 			app.MapGet("api/song/youtube/{query}", async (IYoutubeService _youtube, string query) =>
 			{
-				var result = new List<VideoInfo>();
-				result = (await _youtube.SearchAsync(query)).ToList();
+				var result = (await _youtube.SearchAsync(query)).ToList();
 
 				return result;
 			});
