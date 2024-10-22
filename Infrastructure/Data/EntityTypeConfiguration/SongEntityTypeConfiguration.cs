@@ -22,14 +22,6 @@ namespace Infrastructure.Data.EntityTypeConfiguration
 
 			builder.Property(s => s.AudioPath)
 				.IsRequired();
-
-			builder.Property(s => s.CreatedAt)
-				.HasDefaultValueSql("GETUTCDATE()")
-				.ValueGeneratedOnAdd();
-
-			builder.Property(s => s.ModifiedAt)
-				.HasDefaultValueSql("GETUTCDATE()")
-				.ValueGeneratedOnUpdate();
 		}
 	}
 }

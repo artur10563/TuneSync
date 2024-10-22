@@ -8,7 +8,6 @@ using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace Infrastructure
 {
@@ -19,8 +18,10 @@ namespace Infrastructure
 			var connectionString = configuration.GetConnectionString("Default")
 				?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
+			
+
 			serviceCollection.AddDbContext<AppDbContext>(options =>
-				options.UseSqlServer(connectionString));
+				options.UseNpgsql(connectionString));
 
 			serviceCollection.AddMediatR(config => config.RegisterServicesFromAssembly(typeof(CreateSongCommand).Assembly));
 

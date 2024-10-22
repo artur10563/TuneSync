@@ -25,7 +25,7 @@ namespace Infrastructure.Repositories.Shared
 
 		public virtual void Update(TEntity entity)
 		{
-			entity.ModifiedAt = DateTime.Now;
+			entity.ModifiedAt = DateTime.Now.ToUniversalTime();
 			_set.Update(entity);
 		}
 

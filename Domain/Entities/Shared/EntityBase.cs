@@ -9,7 +9,8 @@
 		public EntityBase()
 		{
 			Guid = Guid.NewGuid();
-			CreatedAt = DateTime.Now;
+			CreatedAt = DateTime.Now.ToUniversalTime();
+			ModifiedAt = DateTime.Now.ToUniversalTime();
 		}
 	}
 }

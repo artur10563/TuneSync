@@ -10,11 +10,11 @@ namespace Infrastructure.Data.EntityTypeConfiguration
 		{
 			builder.HasKey(e => e.Guid);
 			builder.Property(e => e.CreatedAt)
-				.HasDefaultValueSql("GETUTCDATE()")
+				.HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'")
 				.ValueGeneratedOnAdd();
 
 			builder.Property(e => e.ModifiedAt)
-				.HasDefaultValueSql("GETUTCDATE()")
+				.HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'")
 				.ValueGeneratedOnUpdate();
 		}
 	}
