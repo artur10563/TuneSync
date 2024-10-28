@@ -1,67 +1,70 @@
 ﻿using Application.CQ.Songs.Command.CreateSong;
 using Application.CQ.Songs.Command.CreateSongFromYouTube;
+using Application.CQ.Songs.Query.GetSongFromDb;
+using Application.DTOs.Songs;
 using Application.Repositories.Shared;
 using Application.Services;
 using MediatR;
 
 namespace Api.Endpoints
 {
-	public static class SongEndpoints
-	{
-		public static async Task RegisterSongsEndpoints(this IEndpointRouteBuilder app)
-		{
-			//Search on youtube
-			app.MapGet("api/song/youtube/{query}", async (IYoutubeService _youtube, string query) =>
-			{
-				var result = (await _youtube.SearchAsync(query)).ToList();
+    public static class SongEndpoints
+    {
+        public static async Task RegisterSongsEndpoints(this IEndpointRouteBuilder app)
+        {
+            //Search on youtube
+            app.MapGet("api/song/youtube/{query}", async (IYoutubeService _youtube, string query) =>
+            {
+                var result = (await _youtube.SearchAsync(query)).ToList();
 
-				return result;
-			});
+                return result;
+            });
 
-			//Mass search from database
-			app.MapGet("api/song/{query}", async (IUnitOfWork _uow, string query) =>
-			{
-				var result = new List<VideoInfo>();
+            //Mass search from database
+            app.MapGet("api/song/{query}", async (ISender _sender, string query) =>
+            {
+                var command = new GetSongFromDbCommand(query);
+                var result = await _sender.Send(command);
 
-				result = _uow.SongRepository.Where(s => s.Guid.ToString() == query || s.Title.Contains(query) || s.Artist.Contains(query))
-					.Select(x => new VideoInfo(x.Title, x.Artist, "VideoUrl(youtube video id or null)", x.AudioPath)).ToList();
+                if(result.IsFailure)
+                    return Results.BadRequest(result.Error);
 
-				return result;
-			});
+                return Results.Ok(result.Value);
+            });
 
-			//Upload from file
-			app.MapPost("api/song", async (
-				IFormFile audioFile,
-				ISender sender) =>
-			{
-				using var stream = audioFile.OpenReadStream();
-				var command = new CreateSongCommand(audioFile.FileName, stream);
-				var result = await sender.Send(command);
+            //Upload from file
+            app.MapPost("api/song", async (
+                IFormFile audioFile,
+                ISender sender) =>
+            {
+                using var stream = audioFile.OpenReadStream();
+                var command = new CreateSongCommand(audioFile.FileName, stream);
+                var result = await sender.Send(command);
 
-				if (result.IsFailure)
-				{
-					return Results.BadRequest(result.Error);
-				}
-				return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
+                if (result.IsFailure)
+                {
+                    return Results.BadRequest(result.Error);
+                }
+                return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
-			}).DisableAntiforgery(); //TODO: Add
+            }).DisableAntiforgery(); //TODO: Add
 
 
-			//Upload from youtube
-			app.MapPost("api/song/youtube/{videoLink}", async (string videoLink,
-				ISender _sender
-				) =>
-			{
-				var command = new CreateSongFromYoutubeCommand(videoLink);
-				var result = await _sender.Send(command);
+            //Upload from youtube
+            app.MapPost("api/song/youtube/{videoLink}", async (string videoLink,
+                ISender _sender
+                ) =>
+            {
+                var command = new CreateSongFromYoutubeCommand(videoLink);
+                var result = await _sender.Send(command);
 
-				if (result.IsFailure)
-					return Results.BadRequest(result.Error);
-				return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
+                if (result.IsFailure)
+                    return Results.BadRequest(result.Error);
+                return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
-			});
-		}
-	}
+            });
+        }
+    }
 }
 
 // Song found in database => return ready to play element
