@@ -8,6 +8,7 @@ namespace Infrastructure.Data
         private readonly AppDbContext _context;
 
         public ISongRepository SongRepository { get; set; }
+        public IUserRepository UserRepository { get; set; }
 
         public int SaveChanges()
         {
@@ -21,10 +22,13 @@ namespace Infrastructure.Data
 
 
 
-        public UnitOfWork(AppDbContext context, ISongRepository songRepository)
+        public UnitOfWork(AppDbContext context,
+            ISongRepository songRepository,
+            IUserRepository userRepository)
         {
             _context = context;
             SongRepository = songRepository ?? throw new ArgumentNullException(nameof(songRepository));
+            UserRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
     }
 }

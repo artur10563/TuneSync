@@ -50,6 +50,7 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
 				AudioPath = filePath,
 				Artist = videoInfo.Author.ChannelTitle,
 				Title = videoInfo.Title,
+				Source = SongSource.YouTube,
 				SourceId = videoInfo.Id,
 				AudioSize = (int)streamInfo.Size.KiloBytes,
 				AudioLength = videoInfo.Duration!.Value

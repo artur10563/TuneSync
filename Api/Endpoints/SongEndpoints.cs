@@ -26,7 +26,7 @@ namespace Api.Endpoints
                 var command = new GetSongFromDbCommand(query);
                 var result = await _sender.Send(command);
 
-                if(result.IsFailure)
+                if (result.IsFailure)
                     return Results.BadRequest(result.Error);
 
                 return Results.Ok(result.Value);
@@ -47,7 +47,7 @@ namespace Api.Endpoints
                 }
                 return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
-            }).DisableAntiforgery(); //TODO: Add
+            }).DisableAntiforgery().RequireAuthorization(); //TODO: Add
 
 
             //Upload from youtube
@@ -62,7 +62,7 @@ namespace Api.Endpoints
                     return Results.BadRequest(result.Error);
                 return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
-            });
+            }).RequireAuthorization();
         }
     }
 }
