@@ -5,6 +5,7 @@ using Application.DTOs.Songs;
 using Application.Repositories.Shared;
 using Application.Services;
 using MediatR;
+using System.Web;
 
 namespace Api.Endpoints
 {
@@ -55,7 +56,7 @@ namespace Api.Endpoints
                 ISender _sender
                 ) =>
             {
-                var command = new CreateSongFromYoutubeCommand(videoLink);
+                var command = new CreateSongFromYoutubeCommand(HttpUtility.UrlDecode(videoLink));
                 var result = await _sender.Send(command);
 
                 if (result.IsFailure)

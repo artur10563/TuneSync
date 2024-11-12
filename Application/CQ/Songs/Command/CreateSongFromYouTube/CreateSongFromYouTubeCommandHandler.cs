@@ -1,9 +1,11 @@
 ﻿using Application.DTOs.Songs;
+using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Entities;
 using Domain.Errors;
 using Domain.Primitives;
+using FluentValidation;
 using MediatR;
 using System;
 using System.Text.RegularExpressions;
@@ -16,23 +18,28 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
         private readonly IYoutubeService _youtube;
         private readonly IFirebaseStorageService _storage;
         private readonly IUnitOfWork _uow;
+        private readonly IValidator<CreateSongFromYoutubeCommand> _validator;
 
-        public CreateSongFromYouTubeCommandHandler(IYoutubeService youtube, IFirebaseStorageService storage, IUnitOfWork uow)
+        public CreateSongFromYouTubeCommandHandler(
+            IYoutubeService youtube,
+            IFirebaseStorageService storage,
+            IUnitOfWork uow,
+            IValidator<CreateSongFromYoutubeCommand> validator)
         {
             _youtube = youtube;
             _storage = storage;
             _uow = uow;
+            _validator = validator;
         }
 
 
         public async Task<Result<SongDTO>> Handle(CreateSongFromYoutubeCommand request, CancellationToken cancellationToken)
         {
-            string decodedUrl = HttpUtility.UrlDecode(request.url);
-            var regex = new Regex("^(https?:\\/\\/)?(www\\.)?youtube\\.com\\/watch\\?v=([a-zA-Z0-9_-]{11})(&.*)?$");
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                return validationResult.AsErrors();
 
-            if (!regex.IsMatch(decodedUrl)) return new Error("Invalid link");
-
-            var (videoInfo, streamInfo) = await _youtube.GetVideoInfoAsync(decodedUrl);
+            var (videoInfo, streamInfo) = await _youtube.GetVideoInfoAsync(request.url);
 
             if (streamInfo.Size.KiloBytes > GlobalVariables.SongConstants.MaxSizeKB)
                 return SongError.InvalidSize;
@@ -41,8 +48,6 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             using var stream = await _youtube.GetAudioStreamAsync(streamInfo);
             var filePath = await _storage.UploadFileAsync(stream);
 
-            //TODO: add max length validation
-            //TODO: check is this song allready exists in database
 
             var newsong = new Song()
             {

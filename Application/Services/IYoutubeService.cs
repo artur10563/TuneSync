@@ -12,5 +12,6 @@ namespace Application.Services
 		Task<Stream> GetAudioStreamAsync(string url);
 		Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo);
 		Task<(Video videoInfo, IStreamInfo streamInfo)> GetVideoInfoAsync(string url);
+		string GetVideoIdFromUrl(string url);
 	}
 }
