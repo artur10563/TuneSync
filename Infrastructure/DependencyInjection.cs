@@ -1,4 +1,5 @@
-﻿using Application.CQ.Songs.Command.CreateSong;
+﻿using Application;
+using Application.CQ.Songs.Command.CreateSong;
 using Application.Repositories;
 using Application.Repositories.Shared;
 using Application.Services;
@@ -13,7 +14,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Infrastructure
 {
@@ -21,6 +21,8 @@ namespace Infrastructure
     {
         public static IServiceCollection DIFromContainer(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
+            serviceCollection.AddValidationDI();
+
             var connectionString = configuration.GetConnectionString("Default")
                 ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 

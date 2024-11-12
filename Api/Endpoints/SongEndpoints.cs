@@ -27,7 +27,7 @@ namespace Api.Endpoints
                 var result = await _sender.Send(command);
 
                 if (result.IsFailure)
-                    return Results.BadRequest(result.Error);
+                    return Results.BadRequest(result.Errors);
 
                 return Results.Ok(result.Value);
             });
@@ -43,7 +43,7 @@ namespace Api.Endpoints
 
                 if (result.IsFailure)
                 {
-                    return Results.BadRequest(result.Error);
+                    return Results.BadRequest(result.Errors);
                 }
                 return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
@@ -59,7 +59,7 @@ namespace Api.Endpoints
                 var result = await _sender.Send(command);
 
                 if (result.IsFailure)
-                    return Results.BadRequest(result.Error);
+                    return Results.BadRequest(result.Errors);
                 return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
             }).RequireAuthorization();

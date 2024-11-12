@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Domain.Primitives;
 
 namespace Infrastructure.Data.EntityTypeConfiguration
 {
@@ -14,11 +15,11 @@ namespace Infrastructure.Data.EntityTypeConfiguration
 
             builder.Property(s => s.Title)
                 .IsRequired()
-                .HasMaxLength(255);
+                .HasMaxLength(GlobalVariables.SongConstants.TitleMaxLength);
 
             builder.Property(s => s.Artist)
                 .IsRequired()
-                .HasMaxLength(255);
+                .HasMaxLength(GlobalVariables.SongConstants.TitleMaxLength); // will be replaced with separate table, placeholder for now
 
             builder.Property(s => s.AudioPath)
                 .IsRequired();

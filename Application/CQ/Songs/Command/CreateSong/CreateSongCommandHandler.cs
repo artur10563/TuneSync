@@ -29,7 +29,7 @@ namespace Application.CQ.Songs.Command.CreateSong
                 Title = request.Title,
                 Artist = "UNKNOWN",
                 AudioPath = filePath,
-                Source = SongSource.File,
+                Source = GlobalVariables.SongSource.File,
                 SourceId = null
             };
 

@@ -26,7 +26,7 @@ namespace Infrastructure.Services.Auth
             var response = await _httpClient.PostAsJsonAsync("", request);
             var token = await response.Content.ReadFromJsonAsync<AuthToken>();
 
-            return token.IdToken; //can return 400 or 401 
+            return token.IdToken;
         }
 
 

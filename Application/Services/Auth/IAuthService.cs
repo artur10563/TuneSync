@@ -3,5 +3,6 @@
     public interface IAuthService
     {
         Task<string> RegisterAsync(string email, string password);
+        Task DeleteAsync(string uid);
     }
 }

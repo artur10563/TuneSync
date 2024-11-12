@@ -1,7 +1,6 @@
 ﻿using Application.CQ.Users.Login;
 using Application.CQ.Users.Register;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Api.Endpoints
 {
@@ -16,7 +15,7 @@ namespace Api.Endpoints
                 var result = await sender.Send(request);
                 if (result.IsFailure)
                 {
-                    return Results.BadRequest(result.Error);
+                    return Results.BadRequest(result.Errors);
                 }
 
                 return Results.Ok(result.Value);
@@ -27,7 +26,7 @@ namespace Api.Endpoints
                 var result = await sender.Send(request);
                 if (result.IsFailure)
                 {
-                    return Results.BadRequest(result.Error);
+                    return Results.BadRequest(result.Errors);
                 }
                 return Results.Ok(result.Value);
             });

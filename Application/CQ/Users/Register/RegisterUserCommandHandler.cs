@@ -1,13 +1,12 @@
-﻿using Application.Repositories.Shared;
+﻿using Application.Extensions;
+using Application.Repositories.Shared;
 using Application.Services.Auth;
 using Domain.Entities;
+using Domain.Errors;
 using Domain.Primitives;
+using FluentValidation;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Application.CQ.Users.Register
 {
@@ -15,25 +14,47 @@ namespace Application.CQ.Users.Register
     {
         private readonly IAuthService _auth;
         private readonly IUnitOfWork _uow;
+        private readonly IValidator<RegisterUserCommand> _validator;
 
-        public RegisterUserCommandHandler(IAuthService auth, IUnitOfWork uow)
+        public RegisterUserCommandHandler(IAuthService auth, IUnitOfWork uow, IValidator<RegisterUserCommand> validator)
         {
             _auth = auth;
             _uow = uow;
+            _validator = validator;
         }
 
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-            //TODO: VALIDATIOn
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+                return validationResult.AsErrors();
 
-            //add to firebase
-            var identityId = await _auth.RegisterAsync(request.Email, request.Password);
 
-            //store to database
-            var user = new User(request.Name, request.Email, identityId);
+            User user = null!;
+            try
+            {
+                //add to firebase
+                var identityId = await _auth.RegisterAsync(request.Email, request.Password);
 
-            _uow.UserRepository.Insert(user);
-            await _uow.SaveChangesAsync();
+                try
+                {
+                    //store to database
+                    user = new User(request.Name, request.Email, identityId);
+                    _uow.UserRepository.Insert(user);
+                    await _uow.SaveChangesAsync();
+                }
+                catch (Exception)
+                {
+                    //Database failure. Delete newly created firebase user
+                    await _auth.DeleteAsync(identityId);
+                    return new Error("Failed to create user");
+                }
+            }
+            catch (Exception)
+            {
+                //Firebase failure
+                return new Error("Failed to create user");
+            }
 
             return Result.Success(user.Guid);
         }

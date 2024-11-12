@@ -17,5 +17,10 @@ namespace Infrastructure.Services.Auth
 
             return userRecord.Uid;
         }
+
+        public async Task DeleteAsync(string uid)
+        {
+            await FirebaseAuth.DefaultInstance.DeleteUserAsync(uid);
+        }
     }
 }

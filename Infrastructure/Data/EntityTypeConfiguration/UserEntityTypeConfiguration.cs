@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Primitives;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Data.EntityTypeConfiguration
@@ -12,8 +13,8 @@ namespace Infrastructure.Data.EntityTypeConfiguration
             builder.HasIndex(x => x.IdentityId).IsUnique();
             builder.HasIndex(x => x.Email).IsUnique();
 
-            builder.Property(x => x.Email).HasMaxLength(255).IsRequired();
-            builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            builder.Property(x => x.Email).HasMaxLength(GlobalVariables.UserConstants.EmailMaxLength).IsRequired();
+            builder.Property(x => x.Name).HasMaxLength(GlobalVariables.UserConstants.NameMaxLength).IsRequired();
 
         }
     }
