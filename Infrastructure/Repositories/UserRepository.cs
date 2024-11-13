@@ -14,5 +14,10 @@ namespace Infrastructure.Repositories
         {
             return !(await _context.Users.AnyAsync(x => x.Email == email));
         }
+        public async Task<User?> GetByExternalIdAsync(string uid)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x => x.IdentityId == uid);
+        }
+
     }
 }

@@ -57,6 +57,7 @@ namespace Infrastructure
                 .AddScoped<ISongRepository, SongRepository>()
                 .AddScoped<IYoutubeService, YoutubeService>()
                 .AddScoped<IUserRepository, UserRepository>()
+                .AddScoped<IPlaylistRepository, PlaylistRepository>()
                 .AddScoped<IFirebaseStorageService, FirebaseStorageService>();
 
 

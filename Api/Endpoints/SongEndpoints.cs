@@ -1,4 +1,5 @@
-﻿using Application.CQ.Songs.Command.CreateSong;
+﻿using Api.Extensions;
+using Application.CQ.Songs.Command.CreateSong;
 using Application.CQ.Songs.Command.CreateSongFromYouTube;
 using Application.CQ.Songs.Query.GetSongFromDb;
 using Application.DTOs.Songs;
@@ -52,12 +53,11 @@ namespace Api.Endpoints
 
 
             //Upload from youtube
-            app.MapPost("api/song/youtube/{videoLink}", async (string videoLink,
+            app.MapPost("api/song/youtube/{videoLink}", async (CreateSongFromYoutubeCommand request,
                 ISender _sender
                 ) =>
             {
-                var command = new CreateSongFromYoutubeCommand(HttpUtility.UrlDecode(videoLink));
-                var result = await _sender.Send(command);
+                var result = await _sender.Send(CreateSongFromYoutubeCommand.Create(request));
 
                 if (result.IsFailure)
                     return Results.BadRequest(result.Errors);
@@ -67,19 +67,3 @@ namespace Api.Endpoints
         }
     }
 }
-
-// Song found in database => return ready to play element
-// Song not found in database => searech youtube, return 5 video results (title, author, youtube url for posibility of preview,).
-// User can click a button to confirm the correct song and download it to our database
-//User can add song from his pc
-
-//Posiblle Endpoints:
-
-//Download Song Endpoint:
-// takes IFormFile / byte array and saves mp3 to firebase storage
-// song search from youtube
-// song search from database
-// song search from other source
-
-//Validation: 
-// Max length of song OR YouTube - (Length of video * kb/sec)

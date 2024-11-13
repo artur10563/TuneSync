@@ -39,7 +39,7 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             if (!validationResult.IsValid)
                 return validationResult.AsErrors();
 
-            var (videoInfo, streamInfo) = await _youtube.GetVideoInfoAsync(request.url);
+            var (videoInfo, streamInfo) = await _youtube.GetVideoInfoAsync(request.Url);
 
             if (streamInfo.Size.KiloBytes > GlobalVariables.SongConstants.MaxSizeKB)
                 return SongError.InvalidSize;
@@ -52,8 +52,8 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             var newsong = new Song()
             {
                 AudioPath = filePath,
-                Artist = videoInfo.Author.ChannelTitle,
-                Title = videoInfo.Title,
+                Artist = request.Author ?? videoInfo.Author.ChannelTitle,
+                Title = request.SongName ?? videoInfo.Title,
                 Source = GlobalVariables.SongSource.YouTube,
                 SourceId = videoInfo.Id,
                 AudioSize = (int)streamInfo.Size.KiloBytes,

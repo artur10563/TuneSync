@@ -39,5 +39,6 @@ app.UseAuthorization();
 
 app.RegisterSongsEndpoints();
 app.RegisterUserEndpoints();
+app.RegisterPlaylistEndpoints();
 
 app.Run();

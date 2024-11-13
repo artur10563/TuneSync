@@ -1,5 +1,4 @@
-﻿using Application.CQ.Users.Register;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application

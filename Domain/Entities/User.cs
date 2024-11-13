@@ -10,6 +10,8 @@ namespace Domain.Entities
         //Used to identify user from external provider
         public string IdentityId { get; set; }
 
+        public virtual ICollection<Playlist> Playlists { get; set; }
+
         public User(string name, string email, string identityId)
         {
             Name = name;
