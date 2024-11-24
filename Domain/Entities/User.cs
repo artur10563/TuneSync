@@ -11,6 +11,7 @@ namespace Domain.Entities
         public string IdentityId { get; set; }
 
         public virtual ICollection<Playlist> Playlists { get; set; }
+        public virtual ICollection<Song> Songs { get; set; }
 
         public User(string name, string email, string identityId)
         {

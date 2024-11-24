@@ -19,6 +19,26 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .WithMany(x => x.Playlists)
                 .HasForeignKey(x => x.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+
+
+            builder.HasMany(p => p.Songs)
+                .WithMany(s => s.Playlists)
+                .UsingEntity<PlaylistSong>(
+                pls =>
+                    pls.HasOne<Song>()
+                    .WithMany()
+                    .HasForeignKey(pls => pls.SongGuid),
+                pls =>
+                    pls.HasOne<Playlist>()
+                    .WithMany()
+                    .HasForeignKey(pls => pls.PlaylistGuid),
+                j =>
+                {
+                    j.ToTable("PlaylistSong");
+                    j.HasKey(ps => new { ps.PlaylistGuid, ps.SongGuid });
+                    j.HasIndex(ps => new { ps.PlaylistGuid, ps.SongGuid }).IsUnique();
+                });
+
         }
     }
 }

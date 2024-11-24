@@ -2,7 +2,7 @@
 using Domain.Primitives;
 using FluentValidation;
 
-namespace Application.CQ.Playlists
+namespace Application.CQ.Playlists.Command.Create
 {
     public sealed class CreatePlaylistCommandValidator : AbstractValidator<CreatePlaylistCommand>
     {

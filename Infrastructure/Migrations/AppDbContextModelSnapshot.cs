@@ -53,6 +53,24 @@ namespace Infrastructure.Migrations
                     b.ToTable("Playlist", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.PlaylistSong", b =>
+                {
+                    b.Property<Guid>("PlaylistGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SongGuid")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PlaylistGuid", "SongGuid");
+
+                    b.HasIndex("SongGuid");
+
+                    b.HasIndex("PlaylistGuid", "SongGuid")
+                        .IsUnique();
+
+                    b.ToTable("PlaylistSong", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Song", b =>
                 {
                     b.Property<Guid>("Guid")
@@ -79,6 +97,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
 
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("ModifiedAt")
                         .ValueGeneratedOnUpdate()
                         .HasColumnType("timestamp with time zone")
@@ -97,6 +118,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Guid");
+
+                    b.HasIndex("CreatedBy");
 
                     b.ToTable("Song", (string)null);
                 });
@@ -139,7 +162,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("IdentityId")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Domain.Entities.Playlist", b =>
@@ -153,9 +176,36 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.PlaylistSong", b =>
+                {
+                    b.HasOne("Domain.Entities.Playlist", null)
+                        .WithMany()
+                        .HasForeignKey("PlaylistGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Song", null)
+                        .WithMany()
+                        .HasForeignKey("SongGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Song", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Songs")
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Navigation("Playlists");
+
+                    b.Navigation("Songs");
                 });
 #pragma warning restore 612, 618
         }

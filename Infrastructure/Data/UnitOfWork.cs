@@ -1,5 +1,6 @@
 ﻿using Application.Repositories;
 using Application.Repositories.Shared;
+using Domain.Entities;
 
 namespace Infrastructure.Data
 {
@@ -10,6 +11,7 @@ namespace Infrastructure.Data
         public ISongRepository SongRepository { get; set; }
         public IUserRepository UserRepository { get; set; }
         public IPlaylistRepository PlaylistRepository { get; set; }
+        public ILinkEntityRepository<PlaylistSong> PlaylistSongRepository { get; set; }
 
         public int SaveChanges()
         {
@@ -26,12 +28,14 @@ namespace Infrastructure.Data
         public UnitOfWork(AppDbContext context,
             ISongRepository songRepository,
             IUserRepository userRepository,
-            IPlaylistRepository playlistRepository)
+            IPlaylistRepository playlistRepository,
+            ILinkEntityRepository<PlaylistSong> playlistSongRepository)
         {
             _context = context;
             SongRepository = songRepository ?? throw new ArgumentNullException(nameof(songRepository));
             UserRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             PlaylistRepository = playlistRepository ?? throw new ArgumentNullException(nameof(playlistRepository));
+            PlaylistSongRepository = playlistSongRepository ?? throw new ArgumentNullException(nameof(playlistSongRepository));
         }
     }
 }

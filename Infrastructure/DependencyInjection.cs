@@ -4,10 +4,12 @@ using Application.Repositories;
 using Application.Repositories.Shared;
 using Application.Services;
 using Application.Services.Auth;
+using Domain.Entities;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Repositories.Shared;
 using Infrastructure.Services;
 using Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,7 +60,8 @@ namespace Infrastructure
                 .AddScoped<IYoutubeService, YoutubeService>()
                 .AddScoped<IUserRepository, UserRepository>()
                 .AddScoped<IPlaylistRepository, PlaylistRepository>()
-                .AddScoped<IFirebaseStorageService, FirebaseStorageService>();
+                .AddScoped<IFirebaseStorageService, FirebaseStorageService>()
+                .AddScoped<ILinkEntityRepository<PlaylistSong>, LinkEntityRepository<PlaylistSong>>();
 
 
             serviceCollection.AddSingleton<IAuthService, AuthService>();

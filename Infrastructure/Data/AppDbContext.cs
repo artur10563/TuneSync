@@ -8,6 +8,7 @@ namespace Infrastructure.Data
         public DbSet<Song> Songs { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
+        public DbSet<PlaylistSong> PlaylistSongs { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)

@@ -9,6 +9,8 @@ namespace Domain.Entities
 
         public User User { get; set; }
 
+        public virtual ICollection<Song> Songs { get; set; }
+
         public Playlist() : base() { }
         public Playlist(string title, Guid createdBy) : base()
         {

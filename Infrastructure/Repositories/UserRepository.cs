@@ -18,6 +18,5 @@ namespace Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.IdentityId == uid);
         }
-
     }
 }

@@ -24,6 +24,11 @@ namespace Infrastructure.Data.EntityTypeConfiguration
             builder.Property(s => s.AudioPath)
                 .IsRequired();
 
+            builder.HasOne(x => x.User)
+                .WithMany(x => x.Songs)
+                .HasForeignKey(x => x.CreatedBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
             builder.Property(s => s.Source).IsRequired();
             builder.Property(s => s.SourceId).IsRequired(false);
         }

@@ -1,19 +1,34 @@
 ﻿using Domain.Entities.Shared;
+using System.Linq.Expressions;
 
 namespace Application.Repositories.Shared
 {
-	public interface IBaseRepository<TEntity> where TEntity : EntityBase
-	{
-		void Insert(TEntity entity);
-		void Update(TEntity entity);
-		void Delete(TEntity entity);
+    public interface IBaseRepository<TEntity> where TEntity : EntityBase
+    {
+        void Insert(TEntity entity);
+        void Update(TEntity entity);
+        void Delete(TEntity entity);
 
+        Task<bool> ExistsAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            bool asNoTracking = false,
+            params Expression<Func<TEntity, object>>[] includes);
 
-		TEntity? GetByGuid(Guid guid);
-		TEntity? FirstOrDefault(Func<TEntity, bool> predicate);
+        Task<TEntity?> GetByGuidAsync(
+            Guid guid,
+            bool asNoTracking = false,
+            params Expression<Func<TEntity, object>>[] includes);
 
-		IQueryable<TEntity> Queryable();
-		IEnumerable<TEntity> Where(Func<TEntity, bool> predicate);
+        Task<TEntity?> FirstOrDefaultAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            bool asNoTracking = false,
+            params Expression<Func<TEntity, object>>[] includes);
 
-	}
+        IQueryable<TEntity> Queryable();
+
+        IEnumerable<TEntity> Where(
+            Expression<Func<TEntity, bool>> predicate,
+            bool asNoTracking = false,
+            params Expression<Func<TEntity, object>>[] includes);
+    }
 }
