@@ -23,7 +23,7 @@ namespace Infrastructure
     {
         public static IServiceCollection DIFromContainer(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.AddValidationDI();
+            serviceCollection.AddValidationDI(configuration);
 
             var connectionString = configuration.GetConnectionString("Default")
                 ?? throw new InvalidOperationException("Connection string 'Default' not found.");

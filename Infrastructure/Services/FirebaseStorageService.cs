@@ -12,27 +12,18 @@ namespace Infrastructure.Services
 			_fileStorage = new FirebaseStorage(configuration["FirestoreStorage:DefaultBucket"]);
 		}
 
-		//TODO: save to database , test if metadata can pass info
 		/// <summary>
-		/// Uploads file and return its downloading path
+		/// Uploads file and return its Guid
 		/// </summary>
 		/// <param name="fileStream">File as fileStream</param>
 		/// <returns>Path from which the file can be downloaded</returns>
-		public async Task<string> UploadFileAsync(Stream fileStream)
+		public async Task<Guid> UploadFileAsync(Stream fileStream)
 		{
-			//Guid is used for name as files will get replaced if name is the same
-			var fileName = Guid.NewGuid().ToString() + ".mp3";
-			var uploadTask = _fileStorage.Child(fileName).PutAsync(fileStream: fileStream);
+			var guid = Guid.NewGuid();
+			var fileName = guid.ToString() + ".mp3";
+			await _fileStorage.Child(fileName).PutAsync(fileStream: fileStream);
 
-			return await uploadTask;
-		}
-
-		//TODO: Test
-		public async Task<string> GetAsync(string filePath)
-		{
-
-			var fileUrl = await _fileStorage.Child(filePath).GetDownloadUrlAsync();
-			return fileUrl;
+			return guid;
 		}
 	}
 }

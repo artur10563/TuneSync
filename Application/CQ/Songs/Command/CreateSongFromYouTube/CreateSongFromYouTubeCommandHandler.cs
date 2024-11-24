@@ -2,14 +2,12 @@
 using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
+using AutoMapper;
 using Domain.Entities;
 using Domain.Errors;
 using Domain.Primitives;
 using FluentValidation;
 using MediatR;
-using System;
-using System.Text.RegularExpressions;
-using System.Web;
 
 namespace Application.CQ.Songs.Command.CreateSongFromYouTube
 {
@@ -19,17 +17,21 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
         private readonly IFirebaseStorageService _storage;
         private readonly IUnitOfWork _uow;
         private readonly IValidator<CreateSongFromYoutubeCommand> _validator;
+        private readonly IMapper _mapper;
 
         public CreateSongFromYouTubeCommandHandler(
             IYoutubeService youtube,
             IFirebaseStorageService storage,
             IUnitOfWork uow,
-            IValidator<CreateSongFromYoutubeCommand> validator)
+            IValidator<CreateSongFromYoutubeCommand> validator,
+            IMapper mapper
+            )
         {
             _youtube = youtube;
             _storage = storage;
             _uow = uow;
             _validator = validator;
+            _mapper = mapper;
         }
 
 
@@ -46,12 +48,11 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
 
 
             using var stream = await _youtube.GetAudioStreamAsync(streamInfo);
-            var filePath = await _storage.UploadFileAsync(stream);
-
+            var fileGuid = await _storage.UploadFileAsync(stream);
 
             var newsong = new Song()
             {
-                AudioPath = filePath,
+                AudioPath = fileGuid,
                 Artist = request.Author ?? videoInfo.Author.ChannelTitle,
                 Title = request.SongName ?? videoInfo.Title,
                 Source = GlobalVariables.SongSource.YouTube,
@@ -62,19 +63,7 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             _uow.SongRepository.Insert(newsong);
             await _uow.SaveChangesAsync();
 
-            //Replace with automaper
-            var dto = new SongDTO()
-            {
-                Guid = newsong.Guid,
-                AudioPath = newsong.AudioPath,
-                Artist = newsong.Artist,
-                Title = newsong.Title,
-                VideoId = newsong.SourceId,
-                AudioSize = newsong.AudioSize,
-                AudioLength = newsong.AudioLength
-            };
-
-            return Result.Success(dto);
+            return Result.Success(_mapper.Map<SongDTO>(newsong));
         }
     }
 }

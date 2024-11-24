@@ -15,17 +15,10 @@ namespace Application.CQ.Playlists.Query.GetById
         }
 
         //test after playlist actually has songs :/
-        public Task<Result<PlaylistDTO>> Handle(GetPlaylistByIdCommand request, CancellationToken cancellationToken)
+        public async Task<Result<PlaylistDTO>> Handle(GetPlaylistByIdCommand request, CancellationToken cancellationToken)
         {
-            var pl = (from playlist in _uow.PlaylistRepository.Queryable()
-                      select playlist
-                      );
-            //_uow.PlaylistRepository.Where(x => x.Guid == request.PlaylistGuid).FirstOrDefault();
-
-
-            var pl1 = (from playlist in _uow.PlaylistRepository.Queryable()
-                      select playlist.Songs
-                      );
+            var plSongs = await _uow.PlaylistRepository.GetByGuidAsync(request.PlaylistGuid, includes: pl => pl.Songs);
+            
             return null;
         }
     }

@@ -56,7 +56,7 @@ namespace Infrastructure.Repositories.Shared
             return _set.AsQueryable();
         }
 
-        public virtual IEnumerable<TEntity> Where(
+        public virtual IQueryable<TEntity> Where(
             Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false,
             params Expression<Func<TEntity, object>>[] includes)
         {

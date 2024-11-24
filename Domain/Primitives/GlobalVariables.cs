@@ -1,10 +1,23 @@
 ﻿namespace Domain.Primitives
 {
     /// <summary>
-    /// Changing constants might reuire running a migration
+    /// Changing constants might require running a migration
     /// </summary>
     public static class GlobalVariables
     {
+        private static string _fbStorage;
+        private static string FirebaseMP3StringFormat = @"https://firebasestorage.googleapis.com/v0/b/{0}/o/{1}.mp3?alt=media";
+
+        public static void Initialize(string fbStorage)
+        {
+            _fbStorage = fbStorage;
+        }
+
+        public static string GetFirebaseMP3Link(Guid fileGuid) =>
+            string.Format(FirebaseMP3StringFormat, _fbStorage, fileGuid);
+
+
+        public static string YoutubeWatch = @"https://www.youtube.com/watch?v=";
         public static class SongSource
         {
             public const string File = "File";

@@ -39,6 +39,7 @@ namespace Api.Endpoints
                 return Results.Created($"api/playlist/{result.Value}", result.Value);
             });
 
+            //Add song to playlist
             group.MapPost("/{playlistGuid}/songs/{songGuid}", async (ISender sender, HttpContext _http, IUnitOfWork _uow,
                 Guid playlistGuid,
                 Guid songGuid) =>
@@ -49,6 +50,10 @@ namespace Api.Endpoints
                 var command = new AddSongToPlaylistCommand(playlistGuid, songGuid, user.Guid);
                 var result = await sender.Send(command);
 
+                if (result.IsFailure)
+                    return Results.BadRequest(result.Errors);
+
+                return Results.Created($"api/playlist/{playlistGuid}", playlistGuid);
             });
         
         }

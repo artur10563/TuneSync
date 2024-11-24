@@ -26,7 +26,7 @@ namespace Application.Repositories.Shared
 
         IQueryable<TEntity> Queryable();
 
-        IEnumerable<TEntity> Where(
+        IQueryable<TEntity> Where(
             Expression<Func<TEntity, bool>> predicate,
             bool asNoTracking = false,
             params Expression<Func<TEntity, object>>[] includes);

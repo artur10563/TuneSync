@@ -85,9 +85,8 @@ namespace Infrastructure.Migrations
                     b.Property<TimeSpan>("AudioLength")
                         .HasColumnType("interval");
 
-                    b.Property<string>("AudioPath")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("AudioPath")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AudioSize")
                         .HasColumnType("integer");
