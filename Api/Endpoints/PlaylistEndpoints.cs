@@ -11,7 +11,7 @@ namespace Api.Endpoints
     {
         public static async Task RegisterPlaylistEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("api/playlist");
+            var group = app.MapGroup("api/playlist").WithTags("Playlist");
 
             //Create new playlist
             group.MapPost("", async (ISender sender, HttpContext _httpContext, IUnitOfWork _uow,

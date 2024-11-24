@@ -14,8 +14,11 @@ namespace Api.Endpoints
     {
         public static async Task RegisterSongsEndpoints(this IEndpointRouteBuilder app)
         {
+            var songGroup = app.MapGroup("api/song").WithTags("Song");
+            var youtubeGroup = app.MapGroup("api/song/youtube").WithTags("Youtube");
+
             //Search on youtube
-            app.MapGet("api/song/youtube/{query}", async (IYoutubeService _youtube, string query) =>
+            youtubeGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
             {
                 var result = (await _youtube.SearchAsync(query)).ToList();
 
@@ -23,7 +26,7 @@ namespace Api.Endpoints
             });
 
             //Mass search from database
-            app.MapGet("api/song/{query}", async (ISender _sender, string query) =>
+            songGroup.MapGet("/{query}", async (ISender _sender, string query) =>
             {
                 var command = new GetSongFromDbCommand(query);
                 var result = await _sender.Send(command);
@@ -35,7 +38,7 @@ namespace Api.Endpoints
             });
 
             //Upload from file
-            app.MapPost("api/song", async (
+            songGroup.MapPost("", async (
                 IFormFile audioFile,
                 ISender sender) =>
             {
@@ -53,7 +56,7 @@ namespace Api.Endpoints
 
 
             //Upload from youtube
-            app.MapPost("api/song/youtube/{videoLink}", async (CreateSongFromYoutubeCommand request,
+            youtubeGroup.MapPost("/{videoLink}", async (CreateSongFromYoutubeCommand request,
                 ISender _sender
                 ) =>
             {

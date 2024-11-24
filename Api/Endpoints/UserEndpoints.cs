@@ -8,7 +8,7 @@ namespace Api.Endpoints
     {
         public static async Task RegisterUserEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("user/");
+            var group = app.MapGroup("user/").WithTags("User");
 
             group.MapPost("register", async (ISender sender, RegisterUserCommand request) =>
             {
