@@ -13,13 +13,13 @@ namespace Application.CQ.Playlists.Command.Create
                 .NotEmpty().WithMessage("Song is required.")
                 .MustAsync(async (songGuid, cancellation) =>
                 await uow.SongRepository.ExistsAsync(x => x.Guid == songGuid))
-           .WithMessage(string.Format(Error.NotFoundFormat.Description, nameof(Song)));
+           .WithMessage(Error.NotFound(nameof(Song)).Description);
 
             RuleFor(x => x.PlaylistGuid)
                 .NotEmpty().WithMessage("Playlist is required.")
                 .MustAsync(async (playlistGuid, cancellation) =>
                     await uow.PlaylistRepository.ExistsAsync(x => x.Guid == playlistGuid))
-                .WithMessage(string.Format(Error.NotFoundFormat.Description, nameof(Playlist)));
+                .WithMessage(Error.NotFound(nameof(Playlist)).Description);
 
             RuleFor(x => x)
                 .MustAsync(async (command, cancellation) =>

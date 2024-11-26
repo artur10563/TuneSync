@@ -3,6 +3,7 @@ using Domain.Primitives;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Application
 {
@@ -14,7 +15,7 @@ namespace Application
 
             serviceCollection.AddValidatorsFromAssemblyContaining<IApplicationMarker>();
 
-            serviceCollection.AddAutoMapper(typeof(SongMap));
+            serviceCollection.AddAutoMapper(Assembly.GetAssembly(typeof(IApplicationMarker)));
 
             return serviceCollection;
         }

@@ -1,7 +1,7 @@
 ﻿using Api.Extensions;
-using Application.CQ.Playlists;
 using Application.CQ.Playlists.Command.Create;
 using Application.CQ.Playlists.Query.GetById;
+using Application.CQ.Playlists.Query.GetPlaylistsByUser;
 using Application.Repositories.Shared;
 using MediatR;
 
@@ -55,7 +55,20 @@ namespace Api.Endpoints
 
                 return Results.Created($"api/playlist/{playlistGuid}", playlistGuid);
             });
-        
+
+            group.MapGet("", async (ISender sender, HttpContext _http, IUnitOfWork _uow) =>
+            {
+                var uid = _http.GetExternalUserId();
+                var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
+
+                var command = new GetPlaylistsByUserCommand(user.Guid);
+                var result = await sender.Send(command);
+
+                if (result.IsFailure)
+                    return Results.BadRequest(result.Errors);
+
+                return Results.Ok(result.Value);
+            }).RequireAuthorization();
         }
     }
 }

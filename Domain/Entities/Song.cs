@@ -2,7 +2,7 @@
 
 namespace Domain.Entities
 {
-	public class Song : EntityBase
+    public class Song : EntityBase
 	{
 		public string Title { get; set; }
 		public string Artist { get; set; }
