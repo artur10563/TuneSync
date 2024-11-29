@@ -36,7 +36,7 @@ namespace Api.Endpoints
                 var result = await sender.Send(command);
                 if (result.IsFailure)
                     return Results.BadRequest(result.Errors);
-                return Results.Created($"api/playlist/{result.Value}", result.Value);
+                return Results.Ok(result.Value);
             });
 
             //Add song to playlist

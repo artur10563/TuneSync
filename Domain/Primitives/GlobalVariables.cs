@@ -7,7 +7,7 @@
     {
         private static string _fbStorage;
         private static string FirebaseMP3StringFormat = @"https://firebasestorage.googleapis.com/v0/b/{0}/o/{1}.mp3?alt=media";
-
+        private static string YoutubeThumbnailStringFormat = @"https://img.youtube.com/vi/{0}/mqdefault.jpg";
         public static void Initialize(string fbStorage)
         {
             _fbStorage = fbStorage;
@@ -15,6 +15,9 @@
 
         public static string GetFirebaseMP3Link(Guid fileGuid) =>
             string.Format(FirebaseMP3StringFormat, _fbStorage, fileGuid);
+
+        public static string GetYoutubeThumbnail(string videoGuid) =>
+            string.Format(YoutubeThumbnailStringFormat, videoGuid);
 
 
         public static string YoutubeWatch = @"https://www.youtube.com/watch?v=";

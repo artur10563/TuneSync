@@ -20,9 +20,11 @@ namespace Application.DTOs.Automapper
                 )
                 .ForMember(dest => dest.AudioPath,
                     opt => opt.MapFrom(
-                        src => string.Format(GlobalVariables.GetFirebaseMP3Link(src.AudioPath))
-                        )
-                    );
+                        src => GlobalVariables.GetFirebaseMP3Link(src.AudioPath))
+                    )
+                .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom(
+                    src => GlobalVariables.GetYoutubeThumbnail(src.SourceId!))
+                );
         }
     }
 }
