@@ -46,7 +46,6 @@ namespace Infrastructure.Services
             searchListRequest.MaxResults = maxResults;
             var searchListResponse = await searchListRequest.ExecuteAsync();
 
-            var start = DateTime.Now;
             var result = searchListResponse.Items
                 .Where(item => !string.IsNullOrEmpty(item.Id.VideoId)) //Get only videos
                 .Select(x =>

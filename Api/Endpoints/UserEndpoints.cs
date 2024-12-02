@@ -19,7 +19,7 @@ namespace Api.Endpoints
                 }
 
                 return Results.Ok(result.Value);
-            });
+            }).WithDescription("Register new user");
 
             group.MapPost("login", async (ISender sender, LoginUserCommand request) =>
             {
@@ -29,7 +29,7 @@ namespace Api.Endpoints
                     return Results.BadRequest(result.Errors);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).WithDescription("Login");
         }
     }
 }

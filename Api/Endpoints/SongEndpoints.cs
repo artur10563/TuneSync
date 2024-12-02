@@ -17,15 +17,13 @@ namespace Api.Endpoints
             var songGroup = app.MapGroup("api/song").WithTags("Song");
             var youtubeGroup = app.MapGroup("api/song/youtube").WithTags("Youtube");
 
-            //Search on youtube
             youtubeGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
             {
                 var result = (await _youtube.SearchAsync(query)).ToList();
 
                 return result;
-            });
+            }).WithDescription("Search on youtube");
 
-            //Mass search from database
             songGroup.MapGet("/{query}", async (ISender _sender, string query) =>
             {
                 var command = new GetSongFromDbCommand(query);
@@ -35,9 +33,8 @@ namespace Api.Endpoints
                     return Results.BadRequest(result.Errors);
 
                 return Results.Ok(result.Value);
-            });
+            }).WithDescription("Search from database"); ;
 
-            //Upload from file
             songGroup.MapPost("", async (
                 IFormFile audioFile,
                 ISender sender) =>
@@ -52,10 +49,9 @@ namespace Api.Endpoints
                 }
                 return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
-            }).DisableAntiforgery().RequireAuthorization(); //TODO: Add
+            }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); ; //TODO: Add
 
 
-            //Upload from youtube
             youtubeGroup.MapPost("/{videoLink}", async (CreateSongFromYoutubeCommand request,
                 ISender _sender
                 ) =>
@@ -66,7 +62,7 @@ namespace Api.Endpoints
                     return Results.BadRequest(result.Errors);
                 return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
-            }).RequireAuthorization();
+            }).RequireAuthorization().WithDescription("Upload from youtube by video url");
         }
     }
 }

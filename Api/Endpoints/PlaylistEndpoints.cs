@@ -27,9 +27,10 @@ namespace Api.Endpoints
                 if (result.IsFailure)
                     return Results.BadRequest(result.Errors);
                 return Results.Created($"api/playlist/{result.Value}", result.Value);
-            }).RequireAuthorization();
+            })
+                .RequireAuthorization()
+                .WithDescription("Create new playlist");
 
-            //Get playlist by Guid
             group.MapGet("/{guid}", async (ISender sender, Guid guid) =>
             {
                 var command = new GetPlaylistByIdCommand(guid);
@@ -37,9 +38,9 @@ namespace Api.Endpoints
                 if (result.IsFailure)
                     return Results.BadRequest(result.Errors);
                 return Results.Ok(result.Value);
-            });
+            })
+                .WithDescription("Get playlist with songs by Guid");
 
-            //Add song to playlist
             group.MapPost("/{playlistGuid}/songs/{songGuid}", async (ISender sender, HttpContext _http, IUnitOfWork _uow,
                 Guid playlistGuid,
                 Guid songGuid) =>
@@ -54,7 +55,9 @@ namespace Api.Endpoints
                     return Results.BadRequest(result.Errors);
 
                 return Results.Created($"api/playlist/{playlistGuid}", playlistGuid);
-            });
+            })
+                .RequireAuthorization()
+                .WithDescription("Add song to playlist");
 
             group.MapGet("", async (ISender sender, HttpContext _http, IUnitOfWork _uow) =>
             {
@@ -68,7 +71,9 @@ namespace Api.Endpoints
                     return Results.BadRequest(result.Errors);
 
                 return Results.Ok(result.Value);
-            }).RequireAuthorization();
+            })
+                .RequireAuthorization()
+                .WithDescription("Current user playlists (without songs)");
         }
     }
 }
