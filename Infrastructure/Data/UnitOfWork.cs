@@ -12,7 +12,7 @@ namespace Infrastructure.Data
         public IUserRepository UserRepository { get; set; }
         public IPlaylistRepository PlaylistRepository { get; set; }
         public ILinkEntityRepository<PlaylistSong> PlaylistSongRepository { get; set; }
-
+        public IArtistRepository ArtistRepository { get;set; }
         public int SaveChanges()
         {
             return _context.SaveChanges();
@@ -29,13 +29,15 @@ namespace Infrastructure.Data
             ISongRepository songRepository,
             IUserRepository userRepository,
             IPlaylistRepository playlistRepository,
-            ILinkEntityRepository<PlaylistSong> playlistSongRepository)
+            ILinkEntityRepository<PlaylistSong> playlistSongRepository,
+            IArtistRepository artistRepository)
         {
             _context = context;
             SongRepository = songRepository ?? throw new ArgumentNullException(nameof(songRepository));
             UserRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             PlaylistRepository = playlistRepository ?? throw new ArgumentNullException(nameof(playlistRepository));
             PlaylistSongRepository = playlistSongRepository ?? throw new ArgumentNullException(nameof(playlistSongRepository));
+            ArtistRepository = artistRepository ?? throw new ArgumentNullException(nameof(artistRepository));
         }
     }
 }

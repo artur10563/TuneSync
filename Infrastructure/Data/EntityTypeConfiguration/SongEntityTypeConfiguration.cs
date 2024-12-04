@@ -17,10 +17,6 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .IsRequired()
                 .HasMaxLength(GlobalVariables.SongConstants.TitleMaxLength);
 
-            builder.Property(s => s.Artist)
-                .IsRequired()
-                .HasMaxLength(GlobalVariables.SongConstants.TitleMaxLength); // will be replaced with separate table, placeholder for now
-
             builder.Property(s => s.AudioPath)
                 .IsRequired();
 

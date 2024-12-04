@@ -5,7 +5,6 @@ namespace Domain.Entities
     public class Song : EntityBase
 	{
 		public string Title { get; set; }
-		public string Artist { get; set; }
 		public string Source { get; set; } //File, Youtube, Deezer etc.
 		public string? SourceId { get; set; } // Youtube video id, deezer id and etc.
 		public Guid AudioPath { get; set; }
@@ -14,6 +13,9 @@ namespace Domain.Entities
 
 		public Guid? CreatedBy { get; set; }
 		public virtual User? User { get; set; }
+
+		public Guid ArtistGuid { get; set; }
+		public virtual Artist Artist { get; set;}
 
 		public virtual ICollection<Playlist> Playlists { get; set; }
 	}

@@ -8,7 +8,7 @@ namespace Application.Repositories.Shared
         IUserRepository UserRepository { get; }
         IPlaylistRepository PlaylistRepository { get; }
         ILinkEntityRepository<PlaylistSong> PlaylistSongRepository { get; }
-
+        IArtistRepository ArtistRepository { get; }
         int SaveChanges();
         Task<int> SaveChangesAsync();
     }

@@ -44,27 +44,33 @@ namespace Infrastructure.Services
             var searchListRequest = _service.Search.List("snippet");
             searchListRequest.Q = query;
             searchListRequest.MaxResults = maxResults;
+
+            searchListRequest.Type = "video";
+
             var searchListResponse = await searchListRequest.ExecuteAsync();
 
             var result = searchListResponse.Items
-                .Where(item => !string.IsNullOrEmpty(item.Id.VideoId)) //Get only videos
                 .Select(x =>
                 {
                     SearchResultSnippet snippet = x.Snippet;
                     YoutubeThumbnail thumbnail = snippet.Thumbnails.High;
 
-                    return new YoutubeSongInfo(
-                        Id: x.Id.VideoId,
-                        Title: snippet.Title,
-                        Description: snippet.Description,
-                        Author: new SongAuthor(snippet.ChannelId, snippet.ChannelTitle),
-                        Thumbnail:
-                        new SongThumbnail(
-                            Height: (int)thumbnail?.Height,
-                            Width: (int)thumbnail?.Width,
-                            Url: thumbnail.Url
-                            )
-                        );
+                    if (x.Id.Kind == "youtube#video")
+                    {
+                        return new YoutubeSongInfo(
+                            Id: x.Id.VideoId,
+                            Title: snippet.Title,
+                            Description: snippet.Description,
+                            Author: new SongAuthor(snippet.ChannelId, snippet.ChannelTitle),
+                            Thumbnail:
+                            new SongThumbnail(
+                                Height: (int)thumbnail?.Height,
+                                Width: (int)thumbnail?.Width,
+                                Url: thumbnail.Url
+                                )
+                            );
+                    }
+                    return null;
                 }).ToList();
 
             return result;

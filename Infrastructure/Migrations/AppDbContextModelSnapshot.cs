@@ -22,6 +22,43 @@ namespace Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Entities.Artist", b =>
+                {
+                    b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .ValueGeneratedOnUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("YoutubeChannelId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Guid");
+
+                    b.HasIndex("YoutubeChannelId")
+                        .IsUnique();
+
+                    b.ToTable("Artist", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Playlist", b =>
                 {
                     b.Property<Guid>("Guid")
@@ -77,10 +114,8 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Artist")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<Guid>("ArtistGuid")
+                        .HasColumnType("uuid");
 
                     b.Property<TimeSpan>("AudioLength")
                         .HasColumnType("interval");
@@ -117,6 +152,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Guid");
+
+                    b.HasIndex("ArtistGuid");
 
                     b.HasIndex("CreatedBy");
 
@@ -192,12 +229,25 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Song", b =>
                 {
+                    b.HasOne("Domain.Entities.Artist", "Artist")
+                        .WithMany("Songs")
+                        .HasForeignKey("ArtistGuid")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Songs")
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("Artist");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Artist", b =>
+                {
+                    b.Navigation("Songs");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

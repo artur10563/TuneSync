@@ -27,12 +27,6 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
                     return !exists;
                 }).WithMessage(SongError.Exists.Description);
 
-            RuleFor(x => x.Author).Length(
-                min: GlobalVariables.SongConstants.TitleMinLength,
-                max: GlobalVariables.SongConstants.TitleMaxLength);
-            RuleFor(x => x.SongName).Length(
-                min: GlobalVariables.SongConstants.TitleMinLength,
-                max: GlobalVariables.SongConstants.TitleMaxLength);
         }
     }
 }

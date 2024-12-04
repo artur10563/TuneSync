@@ -37,10 +37,11 @@ namespace Api.Endpoints
 
             songGroup.MapPost("", async (
                 IFormFile audioFile,
+                Guid artistGuid,
                 ISender sender) =>
             {
                 using var stream = audioFile.OpenReadStream();
-                var command = new CreateSongCommand(audioFile.FileName, stream);
+                var command = new CreateSongCommand(audioFile.FileName, artistGuid, stream);
                 var result = await sender.Send(command);
 
                 if (result.IsFailure)
@@ -52,11 +53,15 @@ namespace Api.Endpoints
             }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); ; //TODO: Add
 
 
-            youtubeGroup.MapPost("/{videoLink}", async (CreateSongFromYoutubeCommand request,
-                ISender _sender
+            youtubeGroup.MapPost("/{videoLink}", async (string url,
+                ISender _sender, HttpContext _httpContext, IUnitOfWork _uow
                 ) =>
             {
-                var result = await _sender.Send(CreateSongFromYoutubeCommand.Create(request));
+                var uid = _httpContext.GetExternalUserId();
+                var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
+
+                var command = new CreateSongFromYoutubeCommand(url.DecodeUrl(), user.Guid);
+                var result = await _sender.Send(command);
 
                 if (result.IsFailure)
                     return Results.BadRequest(result.Errors);

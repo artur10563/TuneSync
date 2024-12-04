@@ -8,6 +8,7 @@ using Domain.Errors;
 using Domain.Primitives;
 using FluentValidation;
 using MediatR;
+using System.Text.RegularExpressions;
 
 namespace Application.CQ.Songs.Command.CreateSongFromYouTube
 {
@@ -50,20 +51,62 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             using var stream = await _youtube.GetAudioStreamAsync(streamInfo);
             var fileGuid = await _storage.UploadFileAsync(stream);
 
+
+            var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.YoutubeChannelId == videoInfo.Author.ChannelId.Value)
+                ?? new Artist(
+                    name: videoInfo.Author.ChannelTitle,
+                    displayName: SanitizeChannelTitle(videoInfo.Author.ChannelTitle),
+                    youtubeChannelId: videoInfo.Author.ChannelId);
+
+            if (artist.Guid == Guid.Empty) 
+                _uow.ArtistRepository.Insert(artist);
+
             var newsong = new Song()
             {
                 AudioPath = fileGuid,
-                Artist = request.Author ?? videoInfo.Author.ChannelTitle,
-                Title = request.SongName ?? videoInfo.Title,
+                Artist = artist,
+                Title = SanitizeVideoTitle(videoInfo.Title, artist.Name, artist.DisplayName),
                 Source = GlobalVariables.SongSource.YouTube,
                 SourceId = videoInfo.Id,
                 AudioSize = (int)streamInfo.Size.KiloBytes,
-                AudioLength = videoInfo.Duration!.Value
+                AudioLength = videoInfo.Duration!.Value,
+                CreatedBy = request.CurrentUserGuid
             };
             _uow.SongRepository.Insert(newsong);
             await _uow.SaveChangesAsync();
 
             return Result.Success(_mapper.Map<SongDTO>(newsong));
+        }
+
+        private string SanitizeChannelTitle(string channelTitle)
+        {
+            string pattern = @"\b(Official|VEVO|Channel|TV|Media|Music)\b";
+            string result = Regex.Replace(channelTitle, pattern, "", RegexOptions.IgnoreCase);
+            result = Regex.Replace(result, @"\s{2,}", " ").Trim();
+
+            return result;
+        }
+
+        private string SanitizeVideoTitle(string videoTitle, params string[] additionalFilters)
+        {
+            //Remove patterns like "(...)", "[...]"
+            string pattern = @"(\[.*?\]|\(.*?\))";
+            string result = Regex.Replace(videoTitle, pattern, "", RegexOptions.IgnoreCase);
+
+            //Remove additional filters provided, for example - name of channel from title
+            if (additionalFilters != null)
+            {
+                foreach (var filter in additionalFilters)
+                {
+                    result = Regex.Replace(result, Regex.Escape(filter), "", RegexOptions.IgnoreCase);
+                }
+            }
+
+            //Normalize spaces and dashes
+            result = Regex.Replace(result, @"\s{2,}", " ").Trim();
+            result = Regex.Replace(result, @"\s*-\s*", "-").Trim('-');
+
+            return result;
         }
     }
 }

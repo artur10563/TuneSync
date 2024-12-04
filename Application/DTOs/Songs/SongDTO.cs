@@ -1,10 +1,12 @@
-﻿namespace Application.DTOs.Songs
+﻿using Application.DTOs.Artists;
+
+namespace Application.DTOs.Songs
 {
     public class SongDTO
     {
         public Guid Guid { get; set; }
         public string Title { get; set; }
-        public string Artist { get; set; }
+        public ArtistInfoDTO Artist { get; set; }
 
         public string Source { get; set; } //Youtube, deezer, upload from PC, etc
         public string SourceUrl { get; set; } //Link to YT video, etc

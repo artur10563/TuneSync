@@ -61,7 +61,8 @@ namespace Infrastructure
                 .AddScoped<IUserRepository, UserRepository>()
                 .AddScoped<IPlaylistRepository, PlaylistRepository>()
                 .AddScoped<IFirebaseStorageService, FirebaseStorageService>()
-                .AddScoped<ILinkEntityRepository<PlaylistSong>, LinkEntityRepository<PlaylistSong>>();
+                .AddScoped<ILinkEntityRepository<PlaylistSong>, LinkEntityRepository<PlaylistSong>>()
+                .AddScoped<IArtistRepository, ArtistRepository>();
 
 
             serviceCollection.AddSingleton<IAuthService, AuthService>();

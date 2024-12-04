@@ -400,3 +400,4 @@ FodyWeavers.xsd
 *.sln.iml
 Api/appsettings.Development.json
 firebase.json
+/.idea

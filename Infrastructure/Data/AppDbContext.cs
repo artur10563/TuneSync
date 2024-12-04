@@ -10,6 +10,7 @@ namespace Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<PlaylistSong> PlaylistSongs { get; set; }
+        public DbSet<Artist> Artists { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)
