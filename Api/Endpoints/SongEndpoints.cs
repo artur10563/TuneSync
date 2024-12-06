@@ -7,6 +7,7 @@ using Application.Repositories.Shared;
 using Application.Services;
 using MediatR;
 using System.Web;
+using Application.CQ.Playlists.Query.GetYoutubePlaylistId;
 
 namespace Api.Endpoints
 {
@@ -33,7 +34,7 @@ namespace Api.Endpoints
                     return Results.BadRequest(result.Errors);
 
                 return Results.Ok(result.Value);
-            }).WithDescription("Search from database"); ;
+            }).WithDescription("Search from database");
 
             songGroup.MapPost("", async (
                 IFormFile audioFile,
@@ -53,14 +54,14 @@ namespace Api.Endpoints
             }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); ; //TODO: Add
 
 
-            youtubeGroup.MapPost("/{videoLink}", async (string url,
+            youtubeGroup.MapPost("/{videoLink}", async (string videoLink,
                 ISender _sender, HttpContext _httpContext, IUnitOfWork _uow
                 ) =>
             {
                 var uid = _httpContext.GetExternalUserId();
                 var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
 
-                var command = new CreateSongFromYoutubeCommand(url.DecodeUrl(), user.Guid);
+                var command = new CreateSongFromYoutubeCommand(videoLink.DecodeUrl(), user.Guid);
                 var result = await _sender.Send(command);
 
                 if (result.IsFailure)
@@ -68,6 +69,19 @@ namespace Api.Endpoints
                 return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
             }).RequireAuthorization().WithDescription("Upload from youtube by video url");
+
+            youtubeGroup.MapGet("/{channelId}/{songTitle}",
+                async (ISender _sender, string channelId, string songTitle) =>
+                {
+                    var command = new GetYoutubePlaylistCommand(channelId, songTitle);
+                    var result = await _sender.Send(command);
+                    
+                    if (result.IsFailure)
+                        return Results.BadRequest(result.Errors);
+                    return Results.Ok(result.Value);
+                    
+                }).WithDescription("Find youtube song in playlist of specified channel");
+
         }
     }
 }

@@ -44,16 +44,16 @@ namespace Infrastructure.Services
             var searchListRequest = _service.Search.List("snippet");
             searchListRequest.Q = query;
             searchListRequest.MaxResults = maxResults;
-
             searchListRequest.Type = "video";
+            searchListRequest.Order = SearchResource.ListRequest.OrderEnum.Relevance;
 
             var searchListResponse = await searchListRequest.ExecuteAsync();
 
             var result = searchListResponse.Items
                 .Select(x =>
                 {
-                    SearchResultSnippet snippet = x.Snippet;
-                    YoutubeThumbnail thumbnail = snippet.Thumbnails.High;
+                    var snippet = x.Snippet;
+                    var thumbnail = snippet.Thumbnails.High;
 
                     if (x.Id.Kind == "youtube#video")
                     {
@@ -62,18 +62,40 @@ namespace Infrastructure.Services
                             Title: snippet.Title,
                             Description: snippet.Description,
                             Author: new SongAuthor(snippet.ChannelId, snippet.ChannelTitle),
-                            Thumbnail:
-                            new SongThumbnail(
+                            Thumbnail: new SongThumbnail(
                                 Height: (int)thumbnail?.Height,
                                 Width: (int)thumbnail?.Width,
                                 Url: thumbnail.Url
-                                )
-                            );
+                            )
+                        );
                     }
+
                     return null;
-                }).ToList();
+                })
+                .Where(item => item != null)
+                .ToList();
 
             return result;
+        }
+
+        /// <summary>
+        /// Get playlist of a song
+        /// </summary>
+        /// <param name="authorId">Id of youtube channel, where we search the song</param>
+        /// <param name="songTitle">Title of song</param>
+        /// <returns>Url to playlist</returns>
+        public async Task<string?> SearchPlaylistBySongAndAuthorAsync(string authorId, string songTitle)
+        {
+            var playlistSearchRequest = _service.Search.List("snippet");
+            playlistSearchRequest.Q = songTitle;
+            playlistSearchRequest.MaxResults = 1;
+            playlistSearchRequest.Type = "playlist";
+            playlistSearchRequest.Order = SearchResource.ListRequest.OrderEnum.Relevance;
+            playlistSearchRequest.ChannelId = authorId;
+
+            var playlistSearchResponse = await playlistSearchRequest.ExecuteAsync();
+            var playlistId = playlistSearchResponse?.Items?.FirstOrDefault()?.Id?.PlaylistId;
+            return string.IsNullOrEmpty(playlistId) ? null : $"https://www.youtube.com/playlist?list={playlistId}";
         }
 
 
@@ -115,6 +137,5 @@ namespace Infrastructure.Services
             var ampIndex = videoId.IndexOf('&');
             return ampIndex == -1 ? videoId : videoId.Substring(0, ampIndex);
         }
-
     }
 }

@@ -13,5 +13,6 @@ namespace Application.Services
 		Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo);
 		Task<(Video videoInfo, IStreamInfo streamInfo)> GetVideoInfoAsync(string url);
 		string GetVideoIdFromUrl(string url);
+		Task<string> SearchPlaylistBySongAndAuthorAsync(string authorId, string songTitle);
 	}
 }
