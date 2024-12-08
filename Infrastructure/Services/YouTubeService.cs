@@ -13,6 +13,7 @@ using YoutubeThumbnail = Google.Apis.YouTube.v3.Data.Thumbnail;
 using ExplodeVideo = YoutubeExplode.Videos.Video;
 using ExplodeThumbnail = YoutubeExplode.Common.Thumbnail;
 using System.Net;
+using System.Web;
 
 
 namespace Infrastructure.Services
@@ -59,9 +60,9 @@ namespace Infrastructure.Services
                     {
                         return new YoutubeSongInfo(
                             Id: x.Id.VideoId,
-                            Title: snippet.Title,
-                            Description: snippet.Description,
-                            Author: new SongAuthor(snippet.ChannelId, snippet.ChannelTitle),
+                            Title: HttpUtility.HtmlDecode(snippet.Title),
+                            Description: HttpUtility.HtmlDecode(snippet.Description),
+                            Author: new SongAuthor(snippet.ChannelId, HttpUtility.HtmlDecode(snippet.ChannelTitle)),
                             Thumbnail: new SongThumbnail(
                                 Height: (int)thumbnail?.Height,
                                 Width: (int)thumbnail?.Width,
@@ -83,7 +84,7 @@ namespace Infrastructure.Services
         /// </summary>
         /// <param name="authorId">Id of youtube channel, where we search the song</param>
         /// <param name="songTitle">Title of song</param>
-        /// <returns>Url to playlist</returns>
+        /// <returns>Playlist id</returns>
         public async Task<string?> SearchPlaylistBySongAndAuthorAsync(string authorId, string songTitle)
         {
             var playlistSearchRequest = _service.Search.List("snippet");
@@ -95,9 +96,8 @@ namespace Infrastructure.Services
 
             var playlistSearchResponse = await playlistSearchRequest.ExecuteAsync();
             var playlistId = playlistSearchResponse?.Items?.FirstOrDefault()?.Id?.PlaylistId;
-            return string.IsNullOrEmpty(playlistId) ? null : $"https://www.youtube.com/playlist?list={playlistId}";
+            return playlistId;
         }
-
 
         public async Task<(ExplodeVideo videoInfo, IStreamInfo streamInfo)> GetVideoInfoAsync(string url)
         {

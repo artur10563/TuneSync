@@ -40,5 +40,6 @@ app.UseAuthorization();
 app.RegisterSongsEndpoints();
 app.RegisterUserEndpoints();
 app.RegisterPlaylistEndpoints();
+app.RegisterYoutubeEndpoints();
 
 app.Run();

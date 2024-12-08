@@ -16,14 +16,6 @@ namespace Api.Endpoints
         public static async Task RegisterSongsEndpoints(this IEndpointRouteBuilder app)
         {
             var songGroup = app.MapGroup("api/song").WithTags("Song");
-            var youtubeGroup = app.MapGroup("api/song/youtube").WithTags("Youtube");
-
-            youtubeGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
-            {
-                var result = (await _youtube.SearchAsync(query)).ToList();
-
-                return result;
-            }).WithDescription("Search on youtube");
 
             songGroup.MapGet("/{query}", async (ISender _sender, string query) =>
             {
@@ -51,37 +43,7 @@ namespace Api.Endpoints
                 }
                 return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
 
-            }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); ; //TODO: Add
-
-
-            youtubeGroup.MapPost("/{videoLink}", async (string videoLink,
-                ISender _sender, HttpContext _httpContext, IUnitOfWork _uow
-                ) =>
-            {
-                var uid = _httpContext.GetExternalUserId();
-                var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
-
-                var command = new CreateSongFromYoutubeCommand(videoLink.DecodeUrl(), user.Guid);
-                var result = await _sender.Send(command);
-
-                if (result.IsFailure)
-                    return Results.BadRequest(result.Errors);
-                return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
-
-            }).RequireAuthorization().WithDescription("Upload from youtube by video url");
-
-            youtubeGroup.MapGet("/{channelId}/{songTitle}",
-                async (ISender _sender, string channelId, string songTitle) =>
-                {
-                    var command = new GetYoutubePlaylistCommand(channelId, songTitle);
-                    var result = await _sender.Send(command);
-                    
-                    if (result.IsFailure)
-                        return Results.BadRequest(result.Errors);
-                    return Results.Ok(result.Value);
-                    
-                }).WithDescription("Find youtube song in playlist of specified channel");
-
+            }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); ; //TODO: Add Antiforgery
         }
     }
 }

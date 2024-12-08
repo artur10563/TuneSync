@@ -26,9 +26,9 @@ public class GetYoutubePlaylistCommandHandler : IRequestHandler<GetYoutubePlayli
         if (!validationResult.IsValid)
             return validationResult.AsErrors();
         
-        var playlistUrl = await _youtubeService.SearchPlaylistBySongAndAuthorAsync(request.ChannelId, request.SongTitle);
-        if (string.IsNullOrEmpty(playlistUrl))
+        var playlistId = await _youtubeService.SearchPlaylistBySongAndAuthorAsync(request.ChannelId, request.SongTitle);
+        if (string.IsNullOrEmpty(playlistId))
             return Error.NotFound(nameof(Playlist));
-        return playlistUrl;
+        return playlistId;
     }
 }
