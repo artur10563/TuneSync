@@ -10,7 +10,7 @@ namespace Application.CQ.Songs.Command.CreateSong
     {
         public CreateSongCommandValidator(IUnitOfWork uow)
         {
-            RuleFor(x => x.artistGuid).MustAsync(async (artistGuid, cancelationToken) =>
+            RuleFor(x => x.ArtistGuid).MustAsync(async (artistGuid, cancelationToken) =>
             {
                 return await uow.ArtistRepository.ExistsAsync(x => x.Guid == artistGuid);
             }).WithMessage(Error.Exists(nameof(Artist)).Description);
@@ -18,7 +18,7 @@ namespace Application.CQ.Songs.Command.CreateSong
             RuleFor(x => x.Title).Length(min: GlobalVariables.SongConstants.TitleMinLength, max: GlobalVariables.SongConstants.TitleMaxLength)
                 .WithMessage(SongError.InvalidTitleLength.Description);
 
-            RuleFor(x => x.audioFileStream).Must((fs) =>
+            RuleFor(x => x.AudioFileStream).Must((fs) =>
             {
                 return fs.Length <= GlobalVariables.SongConstants.MaxSizeKB;
             }).WithMessage(SongError.InvalidSize.Description);

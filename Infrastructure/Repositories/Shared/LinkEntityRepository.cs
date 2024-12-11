@@ -22,6 +22,10 @@ namespace Infrastructure.Repositories.Shared
         {
             _set.Add(entity);
         }
+        public void InsertRange(List<TEntity> entity)
+        {
+            _set.AddRange(entity);
+        }
 
         public virtual void Update(TEntity entity)
         {

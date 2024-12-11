@@ -1,4 +1,5 @@
-﻿using Domain.Entities.Shared;
+﻿using System.Text.RegularExpressions;
+using Domain.Entities.Shared;
 
 namespace Domain.Entities
 {
@@ -18,5 +19,36 @@ namespace Domain.Entities
 		public virtual Artist Artist { get; set;}
 
 		public virtual ICollection<Playlist> Playlists { get; set; }
+		
+		public Song(string title, string source, string? sourceId, Guid audioPath, TimeSpan audioLength, int audioSize, Guid? createdBy, Guid artistGuid)
+		{
+			Title = SanitizeTitle(title);
+			Source = source;
+			SourceId = sourceId;
+			AudioPath = audioPath;
+			AudioLength = audioLength;
+			AudioSize = audioSize;
+			CreatedBy = createdBy;
+			ArtistGuid = artistGuid;
+		}
+
+		private string SanitizeTitle(string title, params string[] additionalFilters)
+		{
+			string pattern = @"(\[.*?\]|\(.*?\))";
+			string result = Regex.Replace(title, pattern, "", RegexOptions.IgnoreCase);
+			
+			if (additionalFilters != null)
+			{
+				foreach (var filter in additionalFilters)
+				{
+					result = Regex.Replace(result, Regex.Escape(filter), "", RegexOptions.IgnoreCase);
+				}
+			}
+			//Normalize spaces and dashes
+			result = Regex.Replace(result, @"\s{2,}", " ").Trim();
+			result = Regex.Replace(result, @"\s*-\s*", "-").Trim('-');
+
+			return result;
+		}
 	}
 }

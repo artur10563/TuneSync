@@ -14,7 +14,7 @@ namespace Application.DTOs.Automapper
                     dest => dest.SourceUrl,
                     opt => opt.MapFrom(
                         src => src.Source == GlobalVariables.SongSource.YouTube && !string.IsNullOrEmpty(src.SourceId)
-                            ? GlobalVariables.YoutubeWatch + src.SourceId
+                            ? GlobalVariables.GetYoutubeVideo(src.SourceId)
                             : ""
                     )
                 )

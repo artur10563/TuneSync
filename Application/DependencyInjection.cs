@@ -4,10 +4,11 @@ using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Application.CQ.Playlists.Command.CreatePlaylistFromYoutube;
 
 namespace Application
 {
-    public static class DependencyInjection
+    public static partial class DependencyInjection
     {
         public static IServiceCollection AddValidationDI(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
@@ -17,6 +18,7 @@ namespace Application
 
             serviceCollection.AddAutoMapper(Assembly.GetAssembly(typeof(IApplicationMarker)));
 
+            serviceCollection.AddBackgroundWorkers();
             return serviceCollection;
         }
     }

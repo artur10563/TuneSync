@@ -1,6 +1,6 @@
 ﻿namespace Application.Services
 {
-	public interface IFirebaseStorageService
+	public interface IStorageService
 	{
 		Task<Guid> UploadFileAsync(Stream fileStream);
 	}

@@ -9,6 +9,7 @@
         private static string FirebaseMP3StringFormat = @"https://firebasestorage.googleapis.com/v0/b/{0}/o/{1}.mp3?alt=media";
         private static string YoutubeThumbnailStringFormat = @"https://img.youtube.com/vi/{0}/mqdefault.jpg";
         private static string YoutubeChannelStringFormat = @"https://www.youtube.com/channel/{0}";
+        private static string YoutubeVideoStringFormat = @"https://www.youtube.com/watch?v={0}";
         public static void Initialize(string fbStorage)
         {
             _fbStorage = fbStorage;
@@ -22,12 +23,19 @@
 
         public static string GetYoutubeChannel(string channelId) =>
             string.Format(YoutubeChannelStringFormat, channelId);
-
-
-        public static string YoutubeWatch = @"https://www.youtube.com/watch?v=";
+        
+        public static string GetYoutubeVideo(string videoId) =>
+            string.Format(YoutubeVideoStringFormat, videoId);
+        
         public static class SongSource
         {
             public const string File = "File";
+            public const string YouTube = "Youtube";
+        }
+        
+        public static class PlaylistSource
+        {
+            public const string User = "User";
             public const string YouTube = "Youtube";
         }
 

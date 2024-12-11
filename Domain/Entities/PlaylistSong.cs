@@ -6,5 +6,11 @@ namespace Domain.Entities
     {
         public Guid PlaylistGuid { get; set; }
         public Guid SongGuid { get; set; }
+
+        public PlaylistSong(Guid playlistGuid, Guid songGuid)
+        {
+            PlaylistGuid = playlistGuid;
+            SongGuid = songGuid;
+        }
     }
 }

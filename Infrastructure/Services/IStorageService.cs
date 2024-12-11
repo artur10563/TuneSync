@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Services
 {
-	public class FirebaseStorageService : IFirebaseStorageService
+	public class FirebaseStorageService : IStorageService
 	{
 		private readonly FirebaseStorage _fileStorage;
 		public FirebaseStorageService(IConfiguration configuration)

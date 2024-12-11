@@ -7,6 +7,8 @@ using Application.Services.Auth;
 using Domain.Entities;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.Shared;
@@ -32,6 +34,15 @@ namespace Infrastructure
             {
                 Credential = GoogleCredential.FromFile("firebase.json")
             });
+
+            serviceCollection.AddHangfire(config =>
+                config.UsePostgreSqlStorage(options =>
+                    options.UseNpgsqlConnection(connectionString)
+                )
+            );
+
+            serviceCollection.AddHangfireServer(options=>
+                options.SchedulePollingInterval = TimeSpan.FromSeconds(1));
 
             serviceCollection.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(connectionString));
@@ -60,11 +71,12 @@ namespace Infrastructure
                 .AddScoped<IYoutubeService, YoutubeService>()
                 .AddScoped<IUserRepository, UserRepository>()
                 .AddScoped<IPlaylistRepository, PlaylistRepository>()
-                .AddScoped<IFirebaseStorageService, FirebaseStorageService>()
+                .AddScoped<IStorageService, FirebaseStorageService>()
                 .AddScoped<ILinkEntityRepository<PlaylistSong>, LinkEntityRepository<PlaylistSong>>()
                 .AddScoped<IArtistRepository, ArtistRepository>();
 
 
+            serviceCollection.AddScoped<IBackgroundJobService, BackgroundJobService>();
             serviceCollection.AddSingleton<IAuthService, AuthService>();
 
 

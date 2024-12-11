@@ -6,6 +6,7 @@ namespace Application.Repositories.Shared
     public interface ILinkEntityRepository<TEntity> where TEntity : LinkEntity
     {
         void Insert(TEntity entity);
+        void InsertRange(List<TEntity> entity);
         void Update(TEntity entity);
         void Delete(TEntity entity);
 

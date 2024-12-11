@@ -28,7 +28,7 @@ namespace Application.CQ.Playlists.Command.Create
             if (!validationResult.IsValid)
                 return validationResult.AsErrors();
 
-            var newPlaylist = new Playlist(request.PlaylistName, request.CreatedBy);
+            var newPlaylist = new Playlist(request.PlaylistName, request.CreatedBy, GlobalVariables.PlaylistSource.User);
             _uow.PlaylistRepository.Insert(newPlaylist);
             await _uow.SaveChangesAsync();
             return newPlaylist.Guid;

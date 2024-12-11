@@ -111,16 +111,6 @@ namespace Infrastructure.Services
             return (videoInfo, streamInfo);
         }
 
-        public async Task<Stream> GetAudioStreamAsync(string url)
-        {
-            var audioInfo = (await _youtubeExplode.Videos.Streams.GetManifestAsync(url))
-                .GetAudioOnlyStreams()
-                .GetWithHighestBitrate();
-
-            var audioStream = await _youtubeExplode.Videos.Streams.GetAsync(audioInfo);
-            return audioStream;
-        }
-
         public async Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo)
         {
             var audioStream = await _youtubeExplode.Videos.Streams.GetAsync(streamInfo);
@@ -136,6 +126,19 @@ namespace Infrastructure.Services
             var videoId = url.Substring(index + videoParam.Length);
             var ampIndex = videoId.IndexOf('&');
             return ampIndex == -1 ? videoId : videoId.Substring(0, ampIndex);
+        }
+
+
+        public async Task<List<YoutubeSongInfo>> GetPlaylistVideosAsync(string playlistId)
+        {
+            var videosResponse = await _youtubeExplode.Playlists.GetVideosAsync(playlistId);
+            var playlistInfo = await _youtubeExplode.Playlists.GetAsync(playlistId);
+            return videosResponse.Select(x => new YoutubeSongInfo(
+                Id: x.Id.Value,
+                Title: x.Title,
+                Author: new SongAuthor(x.Author.ChannelId, x.Author.ChannelTitle),
+                Description: playlistInfo.Title //Playlist name
+            )).ToList();
         }
     }
 }

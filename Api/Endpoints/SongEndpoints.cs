@@ -31,10 +31,15 @@ namespace Api.Endpoints
             songGroup.MapPost("", async (
                 IFormFile audioFile,
                 Guid artistGuid,
-                ISender sender) =>
+                ISender sender,
+                HttpContext _httpContext,
+                IUnitOfWork _uow) =>
             {
+                var uid = _httpContext.GetExternalUserId();
+                var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
+                
                 using var stream = audioFile.OpenReadStream();
-                var command = new CreateSongCommand(audioFile.FileName, artistGuid, stream);
+                var command = new CreateSongCommand(audioFile.FileName, artistGuid, stream, user.Guid);
                 var result = await sender.Send(command);
 
                 if (result.IsFailure)

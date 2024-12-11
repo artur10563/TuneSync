@@ -12,11 +12,11 @@ namespace Application.CQ.Songs.Command.CreateSong
 {
     internal class CreateSongCommandHandler : IRequestHandler<CreateSongCommand, Result<Song>>
     {
-        private readonly IFirebaseStorageService _fileStorage;
+        private readonly IStorageService _fileStorage;
         private readonly IUnitOfWork _uow;
         private readonly IValidator<CreateSongCommand> _validator;
 
-        public CreateSongCommandHandler(IFirebaseStorageService fileStorage, IUnitOfWork uow, IValidator<CreateSongCommand> validator)
+        public CreateSongCommandHandler(IStorageService fileStorage, IUnitOfWork uow, IValidator<CreateSongCommand> validator)
         {
             _fileStorage = fileStorage;
             _uow = uow;
@@ -30,21 +30,21 @@ namespace Application.CQ.Songs.Command.CreateSong
             if (!validationResults.IsValid)
                 return validationResults.AsErrors();
 
-            var filePath = await _fileStorage.UploadFileAsync(request.audioFileStream);
+            var filePath = await _fileStorage.UploadFileAsync(request.AudioFileStream);
 
-            var newSong = new Song
-            {
-                Title = request.Title,
-                ArtistGuid = request.artistGuid,
-                AudioPath = filePath,
-                Source = GlobalVariables.SongSource.File,
-                SourceId = null
-            };
+            var song = new Song(title: request.Title,
+                artistGuid: request.ArtistGuid,
+                audioPath: filePath,
+                source: GlobalVariables.SongSource.File,
+                sourceId: null,
+                audioSize: (int)(request.AudioFileStream.Length/1000),
+                createdBy: request.CreatedBy,
+                audioLength: TimeSpan.Zero); //TODO: fix audioLength for files uploaded from pc
 
-            _uow.SongRepository.Insert(newSong);
+            _uow.SongRepository.Insert(song);
             await _uow.SaveChangesAsync();
 
-            return Result.Success(newSong);
+            return Result.Success(song);
         }
     }
 }

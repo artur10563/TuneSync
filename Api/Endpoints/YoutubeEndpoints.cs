@@ -1,9 +1,11 @@
 using Api.Extensions;
+using Application.CQ.Playlists.Command.CreatePlaylistFromYoutube;
 using Application.CQ.Playlists.Query.GetYoutubePlaylistId;
 using Application.CQ.Songs.Command.CreateSongFromYouTube;
 using Application.Repositories.Shared;
 using Application.Services;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Api.Endpoints;
 
@@ -36,7 +38,6 @@ public static class YoutubeEndpoints
             if (result.IsFailure)
                 return Results.BadRequest(result.Errors);
             return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
-
         }).RequireAuthorization().WithDescription("Upload from youtube by video url");
         
         
@@ -49,8 +50,33 @@ public static class YoutubeEndpoints
                 if (result.IsFailure)
                     return Results.BadRequest(result.Errors);
                 return Results.Ok(result.Value);
-                    
             }).WithDescription("Find playlist by song and specified channel");
 
+        playlistGroup.MapPost("/{playlistId}", async (ISender _sender, HttpContext _httpContext, IUnitOfWork _uow, string playlistId) =>
+        {
+            var uid = _httpContext.GetExternalUserId();
+            var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
+
+            var command = new CreatePlaylistFromYoutubeCommand(playlistId, user.Guid);
+            var result = await _sender.Send(command);
+            if (result.IsFailure)
+            {
+                return Results.BadRequest(result.Errors);
+            }
+
+            return Results.AcceptedAtRoute("DownloadingProgress", routeValues: new { jobId = result.Value }, value: result.Value);
+        }).RequireAuthorization();
+
+        app.MapGet("jobs/{jobId}",
+                async (ISender _sender, IBackgroundJobService _backgroundService, string jobId) =>
+                {
+                    //sdasd
+                    return Results.Ok(_backgroundService.GetJobDetails(jobId));
+                    //dsad
+                })
+            .WithName("DownloadingProgress")
+            .RequireAuthorization();
+
+        app.MapGet("/test/{playlistId}", async (IBackgroundJobService bg, string playlistId) => { bg.IsRunning("somearg"); });
     }
 }

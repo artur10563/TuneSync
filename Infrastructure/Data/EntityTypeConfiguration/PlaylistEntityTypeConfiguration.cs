@@ -20,6 +20,8 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .HasForeignKey(x => x.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Property(x => x.Source).IsRequired();
+            builder.Property(x => x.SourceId).IsRequired(false);
 
             builder.HasMany(p => p.Songs)
                 .WithMany(s => s.Playlists)

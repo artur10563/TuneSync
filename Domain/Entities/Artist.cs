@@ -1,4 +1,5 @@
-﻿using Domain.Entities.Shared;
+﻿using System.Text.RegularExpressions;
+using Domain.Entities.Shared;
 
 namespace Domain.Entities
 {
@@ -16,11 +17,20 @@ namespace Domain.Entities
         public virtual ICollection<Song> Songs { get; set; }
 
 
-        public Artist(string name, string displayName, string youtubeChannelId) : base()
+        public Artist(string name, string youtubeChannelId) : base()
         {
             Name = name;
-            DisplayName = displayName;
+            DisplayName = SanitizeTitle(name);
             YoutubeChannelId = youtubeChannelId;
+        }
+        
+        private string SanitizeTitle(string channelTitle)
+        {
+            string pattern = @"\b(Official|VEVO|Channel|TV|Media|Music)\b";
+            string result = Regex.Replace(channelTitle, pattern, "", RegexOptions.IgnoreCase);
+            result = Regex.Replace(result, @"\s{2,}", " ").Trim();
+
+            return result;
         }
     }
 }

@@ -15,18 +15,18 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
     internal class CreateSongFromYouTubeCommandHandler : IRequestHandler<CreateSongFromYoutubeCommand, Result<SongDTO>>
     {
         private readonly IYoutubeService _youtube;
-        private readonly IFirebaseStorageService _storage;
+        private readonly IStorageService _storage;
         private readonly IUnitOfWork _uow;
         private readonly IValidator<CreateSongFromYoutubeCommand> _validator;
         private readonly IMapper _mapper;
 
         public CreateSongFromYouTubeCommandHandler(
             IYoutubeService youtube,
-            IFirebaseStorageService storage,
+            IStorageService storage,
             IUnitOfWork uow,
             IValidator<CreateSongFromYoutubeCommand> validator,
             IMapper mapper
-            )
+        )
         {
             _youtube = youtube;
             _storage = storage;
@@ -36,7 +36,8 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
         }
 
 
-        public async Task<Result<SongDTO>> Handle(CreateSongFromYoutubeCommand request, CancellationToken cancellationToken)
+        public async Task<Result<SongDTO>> Handle(CreateSongFromYoutubeCommand request,
+            CancellationToken cancellationToken)
         {
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
@@ -52,61 +53,29 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             var fileGuid = await _storage.UploadFileAsync(stream);
 
 
-            var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.YoutubeChannelId == videoInfo.Author.ChannelId.Value)
+            var artist =
+                await _uow.ArtistRepository.FirstOrDefaultAsync(x =>
+                    x.YoutubeChannelId == videoInfo.Author.ChannelId.Value)
                 ?? new Artist(
                     name: videoInfo.Author.ChannelTitle,
-                    displayName: SanitizeChannelTitle(videoInfo.Author.ChannelTitle),
                     youtubeChannelId: videoInfo.Author.ChannelId);
 
-            if (artist.Guid == Guid.Empty) 
+            if (artist.Guid == Guid.Empty)
                 _uow.ArtistRepository.Insert(artist);
 
-            var newsong = new Song()
-            {
-                AudioPath = fileGuid,
-                Artist = artist,
-                Title = SanitizeVideoTitle(videoInfo.Title, artist.Name, artist.DisplayName),
-                Source = GlobalVariables.SongSource.YouTube,
-                SourceId = videoInfo.Id,
-                AudioSize = (int)streamInfo.Size.KiloBytes,
-                AudioLength = videoInfo.Duration!.Value,
-                CreatedBy = request.CurrentUserGuid
-            };
-            _uow.SongRepository.Insert(newsong);
+            var song = new Song(title: videoInfo.Title,
+                source: GlobalVariables.SongSource.YouTube,
+                artistGuid: artist.Guid,
+                audioPath: fileGuid,
+                sourceId: videoInfo.Id,
+                audioLength: videoInfo.Duration!.Value,
+                audioSize: (int)streamInfo.Size.KiloBytes,
+                createdBy: request.CurrentUserGuid);
+            
+            _uow.SongRepository.Insert(song);
             await _uow.SaveChangesAsync();
 
-            return Result.Success(_mapper.Map<SongDTO>(newsong));
-        }
-
-        private string SanitizeChannelTitle(string channelTitle)
-        {
-            string pattern = @"\b(Official|VEVO|Channel|TV|Media|Music)\b";
-            string result = Regex.Replace(channelTitle, pattern, "", RegexOptions.IgnoreCase);
-            result = Regex.Replace(result, @"\s{2,}", " ").Trim();
-
-            return result;
-        }
-
-        private string SanitizeVideoTitle(string videoTitle, params string[] additionalFilters)
-        {
-            //Remove patterns like "(...)", "[...]"
-            string pattern = @"(\[.*?\]|\(.*?\))";
-            string result = Regex.Replace(videoTitle, pattern, "", RegexOptions.IgnoreCase);
-
-            //Remove additional filters provided, for example - name of channel from title
-            if (additionalFilters != null)
-            {
-                foreach (var filter in additionalFilters)
-                {
-                    result = Regex.Replace(result, Regex.Escape(filter), "", RegexOptions.IgnoreCase);
-                }
-            }
-
-            //Normalize spaces and dashes
-            result = Regex.Replace(result, @"\s{2,}", " ").Trim();
-            result = Regex.Replace(result, @"\s*-\s*", "-").Trim('-');
-
-            return result;
+            return Result.Success(_mapper.Map<SongDTO>(song));
         }
     }
 }
