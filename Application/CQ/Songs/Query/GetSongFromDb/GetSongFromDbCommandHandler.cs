@@ -19,9 +19,10 @@ namespace Application.CQ.Songs.Query.GetSongFromDb
 
         public async Task<Result<List<SongDTO>>> Handle(GetSongFromDbCommand request, CancellationToken cancellationToken)
         {
-            var result = _uow.SongRepository.Where(x =>
-                x.Title.ToLower().Contains(request.query),
-                asNoTracking: true)
+            var result = _uow.SongRepository
+                .Where(x => x.Title.ToLower().Contains(request.query),
+                    asNoTracking: true,
+                    includes: song => song.Playlists)
                 .ProjectTo<SongDTO>(_mapper.ConfigurationProvider)
                 .ToList();
 

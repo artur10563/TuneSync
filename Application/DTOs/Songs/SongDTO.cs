@@ -15,6 +15,7 @@ namespace Application.DTOs.Songs
         public int AudioSize { get; set; }
         public TimeSpan AudioLength { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Album { get; set; }
         public bool IsFavorite { get; set; }
     }
 }

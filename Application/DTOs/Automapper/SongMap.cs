@@ -2,6 +2,7 @@
 using AutoMapper;
 using Domain.Entities;
 using Domain.Primitives;
+using static Domain.Primitives.GlobalVariables;
 
 namespace Application.DTOs.Automapper
 {
@@ -13,17 +14,24 @@ namespace Application.DTOs.Automapper
                 .ForMember(
                     dest => dest.SourceUrl,
                     opt => opt.MapFrom(
-                        src => src.Source == GlobalVariables.SongSource.YouTube && !string.IsNullOrEmpty(src.SourceId)
-                            ? GlobalVariables.GetYoutubeVideo(src.SourceId)
+                        src => src.Source == SongSource.YouTube && !string.IsNullOrEmpty(src.SourceId)
+                            ? GetYoutubeVideo(src.SourceId)
                             : ""
                     )
                 )
                 .ForMember(dest => dest.AudioPath,
                     opt => opt.MapFrom(
-                        src => GlobalVariables.GetFirebaseMP3Link(src.AudioPath))
-                    )
+                        src => GetFirebaseMP3Link(src.AudioPath))
+                )
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom(
-                    src => GlobalVariables.GetYoutubeThumbnail(src.SourceId!))
+                    src => GetYoutubeThumbnail(src.SourceId!))
+                )
+                //Album is mapped from Youtube playlist title
+                .ForMember(dest => dest.Album, opt => opt.MapFrom(
+                    src => src.Playlists.Where(pl=> pl.Source == PlaylistSource.YouTube )
+                        .Select(pl=>pl.Title)
+                        .FirstOrDefault() ?? string.Empty
+                    )
                 );
         }
     }
