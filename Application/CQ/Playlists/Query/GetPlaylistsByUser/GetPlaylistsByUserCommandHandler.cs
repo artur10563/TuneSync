@@ -31,7 +31,8 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
                 return Error.NotFound(nameof(Playlist));
 
             var userPlaylists = _uow.PlaylistRepository
-                .Where(x => x.CreatedBy == request.UserGuid, asNoTracking: true)
+                .Where(x => x.CreatedBy == request.UserGuid && x.Source == GlobalVariables.PlaylistSource.User,
+                    asNoTracking: true)
                 .ProjectTo<PlaylistSummaryDTO>(_mapper.ConfigurationProvider)
                 .ToList();
 

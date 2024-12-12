@@ -49,19 +49,18 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
                 return SongError.InvalidSize;
 
 
-            using var stream = await _youtube.GetAudioStreamAsync(streamInfo);
-            var fileGuid = await _storage.UploadFileAsync(stream);
-
-
-            var artist =
-                await _uow.ArtistRepository.FirstOrDefaultAsync(x =>
-                    x.YoutubeChannelId == videoInfo.Author.ChannelId.Value)
-                ?? new Artist(
+            var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x =>
+                x.YoutubeChannelId == videoInfo.Author.ChannelId.Value);
+            if (artist == null)
+            {
+                artist = new Artist(
                     name: videoInfo.Author.ChannelTitle,
                     youtubeChannelId: videoInfo.Author.ChannelId);
-
-            if (artist.Guid == Guid.Empty)
                 _uow.ArtistRepository.Insert(artist);
+            }
+
+            using var stream = await _youtube.GetAudioStreamAsync(streamInfo);
+            var fileGuid = await _storage.UploadFileAsync(stream);
 
             var song = new Song(title: videoInfo.Title,
                 source: GlobalVariables.SongSource.YouTube,
@@ -71,7 +70,7 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
                 audioLength: videoInfo.Duration!.Value,
                 audioSize: (int)streamInfo.Size.KiloBytes,
                 createdBy: request.CurrentUserGuid);
-            
+
             _uow.SongRepository.Insert(song);
             await _uow.SaveChangesAsync();
 

@@ -76,6 +76,14 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
         Console.WriteLine("Started processing files");
 
+        var existingSongs = _uow.SongRepository.Where(song => newSourceIds.Contains(song.SourceId));
+        foreach (var existingSong in existingSongs)
+        {
+            existingSong.Source = PlaylistSource.YouTube;
+            existingSong.SourceId = playlistId;
+            _uow.SongRepository.Update(existingSong);
+        }
+
         foreach (var song in songsToDownload)
         {
             Console.WriteLine($"Started {song.Title}");
