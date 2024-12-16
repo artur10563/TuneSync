@@ -10,8 +10,9 @@ namespace Domain.Entities
         //Used to identify user from external provider
         public string IdentityId { get; set; }
 
-        public virtual ICollection<Playlist> Playlists { get; set; }
-        public virtual ICollection<Song> Songs { get; set; }
+        public virtual ICollection<Playlist> Playlists { get; set; } = new HashSet<Playlist>();
+        public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
+        public virtual ICollection<Song> FavoriteSongs { get; set; } = new HashSet<Song>();
 
         public User(string name, string email, string identityId)
         {

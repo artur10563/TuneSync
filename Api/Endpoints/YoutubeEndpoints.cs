@@ -37,7 +37,7 @@ public static class YoutubeEndpoints
 
             if (result.IsFailure)
                 return Results.BadRequest(result.Errors);
-            return Results.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
+            return Results.Created($"api/song/youtube/{result.Value}", result.Value);
         }).RequireAuthorization().WithDescription("Upload from youtube by video url");
         
         
@@ -70,13 +70,10 @@ public static class YoutubeEndpoints
         app.MapGet("jobs/{jobId}",
                 async (ISender _sender, IBackgroundJobService _backgroundService, string jobId) =>
                 {
-                    //sdasd
                     return Results.Ok(_backgroundService.GetJobDetails(jobId));
-                    //dsad
                 })
             .WithName("DownloadingProgress")
             .RequireAuthorization();
 
-        app.MapGet("/test/{playlistId}", async (IBackgroundJobService bg, string playlistId) => { bg.IsRunning("somearg"); });
     }
 }

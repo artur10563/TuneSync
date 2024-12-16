@@ -208,6 +208,24 @@ namespace Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Domain.Entities.UserFavoriteSong", b =>
+                {
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SongGuid")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserGuid", "SongGuid");
+
+                    b.HasIndex("SongGuid");
+
+                    b.HasIndex("UserGuid", "SongGuid")
+                        .IsUnique();
+
+                    b.ToTable("UserFavoriteSongs", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Playlist", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -250,6 +268,21 @@ namespace Infrastructure.Migrations
                     b.Navigation("Artist");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.UserFavoriteSong", b =>
+                {
+                    b.HasOne("Domain.Entities.Song", null)
+                        .WithMany()
+                        .HasForeignKey("SongGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.Artist", b =>

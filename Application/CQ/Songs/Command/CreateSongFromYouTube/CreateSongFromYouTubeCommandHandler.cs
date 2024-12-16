@@ -2,7 +2,6 @@
 using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
-using AutoMapper;
 using Domain.Entities;
 using Domain.Errors;
 using Domain.Primitives;
@@ -12,31 +11,28 @@ using System.Text.RegularExpressions;
 
 namespace Application.CQ.Songs.Command.CreateSongFromYouTube
 {
-    internal class CreateSongFromYouTubeCommandHandler : IRequestHandler<CreateSongFromYoutubeCommand, Result<SongDTO>>
+    internal class CreateSongFromYouTubeCommandHandler : IRequestHandler<CreateSongFromYoutubeCommand, Result<Guid>>
     {
         private readonly IYoutubeService _youtube;
         private readonly IStorageService _storage;
         private readonly IUnitOfWork _uow;
         private readonly IValidator<CreateSongFromYoutubeCommand> _validator;
-        private readonly IMapper _mapper;
 
         public CreateSongFromYouTubeCommandHandler(
             IYoutubeService youtube,
             IStorageService storage,
             IUnitOfWork uow,
-            IValidator<CreateSongFromYoutubeCommand> validator,
-            IMapper mapper
+            IValidator<CreateSongFromYoutubeCommand> validator
         )
         {
             _youtube = youtube;
             _storage = storage;
             _uow = uow;
             _validator = validator;
-            _mapper = mapper;
         }
 
 
-        public async Task<Result<SongDTO>> Handle(CreateSongFromYoutubeCommand request,
+        public async Task<Result<Guid>> Handle(CreateSongFromYoutubeCommand request,
             CancellationToken cancellationToken)
         {
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
@@ -74,7 +70,7 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             _uow.SongRepository.Insert(song);
             await _uow.SaveChangesAsync();
 
-            return Result.Success(_mapper.Map<SongDTO>(song));
+            return Result.Success(song.Guid);
         }
     }
 }

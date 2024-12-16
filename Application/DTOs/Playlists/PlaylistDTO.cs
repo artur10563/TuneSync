@@ -1,15 +1,44 @@
 ﻿using Application.DTOs.Songs;
+using Domain.Entities;
 
 namespace Application.DTOs.Playlists
 {
-    public class PlaylistDTO
+    public record PlaylistDTO(
+        Guid Guid,
+        string Title,
+        Guid CreatedBy,
+        string CreatedByName,
+        DateTime CreatedAt,
+        DateTime ModifiedAt,
+        ICollection<SongDTO> Songs
+    )
     {
-        public Guid Guid { get; set; }
-        public string Title { get; set; }
-        public Guid CreatedBy { get; set; } 
-        public string CreatedByName { get; set; } 
-        public DateTime CreatedAt { get; set; }
-        public DateTime ModifiedAt { get; set; }
-        public ICollection<SongDTO> Songs { get; set; } = [];
+        public static PlaylistDTO Create(Playlist playlist, Guid userGuid)
+        {
+            return new PlaylistDTO(
+                playlist.Guid,
+                playlist.Title,
+                //Will be replaced by UserDto
+                playlist.CreatedBy,
+                CreatedByName: playlist?.User.Name ?? string.Empty,
+                playlist.CreatedAt,
+                playlist.ModifiedAt,
+                Songs: SongDTO.Create(playlist.Songs,userGuid)
+            );
+        }
+        
+        public static PlaylistDTO Create(Playlist playlist, List<SongDTO> songs)
+        {
+            return new PlaylistDTO(
+                playlist.Guid,
+                playlist.Title,
+                //Will be replaced by UserDto
+                playlist.CreatedBy,
+                CreatedByName: playlist?.User.Name ?? string.Empty,
+                playlist.CreatedAt,
+                playlist.ModifiedAt,
+                Songs: songs
+            );
+        }
     }
 }

@@ -18,7 +18,8 @@ namespace Domain.Entities
 		public Guid ArtistGuid { get; set; }
 		public virtual Artist Artist { get; set;}
 
-		public virtual ICollection<Playlist> Playlists { get; set; }
+		public virtual ICollection<Playlist> Playlists { get; set; } = new HashSet<Playlist>();
+		public virtual ICollection<User> FavoredBy { get; set; } = new HashSet<User>();
 		
 		public Song(string title, string source, string? sourceId, Guid audioPath, TimeSpan audioLength, int audioSize, Guid? createdBy, Guid artistGuid)
 		{

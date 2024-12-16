@@ -1,4 +1,3 @@
-using System.Drawing;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Entities;

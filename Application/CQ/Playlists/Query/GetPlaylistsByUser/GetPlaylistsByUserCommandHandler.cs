@@ -1,7 +1,5 @@
 ﻿using Application.DTOs.Playlists;
 using Application.Repositories.Shared;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Domain.Entities;
 using Domain.Errors;
 using Domain.Primitives;
@@ -17,12 +15,10 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
     internal sealed class GetPlaylistsByUserCommandHandler : IRequestHandler<GetPlaylistsByUserCommand, Result<List<PlaylistSummaryDTO>>>
     {
         private readonly IUnitOfWork _uow;
-        private readonly IMapper _mapper;
 
-        public GetPlaylistsByUserCommandHandler(IUnitOfWork uow, IMapper mapper)
+        public GetPlaylistsByUserCommandHandler(IUnitOfWork uow)
         {
             _uow = uow;
-            _mapper = mapper;
         }
 
         public async Task<Result<List<PlaylistSummaryDTO>>> Handle(GetPlaylistsByUserCommand request, CancellationToken cancellationToken)
@@ -33,7 +29,7 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
             var userPlaylists = _uow.PlaylistRepository
                 .Where(x => x.CreatedBy == request.UserGuid && x.Source == GlobalVariables.PlaylistSource.User,
                     asNoTracking: true)
-                .ProjectTo<PlaylistSummaryDTO>(_mapper.ConfigurationProvider)
+                .Select(x=> PlaylistSummaryDTO.Create(x))
                 .ToList();
 
             return Result.Success(userPlaylists);

@@ -1,8 +1,15 @@
-﻿namespace Application.DTOs.Playlists
+﻿using Domain.Entities;
+
+namespace Application.DTOs.Playlists
 {
-    public class PlaylistSummaryDTO
+    public record PlaylistSummaryDTO(
+        Guid Guid,
+        string Title
+    )
     {
-        public Guid Guid { get; set; }
-        public string Title { get; set; }
+        public static PlaylistSummaryDTO Create(Playlist playlist)
+        {
+            return new PlaylistSummaryDTO(playlist.Guid, playlist.Title);
+        }
     }
 }

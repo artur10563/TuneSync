@@ -9,7 +9,7 @@ namespace Infrastructure.Repositories.Shared
     public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : EntityBase
     {
         protected readonly AppDbContext _context;
-        private readonly DbSet<TEntity> _set;
+        protected readonly DbSet<TEntity> _set;
 
         protected BaseRepository(AppDbContext context)
         {

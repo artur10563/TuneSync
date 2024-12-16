@@ -1,10 +1,23 @@
-﻿namespace Application.DTOs.Artists
+﻿using Domain.Entities;
+using Domain.Primitives;
+
+namespace Application.DTOs.Artists
 {
-    public class ArtistInfoDTO
+    public record ArtistInfoDTO(
+        Guid Guid,
+        string Name,
+        string DisplayName,
+        string ChannelUrl
+    )
     {
-        public Guid Guid { get; set; }
-        public string Name { get; set; }
-        public string DisplayName { get; set; }
-        public string ChannelUrl { get; set; }
+        public static ArtistInfoDTO Create(Artist artist)
+        {
+            return new ArtistInfoDTO(
+                artist.Guid,
+                artist.Name,
+                artist.DisplayName,
+                GlobalVariables.GetYoutubeChannel(artist.YoutubeChannelId)
+            );
+        }
     }
 }

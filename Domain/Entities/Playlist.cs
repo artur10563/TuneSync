@@ -11,7 +11,7 @@ namespace Domain.Entities
         public string? SourceId { get; set; }
         public User User { get; set; }
 
-        public virtual ICollection<Song> Songs { get; set; } = new List<Song>();
+        public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
         public Playlist(string title, Guid createdBy, string source, string? sourceId = null) : base()
         {
             Title = title;

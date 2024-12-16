@@ -1,10 +1,7 @@
-﻿using Application.DTOs.Automapper;
-using Domain.Primitives;
+﻿using Domain.Primitives;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
-using Application.CQ.Playlists.Command.CreatePlaylistFromYoutube;
 
 namespace Application
 {
@@ -15,8 +12,6 @@ namespace Application
             GlobalVariables.Initialize(configuration["FirestoreStorage:DefaultBucket"]);
 
             serviceCollection.AddValidatorsFromAssemblyContaining<IApplicationMarker>();
-
-            serviceCollection.AddAutoMapper(Assembly.GetAssembly(typeof(IApplicationMarker)));
 
             serviceCollection.AddBackgroundWorkers();
             return serviceCollection;
