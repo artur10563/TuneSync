@@ -4,6 +4,7 @@ using Application.CQ.Songs.Query.GetSongFromDb;
 using Application.Repositories.Shared;
 using MediatR;
 using Application.CQ.Songs.Command;
+using Domain.Primitives;
 
 namespace Api.Endpoints
 {
@@ -14,11 +15,10 @@ namespace Api.Endpoints
             var songGroup = app.MapGroup("api/song").WithTags("Song");
             var favSongGroup = app.MapGroup("api/favorite/song").WithTags("Song");
 
-            songGroup.MapGet("/{query}", async (ISender _sender, HttpContext _httpContext, IUnitOfWork _uow, string query) =>
+            songGroup.MapGet("/{query}", async (ISender _sender, HttpContext _httpContext, string query) =>
             {
-                var uid = _httpContext.GetExternalUserId();
-                var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
-                
+                var user = await _httpContext.GetCurrentUserAsync();
+
                 var command = new GetSongFromDbCommand(query, user?.Guid);
                 var result = await _sender.Send(command);
 
@@ -27,37 +27,32 @@ namespace Api.Endpoints
                     : result.Value.Count == 0
                         ? Results.NoContent()
                         : Results.Ok(result.Value);
-            }).WithDescription("Search from database");
+            }).WithName("GetSong").WithDescription("Search from database");
 
             songGroup.MapPost("", async (
                 IFormFile audioFile,
                 Guid artistGuid,
                 ISender sender,
-                HttpContext _httpContext,
-                IUnitOfWork _uow) =>
+                HttpContext _httpContext
+            ) =>
             {
-                var uid = _httpContext.GetExternalUserId();
-                var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
+                var user = await _httpContext.GetCurrentUserAsync();
 
                 using var stream = audioFile.OpenReadStream();
-                var command = new CreateSongCommand(audioFile.FileName, artistGuid, stream, user.Guid);
+                var command = new CreateSongCommand(audioFile.FileName, artistGuid, stream, user!.Guid);
                 var result = await sender.Send(command);
 
-                if (result.IsFailure)
-                {
-                    return Results.BadRequest(result.Errors);
-                }
-
-                return TypedResults.Created($"api/song/youtube/{result.Value.Guid}", result.Value);
+                return result.IsFailure
+                    ? Results.BadRequest(result.Errors)
+                    : Results.CreatedAtRoute(routeName: "GetSong", routeValues: new { query = result.Value.Guid.ToString() }, value: result.Value);
             }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); //TODO: Add Antiforgery
 
-            favSongGroup.MapPut("/{songGuid:guid}", async (ISender _sender, HttpContext _httpContext, IUnitOfWork _uow,
+            favSongGroup.MapPut("/{songGuid:guid}", async (ISender _sender, HttpContext _httpContext,
                 Guid songGuid) =>
             {
-                var uid = _httpContext.GetExternalUserId();
-                var user = await _uow.UserRepository.GetByExternalIdAsync(uid);
+                var user = await _httpContext.GetCurrentUserAsync();
 
-                var command = new ToggleFavoriteSongCommand(songGuid, user.Guid);
+                var command = new ToggleFavoriteSongCommand(songGuid, user!.Guid);
                 var result = await _sender.Send(command);
 
                 return result.IsSuccess ? Results.Ok() : Results.BadRequest(result.Errors);
