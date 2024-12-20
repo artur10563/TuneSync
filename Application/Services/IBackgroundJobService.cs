@@ -10,7 +10,9 @@ public interface IBackgroundJobService
     /// <returns>Job id</returns>
     string Enqueue<T>(Expression<Action<T>> methodCall);
 
-    string GetJobDetails(string jobId);
+    string GetJobStatus(string jobId);
     /// <returns>True if job is currently running</returns>
     public bool IsRunning(string searchArg);
+
+    string? GetReturnedItems(string jobId);
 }

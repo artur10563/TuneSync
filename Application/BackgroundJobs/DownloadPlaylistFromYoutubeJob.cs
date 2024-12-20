@@ -21,7 +21,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
     }
 
 
-    public async Task ExecuteAsync(string playlistId, Guid createdBy, CancellationToken cancellationToken)
+    public async Task<Guid> ExecuteAsync(string playlistId, Guid createdBy, CancellationToken cancellationToken)
     {
         Console.WriteLine("Starting the job");
         Console.WriteLine("Started fetching playlists from youtube");
@@ -79,7 +79,6 @@ public sealed class DownloadPlaylistFromYoutubeJob
         foreach (var existingSong in existingSongs)
         {
             existingSong.Source = PlaylistSource.YouTube;
-            existingSong.SourceId = playlistId;
             _uow.SongRepository.Update(existingSong);
         }
 
@@ -117,5 +116,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
         Console.WriteLine($"Saved whole playlist");
 
         Console.WriteLine("Finished the job");
+
+        return playlist.Guid;
     }
 }

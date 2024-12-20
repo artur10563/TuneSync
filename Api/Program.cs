@@ -1,5 +1,6 @@
 using Api.Endpoints;
 using Api.Extensions;
+using Hangfire;
 using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,9 +38,12 @@ app.UseCors("AllowAngularClient");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseHangfireDashboard();
+
 app.RegisterSongsEndpoints();
 app.RegisterUserEndpoints();
 app.RegisterPlaylistEndpoints();
 app.RegisterYoutubeEndpoints();
+app.RegisterJobEndpoints();
 
 app.Run();

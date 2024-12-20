@@ -4,6 +4,8 @@ using Application.CQ.Playlists.Query.GetYoutubePlaylistId;
 using Application.CQ.Songs.Command.CreateSongFromYouTube;
 using Application.Repositories.Shared;
 using Application.Services;
+using Domain.Errors;
+using Domain.Primitives;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -57,20 +59,13 @@ public static class YoutubeEndpoints
 
             var command = new CreatePlaylistFromYoutubeCommand(playlistId, user!.Guid);
             var result = await _sender.Send(command);
-            if (result.IsFailure)
-            {
-                return Results.BadRequest(result.Errors);
-            }
-
-            return Results.AcceptedAtRoute("DownloadingProgress", routeValues: new { jobId = result.Value }, value: result.Value);
+            return result.IsFailure 
+                ? Results.BadRequest(result.Errors) 
+                : Results.AcceptedAtRoute(
+                    "DownloadingProgress",
+                    routeValues: new { jobId = result.Value }, 
+                    value: result.Value);
         }).RequireAuthorization();
-
-        app.MapGet("jobs/{jobId}",
-                async (ISender _sender, IBackgroundJobService _backgroundService, string jobId) =>
-                {
-                    return Results.Ok(_backgroundService.GetJobDetails(jobId));
-                })
-            .WithName("DownloadingProgress")
-            .RequireAuthorization();
+        
     }
 }
