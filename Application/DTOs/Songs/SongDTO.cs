@@ -16,12 +16,16 @@ namespace Application.DTOs.Songs
         int AudioSize,
         TimeSpan AudioLength,
         ArtistInfoDTO Artist,
-        string Album,
+        Guid? AlbumGuid,
+        string? Album,
         bool IsFavorite
     )
     {
         public static SongDTO Create(Song song, Guid userGuid)
         {
+            var songAlbum = song.Playlists
+                .FirstOrDefault(p => p.Source == PlaylistSource.YouTube);
+
             return new SongDTO(
                 song.Guid,
                 song.Title,
@@ -33,10 +37,31 @@ namespace Application.DTOs.Songs
                 song.AudioSize,
                 song.AudioLength,
                 ArtistInfoDTO.Create(song.Artist),
-                Album: song.Playlists.FirstOrDefault(p =>
-                        p.Source == PlaylistSource.YouTube)
-                    ?.Title ?? string.Empty,
+                AlbumGuid: songAlbum?.Guid,
+                Album: songAlbum?.Title,
                 IsFavorite: userGuid != Guid.Empty && song.FavoredBy.Any(u => u.Guid == userGuid)
+            );
+        }
+        
+        public static SongDTO Create(Song song, bool isFavorited)
+        {
+            var songAlbum = song.Playlists
+                .FirstOrDefault(p => p.Source == PlaylistSource.YouTube);
+
+            return new SongDTO(
+                song.Guid,
+                song.Title,
+                song.CreatedAt,
+                song.Source,
+                SourceUrl: song.Source == SongSource.YouTube ? GetYoutubeChannel(song.SourceId!) : "",
+                GetYoutubeThumbnail(song.SourceId),
+                GetFirebaseMP3Link(song.AudioPath),
+                song.AudioSize,
+                song.AudioLength,
+                ArtistInfoDTO.Create(song.Artist),
+                AlbumGuid: songAlbum?.Guid,
+                Album: songAlbum?.Title,
+                IsFavorite: isFavorited // Precomputed value
             );
         }
         

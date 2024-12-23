@@ -57,7 +57,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
         if (playlist == null)
         {
-            playlist = new Playlist(title: songs.First().Description, createdBy, PlaylistSource.YouTube, playlistId);
+            playlist = new Playlist(title: songs.First().Description, createdBy, PlaylistSource.YouTube, playlistId, artist.Guid);
             _uow.PlaylistRepository.Insert(playlist);
         }
 

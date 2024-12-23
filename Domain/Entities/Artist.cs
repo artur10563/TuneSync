@@ -15,7 +15,7 @@ namespace Domain.Entities
         public string YoutubeChannelId { get; set; }
 
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
-
+        public virtual ICollection<Playlist> Playlists { get; set; } = new HashSet<Playlist>();
 
         public Artist(string name, string youtubeChannelId) : base()
         {
@@ -23,7 +23,7 @@ namespace Domain.Entities
             DisplayName = SanitizeTitle(name);
             YoutubeChannelId = youtubeChannelId;
         }
-        
+
         private string SanitizeTitle(string channelTitle)
         {
             string pattern = @"\b(Official|VEVO|Channel|TV|Media|Music)\b";

@@ -65,6 +65,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ArtistGuid")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -91,6 +94,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(255)");
 
                     b.HasKey("Guid");
+
+                    b.HasIndex("ArtistGuid");
 
                     b.HasIndex("CreatedBy");
 
@@ -228,11 +233,18 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Playlist", b =>
                 {
+                    b.HasOne("Domain.Entities.Artist", "Artist")
+                        .WithMany("Playlists")
+                        .HasForeignKey("ArtistGuid")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Playlists")
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Artist");
 
                     b.Navigation("User");
                 });
@@ -287,6 +299,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Artist", b =>
                 {
+                    b.Navigation("Playlists");
+
                     b.Navigation("Songs");
                 });
 

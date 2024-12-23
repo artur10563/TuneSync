@@ -45,5 +45,6 @@ app.RegisterUserEndpoints();
 app.RegisterPlaylistEndpoints();
 app.RegisterYoutubeEndpoints();
 app.RegisterJobEndpoints();
+app.RegisterArtistEndpoints();
 
 app.Run();

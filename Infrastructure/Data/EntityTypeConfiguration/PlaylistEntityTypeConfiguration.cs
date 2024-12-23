@@ -41,6 +41,10 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                     j.HasIndex(ps => new { ps.PlaylistGuid, ps.SongGuid }).IsUnique();
                 });
 
+            builder.HasOne(pl=>pl.Artist)
+                .WithMany(a => a.Playlists)
+                .HasForeignKey(pl => pl.ArtistGuid)
+                .OnDelete(DeleteBehavior.SetNull); // when an artist is deleted, the ArtistGuid in Playlist becomes null
         }
     }
 }

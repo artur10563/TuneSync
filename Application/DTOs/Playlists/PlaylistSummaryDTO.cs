@@ -11,5 +11,9 @@ namespace Application.DTOs.Playlists
         {
             return new PlaylistSummaryDTO(playlist.Guid, playlist.Title);
         }
+        public static List<PlaylistSummaryDTO> Create(ICollection<Playlist> playlists)
+        {
+            return playlists.Select(p => new PlaylistSummaryDTO(p.Guid, p.Title)).ToList();
+        }
     }
 }
