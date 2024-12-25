@@ -35,9 +35,7 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
                 join playlist in _uow.PlaylistRepository.Queryable()
                     on ps.PlaylistGuid equals playlist.Guid into leftPlaylist
                 from playlist in leftPlaylist.DefaultIfEmpty()
-                where song.ArtistGuid == artist.Guid
-                      && (ps == null) // Ensure the song is not in any playlist
-                      && (playlist == null || playlist.Source == "Youtube")
+                where song.ArtistGuid == artist.Guid && playlist.Source != "Youtube"
                 select song).ToList();
 
         
