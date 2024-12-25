@@ -44,7 +44,7 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
                 {
                     song,
                     IsFavorite = ufs != null
-                }).ToList();
+                }).Distinct().ToList();
         
         var abandonedSongsDTO = abandonedSongs
             .Select(sf =>
