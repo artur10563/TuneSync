@@ -35,22 +35,22 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
                 join playlist in _uow.PlaylistRepository.Queryable()
                     on ps.PlaylistGuid equals playlist.Guid into leftPlaylist
                 from playlist in leftPlaylist.DefaultIfEmpty()
+                join ufs in _uow.UserFavoriteSongRepository.Queryable()
+                    on new { guid = song.Guid, userguid = currentUserId } equals new { guid = ufs.SongGuid, userguid = ufs.UserGuid }
+                    into leftUfs
+                from ufs in leftUfs.DefaultIfEmpty()
                 where song.ArtistGuid == artist.Guid && playlist.Source != "Youtube"
-                select song).ToList();
-
-        
-        var favoriteSongGuids = _uow.UserFavoriteSongRepository
-            .Where(f => f.UserGuid == currentUserId)
-            .Select(f => f.SongGuid)
-            .ToHashSet();
+                select new
+                {
+                    song,
+                    IsFavorite = ufs != null
+                }).ToList();
         
         var abandonedSongsDTO = abandonedSongs
-            .Select(song =>
+            .Select(sf =>
             {
-                var isFavorite = favoriteSongGuids.Contains(song.Guid);
-
-                song.Artist = artist;
-                return SongDTO.Create(song, isFavorite);
+                sf.song.Artist = artist;
+                return SongDTO.Create(sf.song, sf.IsFavorite);
             });
 
         var dto = ArtistSummaryDTO.Create(artist, abandonedSongsDTO);
