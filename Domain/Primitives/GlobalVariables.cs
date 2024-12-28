@@ -10,6 +10,7 @@
         private static string YoutubeThumbnailStringFormat = @"https://img.youtube.com/vi/{0}/mqdefault.jpg";
         private static string YoutubeChannelStringFormat = @"https://www.youtube.com/channel/{0}";
         private static string YoutubeVideoStringFormat = @"https://www.youtube.com/watch?v={0}";
+        private static string YoutubePlaylistThumbnailStringFormat = @"https://i.ytimg.com/vi/{0}/mqdefault.jpg";
         public static void Initialize(string fbStorage)
         {
             _fbStorage = fbStorage;
@@ -20,6 +21,8 @@
 
         public static string GetYoutubeThumbnail(string videoGuid) =>
             string.Format(YoutubeThumbnailStringFormat, videoGuid);
+        public static string GetYoutubePlaylistThumbnail(string thumbnailId) =>
+            string.Format(YoutubePlaylistThumbnailStringFormat, thumbnailId);
 
         public static string GetYoutubeChannel(string channelId) =>
             string.Format(YoutubeChannelStringFormat, channelId);

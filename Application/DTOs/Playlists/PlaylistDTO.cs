@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Songs;
 using Domain.Entities;
+using Domain.Primitives;
 
 namespace Application.DTOs.Playlists
 {
@@ -10,6 +11,7 @@ namespace Application.DTOs.Playlists
         string CreatedByName,
         DateTime CreatedAt,
         DateTime ModifiedAt,
+        string ThumbnailUrl,
         ICollection<SongDTO> Songs
     )
     {
@@ -23,10 +25,13 @@ namespace Application.DTOs.Playlists
                 CreatedByName: playlist?.User.Name ?? string.Empty,
                 playlist.CreatedAt,
                 playlist.ModifiedAt,
-                Songs: SongDTO.Create(playlist.Songs,userGuid)
+                ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
+                    ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
+                    : "",
+                Songs: SongDTO.Create(playlist.Songs, userGuid)
             );
         }
-        
+
         public static PlaylistDTO Create(Playlist playlist, List<SongDTO> songs)
         {
             return new PlaylistDTO(
@@ -37,6 +42,9 @@ namespace Application.DTOs.Playlists
                 CreatedByName: playlist?.User.Name ?? string.Empty,
                 playlist.CreatedAt,
                 playlist.ModifiedAt,
+                ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
+                    ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
+                    : "",
                 Songs: songs
             );
         }

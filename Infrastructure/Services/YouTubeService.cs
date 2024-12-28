@@ -129,16 +129,35 @@ namespace Infrastructure.Services
         }
 
 
-        public async Task<List<YoutubeSongInfo>> GetPlaylistVideosAsync(string playlistId)
+        public async Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId)
         {
             var videosResponse = await _youtubeExplode.Playlists.GetVideosAsync(playlistId);
             var playlistInfo = await _youtubeExplode.Playlists.GetAsync(playlistId);
-            return videosResponse.Select(x => new YoutubeSongInfo(
+            
+            var playlistThumbnailId = GetPlaylistIdFromUrl(playlistInfo.Thumbnails[0]?.Url);
+            
+            var songs =videosResponse.Select(x => new YoutubeSongInfo(
                 Id: x.Id.Value,
                 Title: x.Title,
                 Author: new SongAuthor(x.Author.ChannelId, x.Author.ChannelTitle),
                 Description: playlistInfo.Title //Playlist name
             )).ToList();
+            
+            return (songs, playlistThumbnailId);
+        }
+
+        private string GetPlaylistIdFromUrl(string? url)
+        {
+            var id = "";
+            if (string.IsNullOrEmpty(url)) return id;
+            
+            var parts = url.Split('/');
+            if (parts.Length > 4)
+            {
+                id = parts[4];
+            }
+
+            return id;
         }
     }
 }

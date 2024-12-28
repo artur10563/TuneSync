@@ -19,10 +19,13 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .WithMany(x => x.Playlists)
                 .HasForeignKey(x => x.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
-
+            
             builder.Property(x => x.Source).IsRequired();
             builder.Property(x => x.SourceId).IsRequired(false);
 
+            builder.Property(x=>x.ThumbnailSource).IsRequired(false);
+            builder.Property(x=>x.ThumbnailId).IsRequired(false);
+            
             builder.HasMany(p => p.Songs)
                 .WithMany(s => s.Playlists)
                 .UsingEntity<PlaylistSong>(

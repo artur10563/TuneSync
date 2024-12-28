@@ -12,9 +12,12 @@ namespace Domain.Entities
         public User User { get; set; }
         public Guid? ArtistGuid { get; set; }
         public Artist? Artist { get; set; }
+        public string? ThumbnailId { get; set; }
+        public string? ThumbnailSource { get; set; } //YT link or blob
 
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
-        public Playlist(string title, Guid createdBy, string source, string? sourceId = null, Guid? artistGuid = null) : base()
+        public Playlist(string title, Guid createdBy, string source, string? sourceId = null, Guid? artistGuid = null,
+            string? thumbnailSource = null, string? thumbnailId = null ) : base()
         {
             Title = title;
             CreatedBy = createdBy;
@@ -23,6 +26,8 @@ namespace Domain.Entities
                 SourceId = sourceId;
             if (artistGuid.HasValue)
                 ArtistGuid = artistGuid;
+            ThumbnailSource = thumbnailSource;
+            ThumbnailId = thumbnailId;
         }
     }
 }

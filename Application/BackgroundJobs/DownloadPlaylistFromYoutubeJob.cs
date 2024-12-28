@@ -26,7 +26,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
         Console.WriteLine("Starting the job");
         Console.WriteLine("Started fetching playlists from youtube");
         //Get all playlist songs
-        var songs = await _youtubeService.GetPlaylistVideosAsync(playlistId);
+        var (songs, playlistThumbnailId) = await _youtubeService.GetPlaylistVideosAsync(playlistId);
         var newSourceIds = songs.Select(s => s.Id);
 
         Console.WriteLine("Finished fetching playlists from youtube");
@@ -57,7 +57,8 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
         if (playlist == null)
         {
-            playlist = new Playlist(title: songs.First().Description, createdBy, PlaylistSource.YouTube, playlistId, artist.Guid);
+            playlist = new Playlist(title: songs.First().Description, createdBy, PlaylistSource.YouTube, playlistId, artist.Guid,
+                thumbnailSource: PlaylistSource.YouTube, thumbnailId: playlistThumbnailId);
             _uow.PlaylistRepository.Insert(playlist);
         }
 

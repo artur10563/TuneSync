@@ -14,7 +14,7 @@ namespace Application.Services
         string GetVideoIdFromUrl(string url);
         Task<string> SearchPlaylistBySongAndAuthorAsync(string authorId, string songTitle);
 
-        /// <returns>List of videos for specified playlist</returns>
-        Task<List<YoutubeSongInfo>> GetPlaylistVideosAsync(string playlistId);
+        /// <returns>List of videos for specified playlist and thumbnailId for playlist</returns>
+        Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId);
     }
 }
