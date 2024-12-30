@@ -7,6 +7,8 @@ namespace Domain.Entities
         public Guid PlaylistGuid { get; set; }
         public Guid SongGuid { get; set; }
 
+        public virtual Playlist Playlist { get; set; }
+        public virtual Song Song { get; set; }
         public PlaylistSong() { }
         public PlaylistSong(Guid playlistGuid, Guid songGuid)
         {

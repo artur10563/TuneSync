@@ -42,6 +42,17 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                     j.ToTable("PlaylistSong");
                     j.HasKey(ps => new { ps.PlaylistGuid, ps.SongGuid });
                     j.HasIndex(ps => new { ps.PlaylistGuid, ps.SongGuid }).IsUnique();
+
+                    j.HasOne(ps => ps.Playlist)
+                        .WithMany()
+                        .HasForeignKey(ps => ps.PlaylistGuid)
+                        .OnDelete(DeleteBehavior.Cascade);
+                    
+                    j.HasOne(ps => ps.Song)
+                        .WithMany()
+                        .HasForeignKey(ps => ps.SongGuid)
+                        .OnDelete(DeleteBehavior.Cascade);
+
                 });
 
             builder.HasOne(pl=>pl.Artist)

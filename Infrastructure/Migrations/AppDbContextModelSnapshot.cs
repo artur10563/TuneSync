@@ -257,17 +257,21 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.PlaylistSong", b =>
                 {
-                    b.HasOne("Domain.Entities.Playlist", null)
+                    b.HasOne("Domain.Entities.Playlist", "Playlist")
                         .WithMany()
                         .HasForeignKey("PlaylistGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Song", null)
+                    b.HasOne("Domain.Entities.Song", "Song")
                         .WithMany()
                         .HasForeignKey("SongGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Playlist");
+
+                    b.Navigation("Song");
                 });
 
             modelBuilder.Entity("Domain.Entities.Song", b =>

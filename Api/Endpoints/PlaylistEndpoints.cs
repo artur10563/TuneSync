@@ -1,5 +1,6 @@
 ﻿using Api.Extensions;
 using Application.CQ.Playlists.Command.Create;
+using Application.CQ.Playlists.Command.DeleteSongFromPlaylist;
 using Application.CQ.Playlists.Query.GetById;
 using Application.CQ.Playlists.Query.GetPlaylistsByUser;
 using MediatR;
@@ -62,6 +63,20 @@ namespace Api.Endpoints
                 })
                 .RequireAuthorization()
                 .WithDescription("Current user playlists (without songs)");
+
+            group.MapDelete("/{playlistGuid:guid}/songs/{songGuid:guid}",
+                    async (ISender sender, HttpContext _httpContext,
+                        Guid playlistGuid,
+                        Guid songGuid) =>
+                    {
+                        var user = await _httpContext.GetCurrentUserAsync();
+
+                        var command = new DeleteSongFromPlaylistCommand(playlistGuid, songGuid, user!.Guid);
+                        var result = await sender.Send(command);
+                        return result.IsFailure ? Results.BadRequest(result.Errors) : Results.NoContent();
+                    }).RequireAuthorization()
+                .WithDescription("Deletes song from playlist")
+                .WithName("DeleteSongFromPlaylist");
         }
     }
 }
