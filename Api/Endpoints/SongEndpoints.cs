@@ -4,7 +4,9 @@ using Application.CQ.Songs.Query.GetSongFromDb;
 using Application.Repositories.Shared;
 using MediatR;
 using Application.CQ.Songs.Command;
+using Application.CQ.Songs.Query.GetUserFavoriteSongs;
 using Domain.Primitives;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Api.Endpoints
 {
@@ -57,6 +59,19 @@ namespace Api.Endpoints
 
                 return result.IsSuccess ? Results.Ok() : Results.BadRequest(result.Errors);
             }).RequireAuthorization().WithDescription("Add/Remove song from favorites");
+
+            favSongGroup.MapGet("", async (ISender _sender, HttpContext _httpContext) =>
+            {
+                var user = await _httpContext.GetCurrentUserAsync();
+                
+                var command = new GetUserFavoriteSongsQuery(user!.Guid);
+                var result = await _sender.Send(command);
+
+                return result.IsSuccess 
+                    ? !result.Value.Any() ? Results.NoContent() 
+                        : Results.Ok(result.Value) 
+                    : Results.BadRequest(result.Errors);
+            }).RequireAuthorization().WithDescription("Get favorite songs of current user");
         }
     }
 }
