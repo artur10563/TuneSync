@@ -15,7 +15,7 @@ namespace Domain.Entities
         public string YoutubeChannelId { get; set; }
 
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
-        public virtual ICollection<Playlist> Playlists { get; set; } = new HashSet<Playlist>();
+        public virtual ICollection<Album> Albums { get; set; } = new HashSet<Album>();
 
         public Artist(string name, string youtubeChannelId) : base()
         {

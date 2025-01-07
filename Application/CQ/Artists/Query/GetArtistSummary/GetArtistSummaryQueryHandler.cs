@@ -21,7 +21,7 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
     {
         var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.Guid == request.ArtistGuid,
             asNoTracking: true,
-            includes: artist => artist.Playlists);
+            includes: artist => artist.Albums);
 
         if (artist == null)
             return Error.NotFound(nameof(Artist));
@@ -29,23 +29,19 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
         var currentUserId = request.CurrentUserGuid ?? Guid.Empty;
         var abandonedSongs =
             (from song in _uow.SongRepository.Queryable()
-                join ps in _uow.PlaylistSongRepository.Queryable()
-                    on song.Guid equals ps.SongGuid into leftPs
-                from ps in leftPs.DefaultIfEmpty()
-                join playlist in _uow.PlaylistRepository.Queryable()
-                    on ps.PlaylistGuid equals playlist.Guid into leftPlaylist
-                from playlist in leftPlaylist.DefaultIfEmpty()
+                join album in _uow.AlbumRepository.Queryable()
+                    on song.AlbumGuid equals album.Guid
                 join ufs in _uow.UserFavoriteSongRepository.Queryable()
                     on new { guid = song.Guid, userguid = currentUserId } equals new { guid = ufs.SongGuid, userguid = ufs.UserGuid }
                     into leftUfs
                 from ufs in leftUfs.DefaultIfEmpty()
-                where song.ArtistGuid == artist.Guid && playlist.Source != "Youtube"
+                where song.ArtistGuid == artist.Guid
                 select new
                 {
                     song,
                     IsFavorite = ufs != null
                 }).Distinct().ToList();
-        
+
         var abandonedSongsDTO = abandonedSongs
             .Select(sf =>
             {

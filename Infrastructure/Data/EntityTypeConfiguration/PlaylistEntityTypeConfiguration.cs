@@ -21,7 +21,6 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .OnDelete(DeleteBehavior.Restrict);
             
             builder.Property(x => x.Source).IsRequired();
-            builder.Property(x => x.SourceId).IsRequired(false);
 
             builder.Property(x=>x.ThumbnailSource).IsRequired(false);
             builder.Property(x=>x.ThumbnailId).IsRequired(false);
@@ -54,11 +53,6 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                         .OnDelete(DeleteBehavior.Cascade);
 
                 });
-
-            builder.HasOne(pl=>pl.Artist)
-                .WithMany(a => a.Playlists)
-                .HasForeignKey(pl => pl.ArtistGuid)
-                .OnDelete(DeleteBehavior.SetNull); // when an artist is deleted, the ArtistGuid in Playlist becomes null
         }
     }
 }

@@ -22,6 +22,52 @@ namespace Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Entities.Album", b =>
+                {
+                    b.Property<Guid>("Guid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ArtistGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .ValueGeneratedOnUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
+
+                    b.Property<string>("SourceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ThumbnailId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ThumbnailSource")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("Guid");
+
+                    b.HasIndex("ArtistGuid");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.ToTable("Album", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Artist", b =>
                 {
                     b.Property<Guid>("Guid")
@@ -65,9 +111,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ArtistGuid")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -85,9 +128,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("SourceId")
-                        .HasColumnType("text");
-
                     b.Property<string>("ThumbnailId")
                         .HasColumnType("text");
 
@@ -100,8 +140,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(255)");
 
                     b.HasKey("Guid");
-
-                    b.HasIndex("ArtistGuid");
 
                     b.HasIndex("CreatedBy");
 
@@ -130,6 +168,9 @@ namespace Infrastructure.Migrations
                 {
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AlbumGuid")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ArtistGuid")
@@ -170,6 +211,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Guid");
+
+                    b.HasIndex("AlbumGuid");
 
                     b.HasIndex("ArtistGuid");
 
@@ -237,20 +280,31 @@ namespace Infrastructure.Migrations
                     b.ToTable("UserFavoriteSongs", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Playlist", b =>
+            modelBuilder.Entity("Domain.Entities.Album", b =>
                 {
                     b.HasOne("Domain.Entities.Artist", "Artist")
-                        .WithMany("Playlists")
+                        .WithMany("Albums")
                         .HasForeignKey("ArtistGuid")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Domain.Entities.User", "User")
-                        .WithMany("Playlists")
+                        .WithMany("Albums")
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Artist");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Playlist", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Playlists")
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -276,6 +330,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Song", b =>
                 {
+                    b.HasOne("Domain.Entities.Album", "Album")
+                        .WithMany("Songs")
+                        .HasForeignKey("AlbumGuid")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Domain.Entities.Artist", "Artist")
                         .WithMany("Songs")
                         .HasForeignKey("ArtistGuid")
@@ -286,6 +345,8 @@ namespace Infrastructure.Migrations
                         .WithMany("Songs")
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Album");
 
                     b.Navigation("Artist");
 
@@ -307,15 +368,22 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Entities.Album", b =>
+                {
+                    b.Navigation("Songs");
+                });
+
             modelBuilder.Entity("Domain.Entities.Artist", b =>
                 {
-                    b.Navigation("Playlists");
+                    b.Navigation("Albums");
 
                     b.Navigation("Songs");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
+                    b.Navigation("Albums");
+
                     b.Navigation("Playlists");
 
                     b.Navigation("Songs");

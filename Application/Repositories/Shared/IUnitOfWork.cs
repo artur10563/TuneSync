@@ -7,6 +7,7 @@ namespace Application.Repositories.Shared
         ISongRepository SongRepository { get; }
         IUserRepository UserRepository { get; }
         IPlaylistRepository PlaylistRepository { get; }
+        IAlbumRepository AlbumRepository { get; }
         ILinkEntityRepository<PlaylistSong> PlaylistSongRepository { get; }
         ILinkEntityRepository<UserFavoriteSong> UserFavoriteSongRepository { get; }
         IArtistRepository ArtistRepository { get; }

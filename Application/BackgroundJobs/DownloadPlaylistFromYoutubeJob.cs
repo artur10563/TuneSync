@@ -55,12 +55,12 @@ public sealed class DownloadPlaylistFromYoutubeJob
             }
 
             //Get or create a playlist
-            var playlist = await _uow.PlaylistRepository.FirstOrDefaultAsync(x => x.Source == PlaylistSource.YouTube && x.SourceId == playlistId,
+            var playlist = await _uow.PlaylistRepository.FirstOrDefaultAsync(x => x.Source == PlaylistSource.YouTube,
                 includes: pl => pl.Songs);
 
             if (playlist == null)
             {
-                playlist = new Playlist(title: songs.First().Description, createdBy, PlaylistSource.YouTube, playlistId, artist.Guid,
+                playlist = new Playlist(title: songs.First().Description, createdBy, PlaylistSource.YouTube,
                     thumbnailSource: PlaylistSource.YouTube, thumbnailId: playlistThumbnailId);
                 _uow.PlaylistRepository.Insert(playlist);
             }

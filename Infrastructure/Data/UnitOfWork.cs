@@ -11,9 +11,11 @@ namespace Infrastructure.Data
         public ISongRepository SongRepository { get; set; }
         public IUserRepository UserRepository { get; set; }
         public IPlaylistRepository PlaylistRepository { get; set; }
+        public IAlbumRepository AlbumRepository { get; set; }
         public ILinkEntityRepository<PlaylistSong> PlaylistSongRepository { get; set; }
         public ILinkEntityRepository<UserFavoriteSong> UserFavoriteSongRepository { get; set; }
-        public IArtistRepository ArtistRepository { get;set; }
+        public IArtistRepository ArtistRepository { get; set; }
+
         public int SaveChanges()
         {
             return _context.SaveChanges();
@@ -25,14 +27,14 @@ namespace Infrastructure.Data
         }
 
 
-
         public UnitOfWork(AppDbContext context,
             ISongRepository songRepository,
             IUserRepository userRepository,
             IPlaylistRepository playlistRepository,
             ILinkEntityRepository<PlaylistSong> playlistSongRepository,
             ILinkEntityRepository<UserFavoriteSong> userFavoriteSongRepository,
-            IArtistRepository artistRepository)
+            IArtistRepository artistRepository,
+            IAlbumRepository albumRepository)
         {
             _context = context;
             SongRepository = songRepository ?? throw new ArgumentNullException(nameof(songRepository));
@@ -41,6 +43,7 @@ namespace Infrastructure.Data
             PlaylistSongRepository = playlistSongRepository ?? throw new ArgumentNullException(nameof(playlistSongRepository));
             UserFavoriteSongRepository = userFavoriteSongRepository ?? throw new ArgumentNullException(nameof(userFavoriteSongRepository));
             ArtistRepository = artistRepository ?? throw new ArgumentNullException(nameof(artistRepository));
+            AlbumRepository = albumRepository ?? throw new ArgumentNullException(nameof(albumRepository));
         }
     }
 }

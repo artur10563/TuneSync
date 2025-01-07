@@ -18,9 +18,24 @@ namespace Application.DTOs.Playlists
                     ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
                     : "");
         }
+        
+        public static PlaylistSummaryDTO Create(Album album)
+        {
+            return new PlaylistSummaryDTO(
+                album.Guid,
+                album.Title,
+                ThumbnailUrl: album.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
+                    ? GlobalVariables.GetYoutubePlaylistThumbnail(album.ThumbnailId)
+                    : "");
+        }
         public static List<PlaylistSummaryDTO> Create(ICollection<Playlist> playlists)
         {
             return playlists.Select(Create).ToList();
+        }
+        
+        public static List<PlaylistSummaryDTO> Create(ICollection<Album> album)
+        {
+            return album.Select(Create).ToList();
         }
     }
 }

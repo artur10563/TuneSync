@@ -15,7 +15,7 @@ public record ArtistSummaryDTO(ArtistInfoDTO ArtistInfo, ICollection<PlaylistSum
         
         return new ArtistSummaryDTO(
             ArtistInfo: ArtistInfoDTO.Create(artist),
-            Playlists: PlaylistSummaryDTO.Create(artist.Playlists),
+            Playlists: PlaylistSummaryDTO.Create(artist.Albums),
             Songs: SongDTO.Create(abandonedSongs, currentUserGuid.Value)
         );
     }
@@ -23,7 +23,7 @@ public record ArtistSummaryDTO(ArtistInfoDTO ArtistInfo, ICollection<PlaylistSum
     {
         return new ArtistSummaryDTO(
             ArtistInfo: ArtistInfoDTO.Create(artist),
-            Playlists: PlaylistSummaryDTO.Create(artist.Playlists),
+            Playlists: PlaylistSummaryDTO.Create(artist.Albums),
             Songs: abandonedSongsDTO.ToList()
         );
     }

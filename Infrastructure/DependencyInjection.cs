@@ -74,7 +74,8 @@ namespace Infrastructure
                 .AddScoped<IStorageService, FirebaseStorageService>()
                 .AddScoped<ILinkEntityRepository<PlaylistSong>, LinkEntityRepository<PlaylistSong>>()
                 .AddScoped<ILinkEntityRepository<UserFavoriteSong>, LinkEntityRepository<UserFavoriteSong>>()
-                .AddScoped<IArtistRepository, ArtistRepository>();
+                .AddScoped<IArtistRepository, ArtistRepository>()
+                .AddScoped<IAlbumRepository, AlbumRepository>();
 
 
             serviceCollection.AddScoped<IBackgroundJobService, BackgroundJobService>();
