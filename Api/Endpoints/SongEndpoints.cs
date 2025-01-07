@@ -12,12 +12,12 @@ namespace Api.Endpoints
 {
     public static class SongEndpoints
     {
-        public static async Task RegisterSongsEndpoints(this IEndpointRouteBuilder app)
+        public static IEndpointRouteBuilder RegisterSongsEndpoints(this IEndpointRouteBuilder app)
         {
             var songGroup = app.MapGroup("api/song").WithTags("Song");
             var favSongGroup = app.MapGroup("api/favorite/song").WithTags("Song");
 
-            songGroup.MapGet("/{query}", async (ISender _sender, HttpContext _httpContext, string query) =>
+            app.MapGet("api/search/{query}", async (ISender _sender, HttpContext _httpContext, string query) =>
             {
                 var user = await _httpContext.GetCurrentUserAsync();
 
@@ -29,7 +29,7 @@ namespace Api.Endpoints
                     : result.Value.Count == 0
                         ? Results.NoContent()
                         : Results.Ok(result.Value);
-            }).WithName("GetSong").WithDescription("Search from database");
+            }).WithName("GetSong").WithDescription("FTS");
 
             songGroup.MapPost("", async (
                 IFormFile audioFile,
@@ -72,6 +72,8 @@ namespace Api.Endpoints
                         : Results.Ok(result.Value) 
                     : Results.BadRequest(result.Errors);
             }).RequireAuthorization().WithDescription("Get favorite songs of current user");
+
+            return app;
         }
     }
 }

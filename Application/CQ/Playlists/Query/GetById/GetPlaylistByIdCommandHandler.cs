@@ -31,7 +31,7 @@ namespace Application.CQ.Playlists.Query.GetById
             var playlistSongs = _uow.SongRepository
                 .Where(song => song.Playlists.Any(p=>p.Guid == request.PlaylistGuid),
                 asNoTracking: true, 
-                song => song.Playlists,
+                song => song.Album,
                 song => song.Artist,
                 song => song.FavoredBy).Select(x => SongDTO.Create(x, userGuid)).ToList();
 

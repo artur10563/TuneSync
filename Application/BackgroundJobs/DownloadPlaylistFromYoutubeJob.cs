@@ -12,7 +12,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
     private readonly IStorageService _storageService;
     private readonly IYoutubeService _youtubeService;
 
-
+//TODO: TEST, ADD NORMAL LOGGER
     public DownloadPlaylistFromYoutubeJob(IStorageService storageService, IUnitOfWork uow, IYoutubeService youtubeService)
     {
         _storageService = storageService;
@@ -21,24 +21,24 @@ public sealed class DownloadPlaylistFromYoutubeJob
     }
 
 
-    public async Task<Guid> ExecuteAsync(string playlistId, Guid createdBy, CancellationToken cancellationToken)
+    public async Task<Guid> ExecuteAsync(string youtubePlaylistId, Guid createdBy, CancellationToken cancellationToken)
     {
         try
         {
-
             Console.WriteLine("Starting the job");
             Console.WriteLine("Started fetching playlists from youtube");
             //Get all playlist songs
-            var (songs, playlistThumbnailId) = await _youtubeService.GetPlaylistVideosAsync(playlistId);
+            var (songs, playlistThumbnailId) = await _youtubeService.GetPlaylistVideosAsync(youtubePlaylistId);
             var newSourceIds = songs.Select(s => s.Id);
 
             Console.WriteLine("Finished fetching playlists from youtube");
 
+            //check if song table has songs with  SOURCE ID + song ALBUM GUID
 
             //Filter out existing songs, so duplicates are not downloaded
             var existingSongIds =
                 _uow.SongRepository.Where(song => newSourceIds.Contains(song.SourceId), asNoTracking: true)
-                    .Select(song => new { song.Guid, song.SourceId });
+                    .Select(song => new { song.Guid, song.SourceId, song.AlbumGuid });
 
             var existingSourceIds = existingSongIds.Select(es => es.SourceId).ToHashSet();
             var songsToDownload = songs
@@ -54,27 +54,24 @@ public sealed class DownloadPlaylistFromYoutubeJob
                 _uow.ArtistRepository.Insert(artist);
             }
 
-            //Get or create a playlist
-            var playlist = await _uow.PlaylistRepository.FirstOrDefaultAsync(x => x.Source == PlaylistSource.YouTube,
+            //Get or create album
+            var album = await _uow.AlbumRepository.FirstOrDefaultAsync(x => x.SourceId == youtubePlaylistId,
                 includes: pl => pl.Songs);
 
-            if (playlist == null)
+            if (album == null)
             {
-                playlist = new Playlist(title: songs.First().Description, createdBy, PlaylistSource.YouTube,
-                    thumbnailSource: PlaylistSource.YouTube, thumbnailId: playlistThumbnailId);
-                _uow.PlaylistRepository.Insert(playlist);
+                album = new Album(
+                    title: songs.First().Description,
+                    createdBy: createdBy,
+                    sourceId: youtubePlaylistId,
+                    artistGuid: artist.Guid,
+                    thumbnailSource: PlaylistSource.YouTube,
+                    thumbnailId: playlistThumbnailId);
+                _uow.AlbumRepository.Insert(album);
             }
 
-            //Check if playlist has any songs of downloaded playlist
-            var existingGuids = existingSongIds.Select(x => x.Guid).ToList();
-            var playlistGuids = playlist.Songs.Select(song => song.Guid).ToList();
-            var existingToInsert = existingGuids.Except(playlistGuids).ToList();
-
-            //Add existing db songs to playlist
-            var newPlaylistSongs = existingToInsert.Select(songGuid =>
-                new PlaylistSong(playlist.Guid, songGuid)
-            ).ToList();
-            Console.WriteLine("Finished artists, playlists and existing songs");
+            
+            Console.WriteLine("Finished artists and albums");
             //Saved EVERY TIME a file is downloaded, since it can't be rolled back
 
             Console.WriteLine("Started processing files");
@@ -83,8 +80,11 @@ public sealed class DownloadPlaylistFromYoutubeJob
             foreach (var existingSong in existingSongs)
             {
                 existingSong.Source = PlaylistSource.YouTube;
-                _uow.SongRepository.Update(existingSong);
+                existingSong.AlbumGuid = album.Guid;
             }
+
+            if (existingSongs.Any())
+                _uow.SongRepository.UpdateRange(existingSongs);
 
             foreach (var song in songsToDownload)
             {
@@ -104,29 +104,28 @@ public sealed class DownloadPlaylistFromYoutubeJob
                     videoInfo.Duration.Value,
                     (int)streamInfo.Size.KiloBytes,
                     createdBy,
-                    artist.Guid
+                    artist.Guid,
+                    album.Guid
                 );
 
                 _uow.SongRepository.Insert(newSong);
                 await _uow.SaveChangesAsync();
                 Console.WriteLine($"Saved");
 
-                newPlaylistSongs.Add(new PlaylistSong(playlist.Guid, newSong.Guid));
             }
 
-
-            _uow.PlaylistSongRepository.InsertRange(newPlaylistSongs);
             await _uow.SaveChangesAsync();
-            Console.WriteLine($"Saved whole playlist");
-
+            
+            Console.WriteLine($"Saved whole album");
             Console.WriteLine("Finished the job");
 
-            return playlist.Guid;
+            return album.Guid;
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
+
         return Guid.Empty;
     }
 }

@@ -31,6 +31,23 @@ namespace Application.DTOs.Playlists
                 Songs: SongDTO.Create(playlist.Songs, userGuid)
             );
         }
+        
+        public static PlaylistDTO Create(Album album, List<SongDTO> songs)
+        {
+            return new PlaylistDTO(
+                album.Guid,
+                album.Title,
+                //Will be replaced by UserDto
+                album.CreatedBy,
+                CreatedByName: album?.User.Name ?? string.Empty,
+                album.CreatedAt,
+                album.ModifiedAt,
+                ThumbnailUrl: album.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
+                    ? GlobalVariables.GetYoutubePlaylistThumbnail(album.ThumbnailId)
+                    : "",
+                Songs: songs
+            );
+        }
 
         public static PlaylistDTO Create(Playlist playlist, List<SongDTO> songs)
         {

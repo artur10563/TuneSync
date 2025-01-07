@@ -23,9 +23,6 @@ namespace Application.DTOs.Songs
     {
         public static SongDTO Create(Song song, Guid userGuid)
         {
-            var songAlbum = song.Playlists
-                .FirstOrDefault(p => p.Source == PlaylistSource.YouTube);
-
             return new SongDTO(
                 song.Guid,
                 song.Title,
@@ -37,17 +34,14 @@ namespace Application.DTOs.Songs
                 song.AudioSize,
                 song.AudioLength,
                 ArtistInfoDTO.Create(song.Artist),
-                AlbumGuid: songAlbum?.Guid,
-                Album: songAlbum?.Title,
+                AlbumGuid: song.AlbumGuid,
+                Album: song.Album?.Title,
                 IsFavorite: userGuid != Guid.Empty && song.FavoredBy.Any(u => u.Guid == userGuid)
             );
         }
-        
+
         public static SongDTO Create(Song song, bool isFavorited)
         {
-            var songAlbum = song.Playlists
-                .FirstOrDefault(p => p.Source == PlaylistSource.YouTube);
-
             return new SongDTO(
                 song.Guid,
                 song.Title,
@@ -59,12 +53,12 @@ namespace Application.DTOs.Songs
                 song.AudioSize,
                 song.AudioLength,
                 ArtistInfoDTO.Create(song.Artist),
-                AlbumGuid: songAlbum?.Guid,
-                Album: songAlbum?.Title,
+                AlbumGuid: song.AlbumGuid,
+                Album: song.Album?.Title,
                 IsFavorite: isFavorited // Precomputed value
             );
         }
-        
+
         public static List<SongDTO> Create(IEnumerable<Song> songs, Guid userGuid)
         {
             return songs.Select(s => Create(s, userGuid)).ToList();

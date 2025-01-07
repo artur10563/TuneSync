@@ -6,7 +6,7 @@ namespace Api.Endpoints
 {
     public static class UserEndpoints
     {
-        public static async Task RegisterUserEndpoints(this IEndpointRouteBuilder app)
+        public static IEndpointRouteBuilder RegisterUserEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("api/user/").WithTags("User");
 
@@ -25,6 +25,8 @@ namespace Api.Endpoints
                     ? Results.BadRequest(result.Errors)
                     : Results.Ok(result.Value);
             }).WithDescription("Login");
+
+            return app;
         }
     }
 }

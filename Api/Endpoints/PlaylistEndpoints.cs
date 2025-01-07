@@ -9,7 +9,7 @@ namespace Api.Endpoints
 {
     public static class PlaylistEndpoints
     {
-        public static async Task RegisterPlaylistEndpoints(this IEndpointRouteBuilder app)
+        public static IEndpointRouteBuilder RegisterPlaylistEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("api/playlist").WithTags("Playlist");
 
@@ -31,7 +31,7 @@ namespace Api.Endpoints
             group.MapGet("/{guid}", async (ISender sender, HttpContext _httpContext, Guid guid) =>
                 {
                     var user = await _httpContext.GetCurrentUserAsync();
-                    
+
                     var command = new GetPlaylistByIdCommand(guid, user?.Guid);
                     var result = await sender.Send(command);
                     return result.IsFailure ? Results.BadRequest(result.Errors) : Results.Ok(result.Value);
@@ -77,6 +77,8 @@ namespace Api.Endpoints
                     }).RequireAuthorization()
                 .WithDescription("Deletes song from playlist")
                 .WithName("DeleteSongFromPlaylist");
+
+            return app;
         }
     }
 }

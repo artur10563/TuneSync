@@ -7,6 +7,7 @@ namespace Application.Repositories.Shared
     {
         void Insert(TEntity entity);
         void Update(TEntity entity);
+        void UpdateRange(IEnumerable<TEntity> entities);
         void Delete(TEntity entity);
 
         Task<bool> ExistsAsync(

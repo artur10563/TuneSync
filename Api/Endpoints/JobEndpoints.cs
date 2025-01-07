@@ -7,7 +7,7 @@ namespace Api.Endpoints;
 
 public static class JobEndpoints
 {
-    public static void RegisterJobEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder RegisterJobEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("api/job/{jobId}",
                 async (IBackgroundJobService _backgroundService, string jobId) =>
@@ -28,5 +28,8 @@ public static class JobEndpoints
             .WithName("DownloadingProgress")
             .WithDescription("Returns job status and serialized data")
             .RequireAuthorization();
+
+
+        return app;
     }
 }

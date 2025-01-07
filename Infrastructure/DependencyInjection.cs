@@ -80,7 +80,7 @@ namespace Infrastructure
 
             serviceCollection.AddScoped<IBackgroundJobService, BackgroundJobService>();
             serviceCollection.AddSingleton<IAuthService, AuthService>();
-
+            serviceCollection.AddScoped<ISearchService, SearchService>();
 
             //Scoped
             serviceCollection.AddHttpClient<IJwtService, JwtService>((http) =>

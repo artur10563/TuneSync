@@ -17,8 +17,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularClient", builder =>
     {
         builder.WithOrigins("http://localhost:4200")
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 builder.Services.AddSwaggerWithJwtAuth();
@@ -40,11 +40,12 @@ app.UseAuthorization();
 
 app.UseHangfireDashboard();
 
-app.RegisterSongsEndpoints();
-app.RegisterUserEndpoints();
-app.RegisterPlaylistEndpoints();
-app.RegisterYoutubeEndpoints();
-app.RegisterJobEndpoints();
-app.RegisterArtistEndpoints();
+app.RegisterAlbumEndpoints()
+    .RegisterSongsEndpoints()
+    .RegisterUserEndpoints()
+    .RegisterPlaylistEndpoints()
+    .RegisterYoutubeEndpoints()
+    .RegisterJobEndpoints()
+    .RegisterArtistEndpoints();
 
 app.Run();

@@ -21,35 +21,33 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
     {
         var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.Guid == request.ArtistGuid,
             asNoTracking: true,
-            includes: artist => artist.Albums);
+            includes: [artist => artist.Albums, artist => artist.Songs]);
 
         if (artist == null)
             return Error.NotFound(nameof(Artist));
 
         var currentUserId = request.CurrentUserGuid ?? Guid.Empty;
-        var abandonedSongs =
-            (from song in _uow.SongRepository.Queryable()
-                join album in _uow.AlbumRepository.Queryable()
-                    on song.AlbumGuid equals album.Guid
-                join ufs in _uow.UserFavoriteSongRepository.Queryable()
-                    on new { guid = song.Guid, userguid = currentUserId } equals new { guid = ufs.SongGuid, userguid = ufs.UserGuid }
-                    into leftUfs
-                from ufs in leftUfs.DefaultIfEmpty()
-                where song.ArtistGuid == artist.Guid
-                select new
-                {
-                    song,
-                    IsFavorite = ufs != null
-                }).Distinct().ToList();
 
-        var abandonedSongsDTO = abandonedSongs
-            .Select(sf =>
-            {
-                sf.song.Artist = artist;
-                return SongDTO.Create(sf.song, sf.IsFavorite);
-            });
+        var abandonedSongs = artist.Songs
+            .Where(x => x.AlbumGuid == null)
+            .ToList();
 
-        var dto = ArtistSummaryDTO.Create(artist, abandonedSongsDTO);
+
+        foreach (var song in abandonedSongs)
+        {
+            song.Artist = artist;
+        }
+
+        var songDTOs = abandonedSongs
+            .Select(x => SongDTO.Create(
+                x,
+                _uow.UserFavoriteSongRepository.Queryable()
+                    .Any(usf => usf.SongGuid == x.Guid && usf.UserGuid == currentUserId)
+            ))
+            .ToList();
+
+
+        var dto = ArtistSummaryDTO.Create(artist, songDTOs);
 
         return dto;
     }

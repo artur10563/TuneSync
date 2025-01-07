@@ -20,15 +20,13 @@ public class Album : EntityBase
     {
     }
 
-    public Album(string title, Guid createdBy, string sourceId, User user, Guid? artistGuid = null, Artist? artist = null, string? thumbnailId = null,
+    public Album(string title, Guid createdBy, string sourceId, Guid? artistGuid = null, string? thumbnailId = null,
         string? thumbnailSource = null)
     {
         Title = title;
         CreatedBy = createdBy;
         SourceId = sourceId;
-        User = user;
         ArtistGuid = artistGuid;
-        Artist = artist;
         ThumbnailId = thumbnailId;
         ThumbnailSource = thumbnailSource;
     }

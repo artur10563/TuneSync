@@ -13,7 +13,7 @@ namespace Api.Endpoints;
 
 public static class YoutubeEndpoints
 {
-    public static async Task RegisterYoutubeEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder RegisterYoutubeEndpoints(this IEndpointRouteBuilder app)
     {
         var ytGroup = app.MapGroup("api/youtube").WithTags("Youtube");
         var songGroup = ytGroup.MapGroup("/song");
@@ -66,6 +66,7 @@ public static class YoutubeEndpoints
                     routeValues: new { jobId = result.Value }, 
                     value: result.Value);
         }).RequireAuthorization();
-        
+
+        return app;
     }
 }

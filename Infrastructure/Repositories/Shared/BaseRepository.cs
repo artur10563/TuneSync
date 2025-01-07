@@ -27,6 +27,14 @@ namespace Infrastructure.Repositories.Shared
             entity.ModifiedAt = DateTime.Now.ToUniversalTime();
             _set.Update(entity);
         }
+        public virtual void UpdateRange(IEnumerable<TEntity> entities)
+        {
+            foreach (var entity in entities)
+            {
+                entity.ModifiedAt = DateTime.Now.ToUniversalTime();
+            }
+            _set.UpdateRange(entities);
+        }
 
         public virtual void Delete(TEntity entity)
         {

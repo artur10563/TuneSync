@@ -6,7 +6,7 @@ namespace Api.Endpoints;
 
 public static class ArtistEndpoints
 {
-    public static void RegisterArtistEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder RegisterArtistEndpoints(this IEndpointRouteBuilder app)
     {
         var artistGroup = app.MapGroup("api/artist").WithTags("Artist");
         
@@ -24,5 +24,7 @@ public static class ArtistEndpoints
                 ? Results.NotFound(result.Errors)
                 : Results.Ok(result.Value);
         });
+
+        return app;
     }
 }
