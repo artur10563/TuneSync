@@ -17,15 +17,17 @@ internal class
     private readonly IYoutubeService _youtubeService;
     private readonly IStorageService _storageService;
     private readonly IValidator<CreatePlaylistFromYoutubeCommand> _validator;
+    private readonly ILoggerService _logger;
 
     public CreatePlaylistFromYoutubeCommandHandler(IBackgroundJobService backgroundJob, IUnitOfWork uow,
-        IStorageService storageService, IYoutubeService youtubeService, IValidator<CreatePlaylistFromYoutubeCommand> validator)
+        IStorageService storageService, IYoutubeService youtubeService, IValidator<CreatePlaylistFromYoutubeCommand> validator, ILoggerService logger)
     {
         _backgroundJob = backgroundJob;
         _uow = uow;
         _storageService = storageService;
         _youtubeService = youtubeService;
         _validator = validator;
+        _logger = logger;
     }
 
     public async Task<Result<string>> Handle(CreatePlaylistFromYoutubeCommand request, CancellationToken cancellationToken)
@@ -42,6 +44,7 @@ internal class
         var jobId = _backgroundJob.Enqueue<DownloadPlaylistFromYoutubeJob>(
             job => job.ExecuteAsync(request.PlaylistId, request.CreatedBy, cancellationToken));
 
+        _logger.Log("Job started", LogLevel.Information, new {jobId, request});
 
         return Result<string>.Success(jobId);
     }

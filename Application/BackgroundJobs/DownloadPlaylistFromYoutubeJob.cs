@@ -11,13 +11,14 @@ public sealed class DownloadPlaylistFromYoutubeJob
     private readonly IUnitOfWork _uow;
     private readonly IStorageService _storageService;
     private readonly IYoutubeService _youtubeService;
+    private readonly ILoggerService _logger;
 
-//TODO: TEST, ADD NORMAL LOGGER
-    public DownloadPlaylistFromYoutubeJob(IStorageService storageService, IUnitOfWork uow, IYoutubeService youtubeService)
+    public DownloadPlaylistFromYoutubeJob(IStorageService storageService, IUnitOfWork uow, IYoutubeService youtubeService, ILoggerService logger)
     {
         _storageService = storageService;
         _uow = uow;
         _youtubeService = youtubeService;
+        _logger = logger;
     }
 
 
@@ -25,15 +26,14 @@ public sealed class DownloadPlaylistFromYoutubeJob
     {
         try
         {
-            Console.WriteLine("Starting the job");
-            Console.WriteLine("Started fetching playlists from youtube");
+            _logger.Log("Fetching playlist from YouTube", LogLevel.Information);
+
             //Get all playlist songs
             var (songs, playlistThumbnailId) = await _youtubeService.GetPlaylistVideosAsync(youtubePlaylistId);
             var newSourceIds = songs.Select(s => s.Id);
 
-            Console.WriteLine("Finished fetching playlists from youtube");
+            _logger.Log("Fetching playlist from YouTube", LogLevel.Information);
 
-            //check if song table has songs with  SOURCE ID + song ALBUM GUID
 
             //Filter out existing songs, so duplicates are not downloaded
             var existingSongIds =
@@ -52,6 +52,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
             {
                 artist = new Artist(name: ytAuthor.Title, youtubeChannelId: ytAuthor.Id);
                 _uow.ArtistRepository.Insert(artist);
+                _logger.Log($"Created new artist", LogLevel.Information, new { artist.Guid, artist.Name });
             }
 
             //Get or create album
@@ -68,13 +69,14 @@ public sealed class DownloadPlaylistFromYoutubeJob
                     thumbnailSource: PlaylistSource.YouTube,
                     thumbnailId: playlistThumbnailId);
                 _uow.AlbumRepository.Insert(album);
+                _logger.Log($"Created new album", LogLevel.Information, new { album.Guid, album.Title });
             }
 
-            
-            Console.WriteLine("Finished artists and albums");
-            //Saved EVERY TIME a file is downloaded, since it can't be rolled back
 
-            Console.WriteLine("Started processing files");
+            _logger.Log("Artist and album setup completed", LogLevel.Information);
+
+            //Saved EVERY TIME a file is downloaded, since it can't be rolled back
+            _logger.Log("Started processing files", LogLevel.Information);
 
             var existingSongs = _uow.SongRepository.Where(song => newSourceIds.Contains(song.SourceId));
             foreach (var existingSong in existingSongs)
@@ -88,13 +90,16 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
             foreach (var song in songsToDownload)
             {
-                Console.WriteLine($"Started {song.Title}");
+                _logger.Log($"Started {song.Title}", LogLevel.Information, new { song.Id, song.Title });
 
                 var (videoInfo, streamInfo) = await _youtubeService.GetVideoInfoAsync(GlobalVariables.GetYoutubeVideo(song.Id));
                 await using var stream = await _youtubeService.GetAudioStreamAsync(streamInfo);
-                Console.WriteLine($"Got info");
+
+                _logger.Log($"Video info retrieved", LogLevel.Information);
+
                 var fileGuid = await _storageService.UploadFileAsync(stream);
-                Console.WriteLine($"Sent file to firebase");
+
+                _logger.Log($"File uploaded to Firebase", LogLevel.Information, fileGuid);
 
                 var newSong = new Song(
                     song.Title,
@@ -110,20 +115,19 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
                 _uow.SongRepository.Insert(newSong);
                 await _uow.SaveChangesAsync();
-                Console.WriteLine($"Saved");
 
+                _logger.Log($"Saved song", LogLevel.Information);
             }
 
             await _uow.SaveChangesAsync();
-            
-            Console.WriteLine($"Saved whole album");
-            Console.WriteLine("Finished the job");
+
+            _logger.Log($"Album saved", LogLevel.Information, new { album.Guid, album.Title });
 
             return album.Guid;
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            _logger.Log(e.Message, LogLevel.Error, exception: e);
         }
 
         return Guid.Empty;
