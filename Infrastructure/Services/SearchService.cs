@@ -22,29 +22,31 @@ public class SearchService : ISearchService
                 from song in _uow.SongRepository.Queryable()
                 join artist in _uow.ArtistRepository.Queryable()
                     on song.ArtistGuid equals artist.Guid
-                join pls in _uow.PlaylistSongRepository.Queryable()
-                    on song.Guid equals pls.SongGuid into pls
-                from plsd in pls.DefaultIfEmpty()
-                join playlist in _uow.PlaylistRepository.Queryable()
-                    on plsd.PlaylistGuid equals playlist.Guid
-        
+                join album in _uow.AlbumRepository.Queryable()
+                    on song.AlbumGuid equals album.Guid into albumJoin
+                from album in albumJoin.DefaultIfEmpty()
                 #region vector
-        
+
                 let searchVector =
                     EF.Functions.ToTsVector("english", song.Title ?? " ")
-                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.A).Concat(
+                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
+                        .Concat(
                             EF.Functions.ToTsVector("english", artist.DisplayName ?? " ")
                                 .SetWeight(NpgsqlTsVector.Lexeme.Weight.B))
+                        .Concat(
+                            EF.Functions.ToTsVector("english", album.Title ?? " ")
+                                .SetWeight(NpgsqlTsVector.Lexeme.Weight.B)
+                            )
                 let searchQueryVector = EF.Functions.PlainToTsQuery("english", query)
-        
+
                 #endregion
-        
+
                 orderby searchVector.Rank(searchQueryVector) descending
                 where searchVector.Matches(searchQueryVector)
-                select new { song, artist, playlist }
+                select new { song, artist, album }
             )
             .ToListAsync();
-        
+
         var songs = sa.Select(x => SongDTO.Create(x.song, false)).ToList();
         return songs;
     }
