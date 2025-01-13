@@ -1,7 +1,10 @@
-﻿namespace Application.Services.Auth
+﻿using Application.DTOs.Auth;
+
+namespace Application.Services.Auth
 {
     public interface IJwtService
     {
-        Task<string> GetTokenAsync(string email, string password);
+        Task<TokenResponse> GetTokenAsync(string email, string password);
+        Task<TokenResponse> RefreshTokenAsync(string refreshToken);
     }
 }

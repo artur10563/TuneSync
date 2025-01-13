@@ -1,4 +1,5 @@
 ﻿using Application.CQ.Users.Login;
+using Application.CQ.Users.RefreshToken;
 using Application.CQ.Users.Register;
 using MediatR;
 
@@ -26,6 +27,14 @@ namespace Api.Endpoints
                     : Results.Ok(result.Value);
             }).WithDescription("Login");
 
+            group.MapPost("refresh", async (ISender sender, RefreshTokenCommand request) =>
+            {
+                var result = await sender.Send(request);
+                return result.IsFailure
+                    ? Results.BadRequest(result.Errors)
+                    : Results.Ok(result.Value);
+            }).WithDescription("Refresh the token");
+            
             return app;
         }
     }

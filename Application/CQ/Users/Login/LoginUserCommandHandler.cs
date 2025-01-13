@@ -1,11 +1,12 @@
-﻿using Application.Services.Auth;
+﻿using Application.DTOs.Auth;
+using Application.Services.Auth;
 using Domain.Errors;
 using Domain.Primitives;
 using MediatR;
 
 namespace Application.CQ.Users.Login
 {
-    internal sealed class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<string>>
+    internal sealed class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Result<TokenResponse>>
     {
         private readonly IJwtService _jwtService;
         public LoginUserCommandHandler(IJwtService jwtService)
@@ -13,13 +14,13 @@ namespace Application.CQ.Users.Login
             _jwtService = jwtService;
         }
 
-        public async Task<Result<string>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<TokenResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
-            var token = await _jwtService.GetTokenAsync(request.Email, request.Password);
-            if (string.IsNullOrEmpty(token))
+            var tokens = await _jwtService.GetTokenAsync(request.Email, request.Password);
+            if (string.IsNullOrEmpty(tokens.AccessToken))
                 return UserError.InvalidCredentials;
 
-            return token;
+            return tokens;
         }
     }
 }
