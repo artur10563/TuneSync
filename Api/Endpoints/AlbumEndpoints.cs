@@ -8,7 +8,7 @@ public static class AlbumEndpoints
 {
     public static IEndpointRouteBuilder RegisterAlbumEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/albums").WithTags("albums");
+        var group = app.MapGroup("api/album").WithTags("Album");
 
         group.MapGet("/{albumGuid:guid}", async (Guid albumGuid, HttpContext context, ISender _sender) =>
         {
