@@ -262,7 +262,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Domain.Entities.UserFavoriteSong", b =>
+            modelBuilder.Entity("Domain.Entities.UserSong", b =>
                 {
                     b.Property<Guid>("UserGuid")
                         .HasColumnType("uuid");
@@ -270,14 +270,21 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("SongGuid")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsFavorite")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsOffline")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.HasKey("UserGuid", "SongGuid");
 
                     b.HasIndex("SongGuid");
 
-                    b.HasIndex("UserGuid", "SongGuid")
-                        .IsUnique();
-
-                    b.ToTable("UserFavoriteSongs", (string)null);
+                    b.ToTable("UserSongs", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Album", b =>
@@ -353,16 +360,16 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.UserFavoriteSong", b =>
+            modelBuilder.Entity("Domain.Entities.UserSong", b =>
                 {
                     b.HasOne("Domain.Entities.Song", null)
-                        .WithMany()
+                        .WithMany("FavoredBy")
                         .HasForeignKey("SongGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", null)
-                        .WithMany()
+                        .WithMany("FavoriteSongs")
                         .HasForeignKey("UserGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -380,9 +387,16 @@ namespace Infrastructure.Migrations
                     b.Navigation("Songs");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Song", b =>
+                {
+                    b.Navigation("FavoredBy");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Navigation("Albums");
+
+                    b.Navigation("FavoriteSongs");
 
                     b.Navigation("Playlists");
 

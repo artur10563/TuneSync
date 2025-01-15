@@ -9,7 +9,7 @@ namespace Application.Repositories.Shared
         IPlaylistRepository PlaylistRepository { get; }
         IAlbumRepository AlbumRepository { get; }
         ILinkEntityRepository<PlaylistSong> PlaylistSongRepository { get; }
-        ILinkEntityRepository<UserFavoriteSong> UserFavoriteSongRepository { get; }
+        ILinkEntityRepository<UserSong> UserSongRepository { get; }
         IArtistRepository ArtistRepository { get; }
         int SaveChanges();
         Task<int> SaveChangesAsync();

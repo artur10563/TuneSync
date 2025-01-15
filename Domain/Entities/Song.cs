@@ -19,7 +19,7 @@ namespace Domain.Entities
         public virtual Artist Artist { get; set; }
 
         public virtual ICollection<Playlist> Playlists { get; set; } = new HashSet<Playlist>();
-        public virtual ICollection<User> FavoredBy { get; set; } = new HashSet<User>();
+        public virtual ICollection<UserSong> FavoredBy { get; set; } = new HashSet<UserSong>();
 
         public virtual Guid? AlbumGuid { get; set; }
         public virtual Album? Album { get; set; }

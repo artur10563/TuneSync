@@ -22,13 +22,15 @@ public class ToggleFavoriteSongCommandHandler : IRequestHandler<ToggleFavoriteSo
         if (song == null)
             return Error.NotFound(nameof(Song));
 
-        var existingRecord = await _uow.UserFavoriteSongRepository
+        var existingRecord = await _uow.UserSongRepository
             .FirstOrDefaultAsync(x => x.SongGuid == request.SongGuid && x.UserGuid == request.UserGuid);
 
-        if (existingRecord != null)
-            _uow.UserFavoriteSongRepository.Delete(existingRecord);
+        if (existingRecord == null)
+            _uow.UserSongRepository.Insert(new UserSong(request.SongGuid, request.UserGuid, isFavorite: true, isOffline: false));
         else
-            _uow.UserFavoriteSongRepository.Insert(new UserFavoriteSong(request.SongGuid, request.UserGuid));
+        {
+            existingRecord.IsFavorite = !existingRecord.IsFavorite;
+        }
 
         await _uow.SaveChangesAsync();
 

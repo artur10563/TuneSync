@@ -18,7 +18,7 @@ public class GetUserFavoriteSongsQueryHandler : IRequestHandler<GetUserFavoriteS
     {
         var userFS = _uow.SongRepository
             .Where(s => s.FavoredBy
-                    .Any(u => u.Guid == request.UserGuid),
+                    .Any(us => us.UserGuid == request.UserGuid && us.IsFavorite),
                 includes: [s => s.FavoredBy, s => s.Artist, s => s.Playlists]
             ).Select(song => SongDTO.Create(song, true)).ToList();
 

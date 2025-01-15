@@ -36,7 +36,7 @@ namespace Application.DTOs.Songs
                 ArtistInfoDTO.Create(song.Artist),
                 AlbumGuid: song.AlbumGuid,
                 Album: song.Album?.Title,
-                IsFavorite: userGuid != Guid.Empty && song.FavoredBy.Any(u => u.Guid == userGuid)
+                IsFavorite: userGuid != Guid.Empty && song.FavoredBy.Any(us => us.UserGuid == userGuid && us.IsFavorite)
             );
         }
 

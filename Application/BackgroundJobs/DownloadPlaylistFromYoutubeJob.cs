@@ -90,33 +90,43 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
             foreach (var song in songsToDownload)
             {
-                _logger.Log($"Started {song.Title}", LogLevel.Information, new { song.Id, song.Title });
+                try
+                {
 
-                var (videoInfo, streamInfo) = await _youtubeService.GetVideoInfoAsync(GlobalVariables.GetYoutubeVideo(song.Id));
-                await using var stream = await _youtubeService.GetAudioStreamAsync(streamInfo);
 
-                _logger.Log($"Video info retrieved", LogLevel.Information);
 
-                var fileGuid = await _storageService.UploadFileAsync(stream);
+                    _logger.Log($"Started {song.Title}", LogLevel.Information, new { song.Id, song.Title });
 
-                _logger.Log($"File uploaded to Firebase", LogLevel.Information, fileGuid);
+                    var (videoInfo, streamInfo) = await _youtubeService.GetVideoInfoAsync(GlobalVariables.GetYoutubeVideo(song.Id));
+                    await using var stream = await _youtubeService.GetAudioStreamAsync(streamInfo);
 
-                var newSong = new Song(
-                    song.Title,
-                    SongSource.YouTube,
-                    song.Id,
-                    fileGuid,
-                    videoInfo.Duration.Value,
-                    (int)streamInfo.Size.KiloBytes,
-                    createdBy,
-                    artist.Guid,
-                    album.Guid
-                );
+                    _logger.Log($"Video info retrieved", LogLevel.Information);
 
-                _uow.SongRepository.Insert(newSong);
-                await _uow.SaveChangesAsync();
+                    var fileGuid = await _storageService.UploadFileAsync(stream);
 
-                _logger.Log($"Saved song", LogLevel.Information);
+                    _logger.Log($"File uploaded to Firebase", LogLevel.Information, fileGuid);
+
+                    var newSong = new Song(
+                        song.Title,
+                        SongSource.YouTube,
+                        song.Id,
+                        fileGuid,
+                        videoInfo.Duration.Value,
+                        (int)streamInfo.Size.KiloBytes,
+                        createdBy,
+                        artist.Guid,
+                        album.Guid
+                    );
+
+                    _uow.SongRepository.Insert(newSong);
+                    await _uow.SaveChangesAsync();
+
+                    _logger.Log($"Saved song", LogLevel.Information);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Log(ex.Message, LogLevel.Error, ex);
+                }
             }
 
             await _uow.SaveChangesAsync();

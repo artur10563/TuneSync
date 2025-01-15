@@ -13,7 +13,7 @@ namespace Domain.Entities
         public virtual ICollection<Playlist> Playlists { get; set; } = new HashSet<Playlist>();
         public virtual ICollection<Album> Albums { get; set; } = new HashSet<Album>();
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
-        public virtual ICollection<Song> FavoriteSongs { get; set; } = new HashSet<Song>();
+        public virtual ICollection<UserSong> FavoriteSongs { get; set; } = new HashSet<UserSong>();
 
         public User(string name, string email, string identityId)
         {

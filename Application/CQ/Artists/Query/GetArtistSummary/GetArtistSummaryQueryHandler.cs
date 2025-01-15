@@ -41,8 +41,8 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
         var songDTOs = abandonedSongs
             .Select(x => SongDTO.Create(
                 x,
-                _uow.UserFavoriteSongRepository.Queryable()
-                    .Any(usf => usf.SongGuid == x.Guid && usf.UserGuid == currentUserId)
+                _uow.UserSongRepository.Queryable()
+                    .Any(usf => usf.SongGuid == x.Guid && usf.UserGuid == currentUserId && usf.IsFavorite == true)
             ))
             .ToList();
 

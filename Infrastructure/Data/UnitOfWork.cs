@@ -13,7 +13,7 @@ namespace Infrastructure.Data
         public IPlaylistRepository PlaylistRepository { get; set; }
         public IAlbumRepository AlbumRepository { get; set; }
         public ILinkEntityRepository<PlaylistSong> PlaylistSongRepository { get; set; }
-        public ILinkEntityRepository<UserFavoriteSong> UserFavoriteSongRepository { get; set; }
+        public ILinkEntityRepository<UserSong> UserSongRepository { get; set; }
         public IArtistRepository ArtistRepository { get; set; }
 
         public int SaveChanges()
@@ -32,7 +32,7 @@ namespace Infrastructure.Data
             IUserRepository userRepository,
             IPlaylistRepository playlistRepository,
             ILinkEntityRepository<PlaylistSong> playlistSongRepository,
-            ILinkEntityRepository<UserFavoriteSong> userFavoriteSongRepository,
+            ILinkEntityRepository<UserSong> userSongRepository,
             IArtistRepository artistRepository,
             IAlbumRepository albumRepository)
         {
@@ -41,7 +41,7 @@ namespace Infrastructure.Data
             UserRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             PlaylistRepository = playlistRepository ?? throw new ArgumentNullException(nameof(playlistRepository));
             PlaylistSongRepository = playlistSongRepository ?? throw new ArgumentNullException(nameof(playlistSongRepository));
-            UserFavoriteSongRepository = userFavoriteSongRepository ?? throw new ArgumentNullException(nameof(userFavoriteSongRepository));
+            UserSongRepository = userSongRepository ?? throw new ArgumentNullException(nameof(userSongRepository));
             ArtistRepository = artistRepository ?? throw new ArgumentNullException(nameof(artistRepository));
             AlbumRepository = albumRepository ?? throw new ArgumentNullException(nameof(albumRepository));
         }
