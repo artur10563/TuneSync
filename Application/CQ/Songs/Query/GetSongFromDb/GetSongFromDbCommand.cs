@@ -5,5 +5,5 @@ using MediatR;
 
 namespace Application.CQ.Songs.Query.GetSongFromDb
 {
-    public sealed record GetSongFromDbCommand(string query, Guid? CurrentUserGuid = null) : IRequest<Result<List<SongDTO>>>;
+    public sealed record GetSongFromDbCommand(string query, Guid? CurrentUserGuid = null, int page = 1) : IRequest<PaginatedResult<List<SongDTO>>>;
 }

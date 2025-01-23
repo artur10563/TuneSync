@@ -4,5 +4,5 @@ namespace Application.Services;
 
 public interface ISearchService
 {
-    Task<List<SongDTO>> Search(string query);
+    Task<(List<SongDTO>, int totalItems)> Search(string searchQuery, int page);
 }

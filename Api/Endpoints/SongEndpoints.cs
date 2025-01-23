@@ -17,18 +17,18 @@ namespace Api.Endpoints
             var songGroup = app.MapGroup("api/song").WithTags("Song");
             var favSongGroup = app.MapGroup("api/favorite/song").WithTags("Song");
 
-            app.MapGet("api/search/{query}", async (ISender _sender, HttpContext _httpContext, string query) =>
+            app.MapGet("api/search/{query}", async (ISender _sender, HttpContext _httpContext, string query, int page = 1) =>
             {
                 var user = await _httpContext.GetCurrentUserAsync();
 
-                var command = new GetSongFromDbCommand(query, user?.Guid);
+                var command = new GetSongFromDbCommand(query, user?.Guid, page);
                 var result = await _sender.Send(command);
 
                 return result.IsFailure
                     ? Results.BadRequest(result.Errors)
                     : result.Value.Count == 0
                         ? Results.NoContent()
-                        : Results.Ok(result.Value);
+                        : Results.Ok(result.ToPaginatedResponse());
             }).WithName("GetSong").WithDescription("FTS");
 
             songGroup.MapPost("", async (
