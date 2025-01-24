@@ -16,11 +16,11 @@ public class SearchService : ISearchService
         _uow = uow;
     }
 
-    public async Task<(List<SongDTO>, int totalItems)> Search(string searchQuery, int page)
+    public async Task<(List<SongDTO>, int totalItems)> Search(string searchQuery, int page, Guid userGuid = default)
     {
         page = page <= 0 ? 1 : page;
         var pageSize = 25;
-        // Favorite songs are not recognized????? UserId is not passed???? 
+        
         var query = (
             from song in _uow.SongRepository.Queryable()
             join artist in _uow.ArtistRepository.Queryable()
@@ -28,7 +28,11 @@ public class SearchService : ISearchService
             join album in _uow.AlbumRepository.Queryable()
                 on song.AlbumGuid equals album.Guid into albumJoin
             from album in albumJoin.DefaultIfEmpty()
-
+            
+            join us in _uow.UserSongRepository.Queryable()
+                on new {songGuid = song.Guid, userGuid =  userGuid} equals new {songGuid = us.SongGuid, userGuid = us.UserGuid} into userSongJoin
+            from userSong in userSongJoin.DefaultIfEmpty()
+                
             #region vector
 
             let searchVector =
@@ -47,7 +51,7 @@ public class SearchService : ISearchService
 
             orderby searchVector.Rank(searchQueryVector) descending
             where searchVector.Matches(searchQueryVector)
-            select new { song, artist, album }
+            select new { song, artist, album, isFavorite = userSong != null && userSong.IsFavorite }
         );
 
         var totalCount = await query.CountAsync();
@@ -56,7 +60,7 @@ public class SearchService : ISearchService
             .Take(pageSize)
             .ToListAsync();
 
-        var songs = sa.Select(x => SongDTO.Create(x.song, false)).ToList();
+        var songs = sa.Select(x => SongDTO.Create(x.song, x.isFavorite)).ToList();
         return (songs, totalCount);
     }
 }

@@ -24,7 +24,7 @@ namespace Application.CQ.Songs.Query.GetSongFromDb
 
             if (request.page <= 0) return Result.Failure<List<SongDTO>>(new Error("Invalid page number"), 0);
             
-            var (songs, totalItems) = await _searchService.Search(request.query, request.page);
+            var (songs, totalItems) = await _searchService.Search(request.query, request.page, userGuid);
 
             return Result.Success(songs, request.page, totalItems);
         }
