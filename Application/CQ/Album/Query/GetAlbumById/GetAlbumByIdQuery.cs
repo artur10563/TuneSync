@@ -4,4 +4,4 @@ using MediatR;
 
 namespace Application.CQ.Album.Query.GetAlbumById;
 
-public record GetAlbumByIdQuery(Guid AlbumGuid, Guid? UserGuid = null) : IRequest<Result<PlaylistDTO>>;
+public record GetAlbumByIdQuery(Guid AlbumGuid, Guid? UserGuid = null, int Page = 1) : IRequest<Result<PlaylistDTO>>;

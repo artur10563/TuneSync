@@ -10,11 +10,11 @@ public static class AlbumEndpoints
     {
         var group = app.MapGroup("api/album").WithTags("Album");
 
-        group.MapGet("/{albumGuid:guid}", async (Guid albumGuid, HttpContext context, ISender _sender) =>
+        group.MapGet("/{albumGuid:guid}", async (Guid albumGuid, HttpContext context, ISender _sender, int page = 1) =>
         {
             var user = await context.GetCurrentUserAsync();
 
-            var query = new GetAlbumByIdQuery(albumGuid, user?.Guid);
+            var query = new GetAlbumByIdQuery(albumGuid, user?.Guid, page);
 
             var result = await _sender.Send(query);
 

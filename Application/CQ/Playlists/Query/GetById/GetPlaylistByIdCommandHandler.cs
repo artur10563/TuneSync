@@ -19,6 +19,9 @@ namespace Application.CQ.Playlists.Query.GetById
 
         public async Task<Result<PlaylistDTO>> Handle(GetPlaylistByIdCommand request, CancellationToken cancellationToken)
         {
+            var page = 1;
+            var pageSize = 25;
+            
             var userGuid = request.UserGuid ?? Guid.Empty;
             
             var playlistDetails = (await _uow.PlaylistRepository.FirstOrDefaultAsync(x => x.Guid == request.PlaylistGuid,
@@ -27,17 +30,24 @@ namespace Application.CQ.Playlists.Query.GetById
 
             if(playlistDetails == null)
                 return Error.NotFound(nameof(Playlist));
+
+            var playlistSongsQuery = _uow.SongRepository
+                .Where(song => song.Playlists.Any(p => p.Guid == request.PlaylistGuid),
+                    asNoTracking: true,
+                    song => song.Album,
+                    song => song.Artist,
+                    song => song.FavoredBy).Select(x => SongDTO.Create(x, userGuid));
             
-            var playlistSongs = _uow.SongRepository
-                .Where(song => song.Playlists.Any(p=>p.Guid == request.PlaylistGuid),
-                asNoTracking: true, 
-                song => song.Album,
-                song => song.Artist,
-                song => song.FavoredBy).Select(x => SongDTO.Create(x, userGuid)).ToList();
+            var totalCount = playlistSongsQuery.Count();
+            
+            var playlistSongs = playlistSongsQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize).ToList();
+            
 
-            var playlistDto = PlaylistDTO.Create(playlistDetails, playlistSongs);
-
-            return playlistDto;
+            var paginatedPlaylistDTO = PlaylistDTO.Create(playlistDetails, playlistSongs,  PageInfo.Create(page, pageSize, totalCount));
+            
+            return paginatedPlaylistDTO;
         }
     }
 }

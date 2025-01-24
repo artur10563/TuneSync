@@ -112,5 +112,11 @@ namespace Domain.Primitives
     
     public sealed record PaginatedResponse<TValue>(TValue Items, PageInfo PageInfo) where TValue : IEnumerable;
 
-    public sealed record PageInfo(int Page, int PageSize, int TotalCount, int TotalPages);
+    public sealed record PageInfo(int Page, int PageSize, int TotalCount, int TotalPages)
+    {
+        public static PageInfo Create(int page, int pageSize, int totalCount)
+        {
+            return new PageInfo(page, pageSize, totalCount, (int)Math.Ceiling((double)totalCount / pageSize));
+        }
+    };
 }

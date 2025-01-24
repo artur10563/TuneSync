@@ -28,11 +28,11 @@ namespace Api.Endpoints
                 .RequireAuthorization()
                 .WithDescription("Create new playlist");
 
-            group.MapGet("/{guid}", async (ISender sender, HttpContext _httpContext, Guid guid) =>
+            group.MapGet("/{guid}", async (ISender sender, HttpContext _httpContext, Guid guid, int page = 1) =>
                 {
                     var user = await _httpContext.GetCurrentUserAsync();
 
-                    var command = new GetPlaylistByIdCommand(guid, user?.Guid);
+                    var command = new GetPlaylistByIdCommand(guid, user?.Guid, page);
                     var result = await sender.Send(command);
                     return result.IsFailure ? Results.BadRequest(result.Errors) : Results.Ok(result.Value);
                 })

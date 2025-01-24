@@ -27,16 +27,25 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
         if (albumDetails == null)
             return Error.NotFound(nameof(Album));
 
-        var albumSongs = _uow.SongRepository
+        var albumSongsQuery = _uow.SongRepository
             .Where(s => s.AlbumGuid == request.AlbumGuid,
                 asNoTracking: true,
-                includes: [
-                    song => song.Artist, 
+                includes:
+                [
+                    song => song.Artist,
                     song => song.FavoredBy,
-                song => song.Album])
-            .Select(x => SongDTO.Create(x, userGuid)).ToList();
+                    song => song.Album
+                ])
+            .Select(x => SongDTO.Create(x, userGuid));
+        
+        var totalCount = albumSongsQuery.Count();
 
-        var playlistDto = PlaylistDTO.Create(albumDetails, albumSongs);
+        var albumSongs = albumSongsQuery
+            .Skip((request.Page - 1) * 25)
+            .Take(25)
+            .ToList();
+
+        var playlistDto = PlaylistDTO.Create(albumDetails, albumSongs, PageInfo.Create(request.Page, 25, totalCount));
 
         return playlistDto;
     }
