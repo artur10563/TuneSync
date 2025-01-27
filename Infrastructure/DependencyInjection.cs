@@ -101,6 +101,16 @@ namespace Infrastructure
             services.AddRateLimiter(option =>
             {
                 option.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                option.OnRejected = (context, token) =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerService>();
+                    var ipAddress = context.HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var path = context.HttpContext.Request.Path;
+
+                    logger.Log(message: $"REQUEST LIMIT", LogLevel.Warning, context: new { ipAddress, path });
+
+                    return ValueTask.CompletedTask;
+                };
                 
                 option.AddPolicy("fixed", httpContext =>
                     RateLimitPartition.GetFixedWindowLimiter(

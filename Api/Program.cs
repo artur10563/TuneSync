@@ -40,6 +40,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseHangfireDashboard();
+app.UseRateLimiter();
 
 app.RegisterAlbumEndpoints()
     .RegisterSongsEndpoints()

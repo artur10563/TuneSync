@@ -24,7 +24,7 @@ public static class YoutubeEndpoints
             var result = (await _youtube.SearchAsync(query)).ToList();
 
             return result;
-        }).WithDescription("Search song on youtube");
+        }).WithDescription("Search song on youtube").RequireRateLimiting("fixed");
 
 
         songGroup.MapPost("/{videoLink}", async (string videoLink,
