@@ -1,4 +1,5 @@
-﻿using Application;
+﻿using System.Threading.RateLimiting;
+using Application;
 using Application.CQ.Songs.Command.CreateSong;
 using Application.Repositories;
 using Application.Repositories.Shared;
@@ -15,6 +16,8 @@ using Infrastructure.Repositories.Shared;
 using Infrastructure.Services;
 using Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,6 +94,26 @@ namespace Infrastructure
 
 
             return serviceCollection;
+        }
+
+        public static IServiceCollection WithRateLimiting(this IServiceCollection services)
+        {
+            services.AddRateLimiter(option =>
+            {
+                option.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                
+                option.AddPolicy("fixed", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                        factory: _ => new FixedWindowRateLimiterOptions()
+                        {
+                            PermitLimit = 10,
+                            Window = TimeSpan.FromSeconds(10)
+                        }
+                    ));
+            });
+            
+            return services;
         }
     }
 }
