@@ -35,7 +35,7 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
                     song => song.Artist,
                     song => song.FavoredBy,
                     song => song.Album
-                ])
+                ]).OrderBy(x=>x.CreatedAt)
             .Select(x => SongDTO.Create(x, userGuid));
         
         var totalCount = albumSongsQuery.Count();

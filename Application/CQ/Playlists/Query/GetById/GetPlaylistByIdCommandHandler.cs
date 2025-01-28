@@ -36,7 +36,7 @@ namespace Application.CQ.Playlists.Query.GetById
                     asNoTracking: true,
                     song => song.Album,
                     song => song.Artist,
-                    song => song.FavoredBy).Select(x => SongDTO.Create(x, userGuid));
+                    song => song.FavoredBy).OrderBy(x=>x.CreatedAt).Select(x => SongDTO.Create(x, userGuid));
             
             var totalCount = playlistSongsQuery.Count();
             

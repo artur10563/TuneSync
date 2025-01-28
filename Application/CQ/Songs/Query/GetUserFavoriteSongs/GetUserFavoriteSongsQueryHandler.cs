@@ -20,7 +20,7 @@ public class GetUserFavoriteSongsQueryHandler : IRequestHandler<GetUserFavoriteS
             .Where(s => s.FavoredBy
                     .Any(us => us.UserGuid == request.UserGuid && us.IsFavorite),
                 includes: [s => s.FavoredBy, s => s.Artist, s => s.Playlists]
-            ).Select(song => SongDTO.Create(song, true)).ToList();
+            ).OrderBy(x=>x.CreatedAt).Select(song => SongDTO.Create(song, true)).ToList();
 
         return userFS;
     }
