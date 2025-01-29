@@ -111,6 +111,20 @@ namespace Infrastructure.Services
             return (videoInfo, streamInfo);
         }
 
+        public async Task<(string title, Stream videoStream)> GetVideoAsync(string url)
+        {
+            ExplodeVideo videoInfo = await _youtubeExplode.Videos.GetAsync(url);
+
+            IStreamInfo streamInfo = (await _youtubeExplode.Videos.Streams.GetManifestAsync(videoInfo.Url))
+                .GetVideoOnlyStreams()
+                .GetWithHighestBitrate();
+            
+            var videoStream = await _youtubeExplode.Videos.Streams.GetAsync(streamInfo);
+
+
+            return (videoInfo.Title, videoStream);
+        }
+
         public async Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo)
         {
             var audioStream = await _youtubeExplode.Videos.Streams.GetAsync(streamInfo);

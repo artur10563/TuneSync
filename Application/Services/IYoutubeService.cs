@@ -16,5 +16,7 @@ namespace Application.Services
 
         /// <returns>List of videos for specified playlist and thumbnailId for playlist</returns>
         Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId);
+
+        Task<(string title, Stream videoStream)> GetVideoAsync(string url);
     }
 }

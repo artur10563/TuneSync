@@ -5,6 +5,7 @@ using Application.Repositories.Shared;
 using MediatR;
 using Application.CQ.Songs.Command;
 using Application.CQ.Songs.Query.GetUserFavoriteSongs;
+using Application.Services;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -49,6 +50,25 @@ namespace Api.Endpoints
                     : Results.CreatedAtRoute(routeName: "GetSong", routeValues: new { query = result.Value.Guid.ToString() }, value: result.Value);
             }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); //TODO: Add Antiforgery
 
+            songGroup.MapPost("/video/{url}", async (IYoutubeService _yts, string url) =>
+            {
+                var v = await _yts.GetVideoAsync(url);
+                
+                string projectDirectory = AppDomain.CurrentDomain.BaseDirectory; // or Directory.GetCurrentDirectory()
+
+                // Define the output file path in the project directory
+                string outputFilePath = Path.Combine(projectDirectory, "video.mp4");
+                
+                // Save the video stream to a file
+                using (var fileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
+                {
+                    await v.videoStream.CopyToAsync(fileStream);
+                    Console.WriteLine("Download completed!");
+                }
+                
+                return
+            });
+            
             favSongGroup.MapPut("/{songGuid:guid}", async (ISender _sender, HttpContext _httpContext,
                 Guid songGuid) =>
             {
