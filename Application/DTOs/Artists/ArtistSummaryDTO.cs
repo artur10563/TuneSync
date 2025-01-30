@@ -15,15 +15,17 @@ public record ArtistSummaryDTO(ArtistInfoDTO ArtistInfo, ICollection<PlaylistSum
         
         return new ArtistSummaryDTO(
             ArtistInfo: ArtistInfoDTO.Create(artist),
-            Playlists: PlaylistSummaryDTO.Create(artist.Albums),
+            Playlists: PlaylistSummaryDTO.Create(artist.Albums, currentUserGuid.Value),
             Songs: SongDTO.Create(abandonedSongs, currentUserGuid.Value)
         );
     }
-    public static ArtistSummaryDTO Create(Artist artist, IEnumerable<SongDTO> abandonedSongsDTO)
+    public static ArtistSummaryDTO Create(Artist artist, IEnumerable<SongDTO> abandonedSongsDTO, Guid? currentUserGuid)
     {
+        currentUserGuid = currentUserGuid ?? Guid.Empty;
+        
         return new ArtistSummaryDTO(
             ArtistInfo: ArtistInfoDTO.Create(artist),
-            Playlists: PlaylistSummaryDTO.Create(artist.Albums),
+            Playlists: PlaylistSummaryDTO.Create(artist.Albums, currentUserGuid.Value),
             Songs: abandonedSongsDTO.ToList()
         );
     }

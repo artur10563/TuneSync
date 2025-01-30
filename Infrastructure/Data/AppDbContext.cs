@@ -12,6 +12,8 @@ namespace Infrastructure.Data
         public DbSet<Album> Album { get; set; }
         public DbSet<PlaylistSong> PlaylistSongs { get; set; }
         public DbSet<UserSong> UserSongs { get; set; }
+        public DbSet<UserFavoriteAlbum> UserFavoriteAlbums { get; set; }
+        public DbSet<UserFavoritePlaylist> UserFavoritePlaylists { get; set; }
         public DbSet<Artist> Artists { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options)

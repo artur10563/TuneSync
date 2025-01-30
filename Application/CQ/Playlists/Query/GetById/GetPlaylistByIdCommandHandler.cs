@@ -27,6 +27,9 @@ namespace Application.CQ.Playlists.Query.GetById
             var playlistDetails = (await _uow.PlaylistRepository.FirstOrDefaultAsync(x => x.Guid == request.PlaylistGuid,
                 asNoTracking: true,
                  p => p.User));
+            
+            var isFavorite = await _uow.UserFavoritePlaylistRepository
+                .ExistsAsync(ufa => ufa.UserGuid == userGuid && ufa.PlaylistGuid == request.PlaylistGuid && ufa.IsFavorite);
 
             if(playlistDetails == null)
                 return Error.NotFound(nameof(Playlist));
@@ -45,7 +48,7 @@ namespace Application.CQ.Playlists.Query.GetById
                 .Take(pageSize).ToList();
             
 
-            var paginatedPlaylistDTO = PlaylistDTO.Create(playlistDetails, playlistSongs,  PageInfo.Create(page, pageSize, totalCount));
+            var paginatedPlaylistDTO = PlaylistDTO.Create(playlistDetails, playlistSongs,  PageInfo.Create(page, pageSize, totalCount), isFavorite);
             
             return paginatedPlaylistDTO;
         }

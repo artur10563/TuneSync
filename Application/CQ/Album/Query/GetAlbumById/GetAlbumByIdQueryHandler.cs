@@ -24,6 +24,9 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
             asNoTracking: true,
             p => p.User));
 
+        var isFavorite = await _uow.UserFavoriteAlbumRepository
+            .ExistsAsync(ufa => ufa.UserGuid == userGuid && ufa.AlbumGuid == request.AlbumGuid && ufa.IsFavorite);
+        
         if (albumDetails == null)
             return Error.NotFound(nameof(Album));
 
@@ -45,8 +48,12 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
             .Take(25)
             .ToList();
 
-        var playlistDto = PlaylistDTO.Create(albumDetails, albumSongs, PageInfo.Create(request.Page, 25, totalCount));
+        var albumDto = PlaylistDTO.Create(
+            album: albumDetails,
+            isFavorite: isFavorite,
+            songs: albumSongs,
+            pageInfo: PageInfo.Create(request.Page, 25, totalCount));
 
-        return playlistDto;
+        return albumDto;
     }
 }

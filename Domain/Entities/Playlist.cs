@@ -13,6 +13,7 @@ namespace Domain.Entities
         public string? ThumbnailSource { get; set; } //YT link or blob
 
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
+        public virtual ICollection<UserFavoritePlaylist> FavoredBy { get; set; } = new HashSet<UserFavoritePlaylist>();
 
         public Playlist(string title, Guid createdBy, string source,
             string? thumbnailSource = null, string? thumbnailId = null) : base()

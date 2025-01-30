@@ -262,6 +262,46 @@ namespace Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Domain.Entities.UserFavoriteAlbum", b =>
+                {
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AlbumGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsFavorite")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("UserGuid", "AlbumGuid");
+
+                    b.HasIndex("AlbumGuid");
+
+                    b.ToTable("UserFavoriteAlbum", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.UserFavoritePlaylist", b =>
+                {
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlaylistGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsFavorite")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("UserGuid", "PlaylistGuid");
+
+                    b.HasIndex("PlaylistGuid");
+
+                    b.ToTable("UserFavoritePlaylist", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.UserSong", b =>
                 {
                     b.Property<Guid>("UserGuid")
@@ -360,6 +400,36 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.UserFavoriteAlbum", b =>
+                {
+                    b.HasOne("Domain.Entities.Album", null)
+                        .WithMany("FavoredBy")
+                        .HasForeignKey("AlbumGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany("FavoriteAlbums")
+                        .HasForeignKey("UserGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.UserFavoritePlaylist", b =>
+                {
+                    b.HasOne("Domain.Entities.Playlist", null)
+                        .WithMany("FavoredBy")
+                        .HasForeignKey("PlaylistGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany("FavoritePlaylists")
+                        .HasForeignKey("UserGuid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Entities.UserSong", b =>
                 {
                     b.HasOne("Domain.Entities.Song", null)
@@ -377,6 +447,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Album", b =>
                 {
+                    b.Navigation("FavoredBy");
+
                     b.Navigation("Songs");
                 });
 
@@ -387,6 +459,11 @@ namespace Infrastructure.Migrations
                     b.Navigation("Songs");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Playlist", b =>
+                {
+                    b.Navigation("FavoredBy");
+                });
+
             modelBuilder.Entity("Domain.Entities.Song", b =>
                 {
                     b.Navigation("FavoredBy");
@@ -395,6 +472,10 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Navigation("Albums");
+
+                    b.Navigation("FavoriteAlbums");
+
+                    b.Navigation("FavoritePlaylists");
 
                     b.Navigation("FavoriteSongs");
 

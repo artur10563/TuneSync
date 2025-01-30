@@ -5,5 +5,6 @@ namespace Application.Repositories
 {
     public interface IArtistRepository : IBaseRepository<Artist>
     {
+        IQueryable<Artist> WithAlbumAndSongs();
     }
 }

@@ -12,6 +12,7 @@ namespace Application.DTOs.Playlists
         DateTime CreatedAt,
         DateTime ModifiedAt,
         string ThumbnailUrl,
+        bool IsFavorite,
         PaginatedResponse<ICollection<SongDTO>> Songs
     )
     {
@@ -28,11 +29,12 @@ namespace Application.DTOs.Playlists
                 ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
                     ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
                     : "",
-                Songs: new PaginatedResponse<ICollection<SongDTO>>(SongDTO.Create(playlist.Songs, userGuid), pageInfo)
+                Songs: new PaginatedResponse<ICollection<SongDTO>>(SongDTO.Create(playlist.Songs, userGuid), pageInfo),
+                IsFavorite: false
             );
         }
         
-        public static PlaylistDTO Create(Album album, List<SongDTO> songs,  PageInfo pageInfo)
+        public static PlaylistDTO Create(Album album, List<SongDTO> songs,  PageInfo pageInfo, bool isFavorite)
         {
             return new PlaylistDTO(
                 album.Guid,
@@ -45,11 +47,12 @@ namespace Application.DTOs.Playlists
                 ThumbnailUrl: album.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
                     ? GlobalVariables.GetYoutubePlaylistThumbnail(album.ThumbnailId)
                     : "",
-                Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo)
+                Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
+                IsFavorite: isFavorite
             );
         }
 
-        public static PlaylistDTO Create(Playlist playlist, List<SongDTO> songs,  PageInfo pageInfo)
+        public static PlaylistDTO Create(Playlist playlist, List<SongDTO> songs,  PageInfo pageInfo, bool isFavorite)
         {
             return new PlaylistDTO(
                 playlist.Guid,
@@ -62,7 +65,8 @@ namespace Application.DTOs.Playlists
                 ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
                     ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
                     : "",
-                Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo)
+                Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
+                IsFavorite: isFavorite
             );
         }
     }

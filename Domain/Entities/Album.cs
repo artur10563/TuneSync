@@ -15,6 +15,7 @@ public class Album : EntityBase
 
     //Song can have only one album. Album can have many songs
     public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
+    public virtual ICollection<UserFavoriteAlbum> FavoredBy { get; set; } = new HashSet<UserFavoriteAlbum>();
 
     public Album()
     {

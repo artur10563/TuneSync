@@ -19,9 +19,9 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
 
     public async Task<Result<ArtistSummaryDTO>> Handle(GetArtistSummaryQuery request, CancellationToken cancellationToken)
     {
-        var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.Guid == request.ArtistGuid,
-            asNoTracking: true,
-            includes: [artist => artist.Albums, artist => artist.Songs]);
+        var artist = _uow.ArtistRepository
+            .WithAlbumAndSongs()
+            .FirstOrDefault(x => x.Guid == request.ArtistGuid);
 
         if (artist == null)
             return Error.NotFound(nameof(Artist));
@@ -47,7 +47,7 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
             .ToList();
 
 
-        var dto = ArtistSummaryDTO.Create(artist, songDTOs);
+        var dto = ArtistSummaryDTO.Create(artist, songDTOs, currentUserId);
 
         return dto;
     }

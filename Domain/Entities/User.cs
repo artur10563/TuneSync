@@ -14,6 +14,8 @@ namespace Domain.Entities
         public virtual ICollection<Album> Albums { get; set; } = new HashSet<Album>();
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
         public virtual ICollection<UserSong> FavoriteSongs { get; set; } = new HashSet<UserSong>();
+        public virtual ICollection<UserFavoriteAlbum> FavoriteAlbums { get; set; } = new HashSet<UserFavoriteAlbum>();
+        public virtual ICollection<UserFavoritePlaylist> FavoritePlaylists { get; set; } = new HashSet<UserFavoritePlaylist>();
 
         public User(string name, string email, string identityId)
         {

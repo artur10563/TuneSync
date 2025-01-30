@@ -67,5 +67,18 @@ namespace Infrastructure.Repositories.Shared
 
             return query.Where(predicate);
         }
+
+        public virtual async Task<bool> ExistsAsync(
+            Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false)
+        {
+            IQueryable<TEntity> query = _set;
+            
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.AnyAsync(predicate);
+        }
     }
 }

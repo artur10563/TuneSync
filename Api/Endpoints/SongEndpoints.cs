@@ -15,7 +15,6 @@ namespace Api.Endpoints
         public static IEndpointRouteBuilder RegisterSongsEndpoints(this IEndpointRouteBuilder app)
         {
             var songGroup = app.MapGroup("api/song").WithTags("Song");
-            var favSongGroup = app.MapGroup("api/favorite/song").WithTags("Song");
 
             app.MapGet("api/search/{query}", async (ISender _sender, HttpContext _httpContext, string query, int page = 1) =>
             {
@@ -48,30 +47,6 @@ namespace Api.Endpoints
                     ? Results.BadRequest(result.Errors)
                     : Results.CreatedAtRoute(routeName: "GetSong", routeValues: new { query = result.Value.Guid.ToString() }, value: result.Value);
             }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); //TODO: Add Antiforgery
-
-            favSongGroup.MapPut("/{songGuid:guid}", async (ISender _sender, HttpContext _httpContext,
-                Guid songGuid) =>
-            {
-                var user = await _httpContext.GetCurrentUserAsync();
-
-                var command = new ToggleFavoriteSongCommand(songGuid, user!.Guid);
-                var result = await _sender.Send(command);
-
-                return result.IsSuccess ? Results.Ok() : Results.BadRequest(result.Errors);
-            }).RequireAuthorization().WithDescription("Add/Remove song from favorites");
-
-            favSongGroup.MapGet("", async (ISender _sender, HttpContext _httpContext) =>
-            {
-                var user = await _httpContext.GetCurrentUserAsync();
-                
-                var command = new GetUserFavoriteSongsQuery(user!.Guid);
-                var result = await _sender.Send(command);
-
-                return result.IsSuccess 
-                    ? !result.Value.Any() ? Results.NoContent() 
-                        : Results.Ok(result.Value) 
-                    : Results.BadRequest(result.Errors);
-            }).RequireAuthorization().WithDescription("Get favorite songs of current user");
 
             return app;
         }

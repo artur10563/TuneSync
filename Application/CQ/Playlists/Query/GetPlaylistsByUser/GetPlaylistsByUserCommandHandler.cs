@@ -28,9 +28,9 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
 
             var userPlaylists = _uow.PlaylistRepository
                 .Where(x => x.CreatedBy == request.UserGuid && x.Source == GlobalVariables.PlaylistSource.User,
-                    asNoTracking: true)
-                .Select(x=> PlaylistSummaryDTO.Create(x))
-                .ToList();
+                    asNoTracking: true, includes: [x=>x.FavoredBy])
+                .Select(x => PlaylistSummaryDTO.Create(x, request.UserGuid)
+                ).ToList();
 
             return Result.Success(userPlaylists);
         }

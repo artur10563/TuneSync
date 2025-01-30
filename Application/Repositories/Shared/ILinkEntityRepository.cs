@@ -18,5 +18,7 @@ namespace Application.Repositories.Shared
         IEnumerable<TEntity> Where(
             Expression<Func<TEntity, bool>> predicate,
             bool asNoTracking = false);
+        Task<bool> ExistsAsync(
+            Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false);
     }
 }
