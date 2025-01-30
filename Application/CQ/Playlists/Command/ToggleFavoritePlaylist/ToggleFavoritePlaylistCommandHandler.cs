@@ -25,7 +25,7 @@ public class ToggleFavoritePlaylistCommandHandler : IRequestHandler<ToggleFavori
             .FirstOrDefaultAsync(x => x.PlaylistGuid == request.PlaylistGuid && x.UserGuid == request.UserGuid);
 
         if (existingRecord == null)
-            _uow.UserFavoritePlaylistRepository.Insert(new UserFavoritePlaylist(request.PlaylistGuid, request.UserGuid, isFavorite: true));
+            _uow.UserFavoritePlaylistRepository.Insert(new UserFavoritePlaylist(request.UserGuid, request.PlaylistGuid, isFavorite: true));
         else
         {
             existingRecord.IsFavorite = !existingRecord.IsFavorite;

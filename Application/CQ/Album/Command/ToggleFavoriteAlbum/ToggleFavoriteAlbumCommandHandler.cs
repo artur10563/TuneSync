@@ -26,7 +26,7 @@ public class ToggleFavoriteAlbumCommandHandler : IRequestHandler<ToggleFavoriteA
             .FirstOrDefaultAsync(x => x.AlbumGuid == request.AlbumGuid && x.UserGuid == request.UserGuid);
 
         if (existingRecord == null)
-            _uow.UserFavoriteAlbumRepository.Insert(new UserFavoriteAlbum(request.AlbumGuid, request.UserGuid, isFavorite: true));
+            _uow.UserFavoriteAlbumRepository.Insert(new UserFavoriteAlbum(request.UserGuid, request.AlbumGuid, isFavorite: true));
         else
         {
             existingRecord.IsFavorite = !existingRecord.IsFavorite;
