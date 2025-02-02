@@ -23,7 +23,7 @@ public class GetUserFavoriteAlbumsQueryHandler : IRequestHandler<GetUserFavorite
         var userFA = _uow.AlbumRepository
             .Where(a => a.FavoredBy
                     .Any(ufa => ufa.UserGuid == request.UserGuid && ufa.IsFavorite),
-                includes: [a => a.FavoredBy]
+                includes: [a => a.FavoredBy, a=> a.Artist]
             ).OrderBy(x=>x.CreatedAt).Select(album => PlaylistSummaryDTO.Create(album, true)).ToList();
         
         return userFA;
