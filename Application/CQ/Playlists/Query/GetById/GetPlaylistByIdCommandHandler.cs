@@ -48,7 +48,12 @@ namespace Application.CQ.Playlists.Query.GetById
                 .Take(pageSize).ToList();
             
 
-            var paginatedPlaylistDTO = PlaylistDTO.Create(playlistDetails, playlistSongs,  PageInfo.Create(page, pageSize, totalCount), isFavorite);
+            var paginatedPlaylistDTO = PlaylistDTO.Create(
+                playlistDetails, 
+                playlistSongs, 
+                PageInfo.Create(page, pageSize, totalCount), 
+                isFavorite,
+                totalCount);
             
             return paginatedPlaylistDTO;
         }

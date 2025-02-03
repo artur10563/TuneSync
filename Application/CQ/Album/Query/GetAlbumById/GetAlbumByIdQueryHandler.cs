@@ -52,7 +52,8 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
             album: albumDetails,
             isFavorite: isFavorite,
             songs: albumSongs,
-            pageInfo: PageInfo.Create(request.Page, 25, totalCount));
+            pageInfo: PageInfo.Create(request.Page, 25, totalCount),
+            songCount: totalCount);
 
         return albumDto;
     }
