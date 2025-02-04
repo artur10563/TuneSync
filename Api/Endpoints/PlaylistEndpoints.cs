@@ -4,6 +4,7 @@ using Application.CQ.Playlists.Command.DeletePlaylist;
 using Application.CQ.Playlists.Command.DeleteSongFromPlaylist;
 using Application.CQ.Playlists.Query.GetById;
 using Application.CQ.Playlists.Query.GetPlaylistsByUser;
+using Application.DTOs.Playlists;
 using MediatR;
 
 namespace Api.Endpoints
@@ -27,7 +28,7 @@ namespace Api.Endpoints
                     return result.IsFailure ? Results.BadRequest(result.Errors) : Results.Created($"api/playlist/{result.Value}", result.Value);
                 })
                 .RequireAuthorization()
-                .WithDescription("Create new playlist");
+                .WithDescription("Create new playlist").Produces<Guid>();
 
             group.MapGet("/{guid}", async (ISender sender, HttpContext _httpContext, Guid guid, int page = 1) =>
                 {
@@ -37,7 +38,7 @@ namespace Api.Endpoints
                     var result = await sender.Send(command);
                     return result.IsFailure ? Results.BadRequest(result.Errors) : Results.Ok(result.Value);
                 })
-                .WithDescription("Get playlist with songs by Guid");
+                .WithDescription("Get playlist with songs by Guid").Produces<PlaylistDTO>();
 
             group.MapPost("/{playlistGuid}/songs/{songGuid}", async (ISender sender, HttpContext _httpContext,
                     Guid playlistGuid,
@@ -63,7 +64,8 @@ namespace Api.Endpoints
                     return result.IsFailure ? Results.BadRequest(result.Errors) : Results.Ok(result.Value);
                 })
                 .RequireAuthorization()
-                .WithDescription("Current user playlists (without songs)");
+                .WithDescription("Current user playlists (without songs)")
+                .Produces<IEnumerable<PlaylistSummaryDTO>>();
 
             group.MapDelete("/{playlistGuid:guid}/songs/{songGuid:guid}",
                     async (ISender sender, HttpContext _httpContext,

@@ -5,6 +5,7 @@ using Application.Repositories.Shared;
 using MediatR;
 using Application.CQ.Songs.Command;
 using Application.CQ.Songs.Query.GetUserFavoriteSongs;
+using Application.DTOs.Songs;
 using Domain.Primitives;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -28,7 +29,7 @@ namespace Api.Endpoints
                     : result.Value.Count == 0
                         ? Results.NoContent()
                         : Results.Ok(result.ToPaginatedResponse());
-            }).WithName("GetSong").WithDescription("FTS");
+            }).WithName("GetSong").WithDescription("FTS").Produces<List<SongDTO>>();
 
             songGroup.MapPost("", async (
                 IFormFile audioFile,

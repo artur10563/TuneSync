@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
 {
-    internal sealed class GetPlaylistsByUserCommandHandler : IRequestHandler<GetPlaylistsByUserCommand, Result<List<PlaylistSummaryDTO>>>
+    internal sealed class GetPlaylistsByUserCommandHandler : IRequestHandler<GetPlaylistsByUserCommand, Result<IEnumerable<PlaylistSummaryDTO>>>
     {
         private readonly IUnitOfWork _uow;
 
@@ -16,7 +16,7 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
             _uow = uow;
         }
 
-        public async Task<Result<List<PlaylistSummaryDTO>>> Handle(GetPlaylistsByUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<PlaylistSummaryDTO>>> Handle(GetPlaylistsByUserCommand request, CancellationToken cancellationToken)
         {
             if (request.UserGuid == Guid.Empty)
                 return Error.NotFound(nameof(Playlist));
@@ -34,7 +34,7 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
                         songGroup.Count())
             ).ToList();
 
-            return Result.Success(userPlaylists);
+            return userPlaylists;
         }
     }
 }

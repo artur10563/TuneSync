@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Application.CQ.Playlists.Query.GetUserFavoritePlaylists;
 
-public class GetUserFavoritePlaylistsQueryHandler : IRequestHandler<GetUserFavoritePlaylistsQuery, Result<List<PlaylistSummaryDTO>>>
+public class GetUserFavoritePlaylistsQueryHandler : IRequestHandler<GetUserFavoritePlaylistsQuery, Result<IEnumerable<PlaylistSummaryDTO>>>
 {
     private readonly IUnitOfWork _uow;
 
@@ -16,7 +16,7 @@ public class GetUserFavoritePlaylistsQueryHandler : IRequestHandler<GetUserFavor
         _uow = uow;
     }
 
-    public async Task<Result<List<PlaylistSummaryDTO>>> Handle(GetUserFavoritePlaylistsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<PlaylistSummaryDTO>>> Handle(GetUserFavoritePlaylistsQuery request, CancellationToken cancellationToken)
     {
         if (request.UserGuid == Guid.Empty)
             return Error.NotFound(nameof(Playlist));

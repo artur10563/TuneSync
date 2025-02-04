@@ -1,4 +1,4 @@
-using Application.DTOs.Playlists;
+using Application.DTOs.Albums;
 using Application.DTOs.Songs;
 using Application.Repositories.Shared;
 using Domain.Errors;
@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Application.CQ.Album.Query.GetAlbumById;
 
-public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Result<PlaylistDTO>>
+public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Result<AlbumDTO>>
 {
     private readonly IUnitOfWork _uow;
 
@@ -16,7 +16,7 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
         _uow = uow;
     }
 
-    public async Task<Result<PlaylistDTO>> Handle(GetAlbumByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<AlbumDTO>> Handle(GetAlbumByIdQuery request, CancellationToken cancellationToken)
     {
         var userGuid = request.UserGuid ?? Guid.Empty;
 
@@ -48,7 +48,7 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
             .Take(25)
             .ToList();
 
-        var albumDto = PlaylistDTO.Create(
+        var albumDto = AlbumDTO.Create(
             album: albumDetails,
             isFavorite: isFavorite,
             songs: albumSongs,

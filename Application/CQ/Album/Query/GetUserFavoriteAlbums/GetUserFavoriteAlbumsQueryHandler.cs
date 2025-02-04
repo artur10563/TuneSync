@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Application.CQ.Album.Query.GetUserFavoriteAlbums;
 
-public class GetUserFavoriteAlbumsQueryHandler : IRequestHandler<GetUserFavoriteAlbumsQuery, Result<List<AlbumSummaryDTO>>>
+public class GetUserFavoriteAlbumsQueryHandler : IRequestHandler<GetUserFavoriteAlbumsQuery, Result<IEnumerable<AlbumSummaryDTO>>>
 {
     private readonly IUnitOfWork _uow;
 
@@ -15,7 +15,7 @@ public class GetUserFavoriteAlbumsQueryHandler : IRequestHandler<GetUserFavorite
         _uow = uow;
     }
 
-    public async Task<Result<List<AlbumSummaryDTO>>> Handle(GetUserFavoriteAlbumsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<AlbumSummaryDTO>>> Handle(GetUserFavoriteAlbumsQuery request, CancellationToken cancellationToken)
     {
         if (request.UserGuid == Guid.Empty)
             return Error.NotFound(nameof(Album));

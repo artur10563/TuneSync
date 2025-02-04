@@ -4,4 +4,4 @@ using MediatR;
 
 namespace Application.CQ.Playlists.Query.GetUserFavoritePlaylists;
 
-public sealed record GetUserFavoritePlaylistsQuery(Guid UserGuid = default) : IRequest<Result<List<PlaylistSummaryDTO>>>;
+public sealed record GetUserFavoritePlaylistsQuery(Guid UserGuid = default) : IRequest<Result<IEnumerable<PlaylistSummaryDTO>>>;

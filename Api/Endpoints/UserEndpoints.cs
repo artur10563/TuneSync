@@ -1,6 +1,7 @@
 ﻿using Application.CQ.Users.Login;
 using Application.CQ.Users.RefreshToken;
 using Application.CQ.Users.Register;
+using Application.DTOs.Auth;
 using MediatR;
 
 namespace Api.Endpoints
@@ -17,7 +18,7 @@ namespace Api.Endpoints
                 return result.IsFailure
                     ? Results.BadRequest(result.Errors)
                     : Results.Ok(result.Value);
-            }).WithDescription("Register new user");
+            }).WithDescription("Register new user").Produces<Guid>();
 
             group.MapPost("login", async (ISender sender, LoginUserCommand request) =>
             {
@@ -25,7 +26,7 @@ namespace Api.Endpoints
                 return result.IsFailure
                     ? Results.BadRequest(result.Errors)
                     : Results.Ok(result.Value);
-            }).WithDescription("Login");
+            }).WithDescription("Login").Produces<TokenResponse>();
 
             group.MapPost("refresh", async (ISender sender, RefreshTokenCommand request) =>
             {
@@ -33,7 +34,7 @@ namespace Api.Endpoints
                 return result.IsFailure
                     ? Results.BadRequest(result.Errors)
                     : Results.Ok(result.Value);
-            }).WithDescription("Refresh the token");
+            }).WithDescription("Refresh the token").Produces<TokenResponse>();;
             
             return app;
         }

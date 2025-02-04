@@ -5,6 +5,9 @@ using Application.CQ.Playlists.Command.ToggleFavoritePlaylist;
 using Application.CQ.Playlists.Query.GetUserFavoritePlaylists;
 using Application.CQ.Songs.Command;
 using Application.CQ.Songs.Query.GetUserFavoriteSongs;
+using Application.DTOs.Albums;
+using Application.DTOs.Playlists;
+using Application.DTOs.Songs;
 using MediatR;
 
 namespace Api.Endpoints;
@@ -40,7 +43,7 @@ public static class FavoriteEndpoints
                     ? Results.NoContent()
                     : Results.Ok(result.Value)
                 : Results.BadRequest(result.Errors);
-        }).WithDescription("Get favorite songs of current user");
+        }).WithDescription("Get favorite songs of current user").Produces<IEnumerable<SongDTO>>();
         
         #endregion
 
@@ -69,7 +72,7 @@ public static class FavoriteEndpoints
                     ? Results.NoContent()
                     : Results.Ok(result.Value)
                 : Results.BadRequest(result.Errors);
-        }).WithDescription("Get favorite albums of current user");
+        }).WithDescription("Get favorite albums of current user").Produces<IEnumerable<AlbumSummaryDTO>>();
         
         #endregion
         
@@ -98,7 +101,7 @@ public static class FavoriteEndpoints
                     ? Results.NoContent()
                     : Results.Ok(result.Value)
                 : Results.BadRequest(result.Errors);
-        }).WithDescription("Get favorite playlists of current user");
+        }).WithDescription("Get favorite playlists of current user").Produces<IEnumerable<PlaylistSummaryDTO>>();
         
         #endregion
 

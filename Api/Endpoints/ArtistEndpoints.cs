@@ -1,5 +1,6 @@
 using Api.Extensions;
 using Application.CQ.Artists.Query.GetArtistSummary;
+using Application.DTOs.Artists;
 using MediatR;
 
 namespace Api.Endpoints;
@@ -23,7 +24,7 @@ public static class ArtistEndpoints
             return result.IsFailure
                 ? Results.NotFound(result.Errors)
                 : Results.Ok(result.Value);
-        });
+        }).Produces<ArtistSummaryDTO>();
 
         return app;
     }

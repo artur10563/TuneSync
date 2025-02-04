@@ -2,6 +2,7 @@ using Api.Extensions;
 using Application.CQ.Playlists.Command.CreatePlaylistFromYoutube;
 using Application.CQ.Playlists.Query.GetYoutubePlaylistId;
 using Application.CQ.Songs.Command.CreateSongFromYouTube;
+using Application.DTOs.Songs;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Errors;
@@ -24,7 +25,7 @@ public static class YoutubeEndpoints
             var result = (await _youtube.SearchAsync(query)).ToList();
 
             return result;
-        }).WithDescription("Search song on youtube");
+        }).WithDescription("Search song on youtube").Produces<List<YoutubeSongInfo>>();
 
 
         songGroup.MapPost("/{videoLink}", async (string videoLink,
@@ -39,7 +40,7 @@ public static class YoutubeEndpoints
             return result.IsFailure
                 ? Results.BadRequest(result.Errors)
                 : Results.CreatedAtRoute(routeName: "GetSong", routeValues: new { query = result.Value.ToString() }, value: result.Value);
-        }).RequireAuthorization().WithDescription("Upload from youtube by video url");
+        }).RequireAuthorization().WithDescription("Upload from youtube by video url").Produces<Guid>();
 
 
         playlistGroup.MapGet("/{channelId}/{songTitle}",
@@ -51,7 +52,7 @@ public static class YoutubeEndpoints
                 if (result.IsFailure)
                     return Results.BadRequest(result.Errors);
                 return Results.Ok(result.Value);
-            }).WithDescription("Find playlist by song and specified channel");
+            }).WithDescription("Find playlist by song and specified channel").Produces<string>();
 
         playlistGroup.MapPost("/{playlistId}", async (ISender _sender, HttpContext _httpContext, string playlistId) =>
         {
@@ -65,7 +66,7 @@ public static class YoutubeEndpoints
                     "DownloadingProgress",
                     routeValues: new { jobId = result.Value }, 
                     value: result.Value);
-        }).RequireAuthorization();
+        }).RequireAuthorization().Produces<string>();
 
         return app;
     }
