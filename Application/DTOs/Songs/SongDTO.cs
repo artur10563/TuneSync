@@ -40,7 +40,7 @@ namespace Application.DTOs.Songs
             );
         }
 
-        public static SongDTO Create(Song song, bool isFavorited)
+        public static SongDTO Create(Song song, Artist artist, bool isFavorited)
         {
             return new SongDTO(
                 song.Guid,
@@ -52,7 +52,7 @@ namespace Application.DTOs.Songs
                 GetFirebaseMP3Link(song.AudioPath),
                 song.AudioSize,
                 song.AudioLength,
-                ArtistInfoDTO.Create(song.Artist),
+                ArtistInfoDTO.Create(artist),
                 AlbumGuid: song.AlbumGuid,
                 Album: song.Album?.Title,
                 IsFavorite: isFavorited // Precomputed value

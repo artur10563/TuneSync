@@ -60,7 +60,7 @@ public class SearchService : ISearchService
             .Take(pageSize)
             .ToListAsync();
 
-        var songs = sa.Select(x => SongDTO.Create(x.song, x.isFavorite)).ToList();
+        var songs = sa.Select(x => SongDTO.Create(x.song, x.artist, x.isFavorite)).ToList();
         return (songs, totalCount);
     }
 }
