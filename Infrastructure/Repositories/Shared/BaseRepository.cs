@@ -63,6 +63,11 @@ namespace Infrastructure.Repositories.Shared
         {
             return _set.AsQueryable();
         }
+        
+        public virtual IQueryable<TEntity> NoTrackingQueryable()
+        {
+            return _set.AsNoTracking().AsQueryable();
+        }
 
         public virtual IQueryable<TEntity> Where(
             Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false,

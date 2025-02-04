@@ -15,6 +15,7 @@ namespace Application.Repositories.Shared
            bool asNoTracking = false);
 
         IQueryable<TEntity> Queryable();
+        IQueryable<TEntity> NoTrackingQueryable();
         IEnumerable<TEntity> Where(
             Expression<Func<TEntity, bool>> predicate,
             bool asNoTracking = false);

@@ -4,11 +4,6 @@ using Domain.Entities;
 using Domain.Errors;
 using Domain.Primitives;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
 {
@@ -25,12 +20,19 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
         {
             if (request.UserGuid == Guid.Empty)
                 return Error.NotFound(nameof(Playlist));
-
-            var userPlaylists = _uow.PlaylistRepository
-                .Where(x => x.CreatedBy == request.UserGuid && x.Source == GlobalVariables.PlaylistSource.User,
-                    asNoTracking: true, includes: [x=>x.FavoredBy])
-                .Select(x => PlaylistSummaryDTO.Create(x, request.UserGuid)
-                ).ToList();
+            
+            var userPlaylists = (
+                from playlist in _uow.PlaylistRepository.NoTrackingQueryable()
+                join favoredBy in _uow.UserFavoritePlaylistRepository.NoTrackingQueryable() 
+                    on new { g = playlist.Guid, u = request.UserGuid } equals new { g = favoredBy.PlaylistGuid, u = favoredBy.UserGuid } into favoredJoin
+                from favored in favoredJoin.DefaultIfEmpty()
+                join songPlaylist in _uow.PlaylistSongRepository.NoTrackingQueryable()
+                    on playlist.Guid equals songPlaylist.PlaylistGuid into songGroup
+                    select PlaylistSummaryDTO.Create(
+                        playlist, 
+                        favored != null && favored.IsFavorite, 
+                        songGroup.Count())
+            ).ToList();
 
             return Result.Success(userPlaylists);
         }

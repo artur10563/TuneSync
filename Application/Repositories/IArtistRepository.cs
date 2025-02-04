@@ -5,6 +5,7 @@ namespace Application.Repositories
 {
     public interface IArtistRepository : IBaseRepository<Artist>
     {
-        IQueryable<Artist> WithAlbumAndSongs();
+        /// <returns>Album with albums(with favoredBy) and songs of artist </returns>
+        Task<Artist?> GetArtistByGuidAsync(Guid artistGuid);
     }
 }

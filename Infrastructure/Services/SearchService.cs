@@ -22,14 +22,14 @@ public class SearchService : ISearchService
         var pageSize = 25;
         
         var query = (
-            from song in _uow.SongRepository.Queryable()
-            join artist in _uow.ArtistRepository.Queryable()
+            from song in _uow.SongRepository.NoTrackingQueryable()
+            join artist in _uow.ArtistRepository.NoTrackingQueryable()
                 on song.ArtistGuid equals artist.Guid
-            join album in _uow.AlbumRepository.Queryable()
+            join album in _uow.AlbumRepository.NoTrackingQueryable()
                 on song.AlbumGuid equals album.Guid into albumJoin
             from album in albumJoin.DefaultIfEmpty()
             
-            join us in _uow.UserSongRepository.Queryable()
+            join us in _uow.UserSongRepository.NoTrackingQueryable()
                 on new {songGuid = song.Guid, userGuid =  userGuid} equals new {songGuid = us.SongGuid, userGuid = us.UserGuid} into userSongJoin
             from userSong in userSongJoin.DefaultIfEmpty()
                 

@@ -17,7 +17,7 @@ public static class ArtistEndpoints
         {
             var user = await _httpContext.GetCurrentUserAsync();
 
-            var query = new GetArtistSummaryQuery(artistGuid, user?.Guid);
+            var query = new GetArtistSummaryQuery(artistGuid, user?.Guid ?? Guid.Empty);
             var result = await _sender.Send(query);
 
             return result.IsFailure

@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using Domain.Entities.Shared;
+﻿using Domain.Entities.Shared;
 
 namespace Domain.Entities
 {

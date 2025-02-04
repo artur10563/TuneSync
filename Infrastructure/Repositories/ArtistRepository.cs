@@ -11,12 +11,14 @@ namespace Infrastructure.Repositories
         public ArtistRepository(AppDbContext context) : base(context)
         {
         }
-        
-        public IQueryable<Artist> WithAlbumAndSongs()
+
+        /// <returns>Album with albums(with favoredBy) and songs of artist </returns>
+        public async Task<Artist?> GetArtistByGuidAsync(Guid artistGuid)
         {
-            return _set.Include(x => x.Albums)
+            return await _set.Include(x => x.Albums)
                 .ThenInclude(x => x.FavoredBy)
-                .Include(x => x.Songs).AsQueryable();
+                .Include(x => x.Songs).AsQueryable()
+                .FirstOrDefaultAsync(x => x.Guid == artistGuid);
         }
     }
 }
