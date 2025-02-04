@@ -25,7 +25,7 @@ public class GetUserFavoritePlaylistsQueryHandler : IRequestHandler<GetUserFavor
             .Where(a => a.FavoredBy
                     .Any(ufp => ufp.UserGuid == request.UserGuid && ufp.IsFavorite),
                 includes: [p => p.FavoredBy]
-            ).OrderBy(x=>x.CreatedAt).Select(album => PlaylistSummaryDTO.Create(album, true)).ToList();
+            ).OrderBy(x=>x.CreatedAt).Select(album => PlaylistSummaryDTO.Create(album, true, 0)).ToList();
 
         return userFP;
     }

@@ -1,3 +1,4 @@
+using Application.DTOs.Albums;
 using Application.DTOs.Playlists;
 using Application.DTOs.Songs;
 using Domain.Entities;
@@ -7,7 +8,10 @@ namespace Application.DTOs.Artists;
 /// <summary>
 /// Artist Info and list of albums + separate songs(later)
 /// </summary>
-public record ArtistSummaryDTO(ArtistInfoDTO ArtistInfo, ICollection<PlaylistSummaryDTO> Playlists, ICollection<SongDTO> Songs)
+public record ArtistSummaryDTO(
+    ArtistInfoDTO ArtistInfo, 
+    ICollection<AlbumSummaryDTO> Albums, 
+    ICollection<SongDTO> Songs)
 {
     public static ArtistSummaryDTO Create(Artist artist, IEnumerable<Song> abandonedSongs, Guid? currentUserGuid)
     {
@@ -15,7 +19,7 @@ public record ArtistSummaryDTO(ArtistInfoDTO ArtistInfo, ICollection<PlaylistSum
         
         return new ArtistSummaryDTO(
             ArtistInfo: ArtistInfoDTO.Create(artist),
-            Playlists: PlaylistSummaryDTO.Create(artist.Albums, currentUserGuid.Value),
+            Albums: AlbumSummaryDTO.Create(artist.Albums, currentUserGuid.Value),
             Songs: SongDTO.Create(abandonedSongs, currentUserGuid.Value)
         );
     }
@@ -25,7 +29,7 @@ public record ArtistSummaryDTO(ArtistInfoDTO ArtistInfo, ICollection<PlaylistSum
         
         return new ArtistSummaryDTO(
             ArtistInfo: ArtistInfoDTO.Create(artist),
-            Playlists: PlaylistSummaryDTO.Create(artist.Albums, currentUserGuid.Value),
+            Albums: ArtistSummaryDTO.Create(artist.Albums, currentUserGuid.Value),
             Songs: abandonedSongsDTO.ToList()
         );
     }

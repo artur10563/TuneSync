@@ -1,7 +1,7 @@
-using Application.DTOs.Playlists;
+using Application.DTOs.Albums;
 using Domain.Primitives;
 using MediatR;
 
 namespace Application.CQ.Album.Query.GetUserFavoriteAlbums;
 
-public sealed record GetUserFavoriteAlbumsQuery(Guid UserGuid = default) : IRequest<Result<List<PlaylistSummaryDTO>>>;
+public sealed record GetUserFavoriteAlbumsQuery(Guid UserGuid = default) : IRequest<Result<List<AlbumSummaryDTO>>>;
