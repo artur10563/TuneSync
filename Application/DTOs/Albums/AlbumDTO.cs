@@ -1,3 +1,4 @@
+using Application.DTOs.Artists;
 using Application.DTOs.Songs;
 using Domain.Entities;
 using Domain.Primitives;
@@ -14,9 +15,10 @@ public sealed record AlbumDTO(
     string ThumbnailUrl,
     bool IsFavorite,
     int SongCount,
+    ArtistInfoDTO? Artist,
     PaginatedResponse<ICollection<SongDTO>> Songs)
 {
-    public static AlbumDTO Create(Album album, List<SongDTO> songs,  PageInfo pageInfo, bool isFavorite, int songCount)
+    public static AlbumDTO Create(Album album, Artist artist, List<SongDTO> songs,  PageInfo pageInfo, bool isFavorite, int songCount)
     {
         return new AlbumDTO(
             album.Guid,
@@ -30,6 +32,7 @@ public sealed record AlbumDTO(
                 : "",
             Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
             IsFavorite: isFavorite, 
+            Artist: ArtistInfoDTO.Create(artist), 
             SongCount: songCount
         );
     }

@@ -22,7 +22,7 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
 
         var albumDetails = (await _uow.AlbumRepository.FirstOrDefaultAsync(x => x.Guid == request.AlbumGuid,
             asNoTracking: true,
-            p => p.User));
+            p => p.User, p=> p.Artist));
 
         var isFavorite = await _uow.UserFavoriteAlbumRepository
             .ExistsAsync(ufa => ufa.UserGuid == userGuid && ufa.AlbumGuid == request.AlbumGuid && ufa.IsFavorite);
@@ -47,12 +47,13 @@ public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Resul
             .Skip((request.Page - 1) * 25)
             .Take(25)
             .ToList();
-
+        
         var albumDto = AlbumDTO.Create(
             album: albumDetails,
             isFavorite: isFavorite,
             songs: albumSongs,
             pageInfo: PageInfo.Create(request.Page, 25, totalCount),
+            artist: albumDetails.Artist,
             songCount: totalCount);
 
         return albumDto;
