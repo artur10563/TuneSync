@@ -52,21 +52,16 @@ namespace Api.Endpoints
 
             songGroup.MapPost("/video/{url}", async (IYoutubeService _yts, string url) =>
             {
-                var v = await _yts.GetVideoAsync(url);
-                
-                string projectDirectory = AppDomain.CurrentDomain.BaseDirectory; // or Directory.GetCurrentDirectory()
-
-                // Define the output file path in the project directory
-                string outputFilePath = Path.Combine(projectDirectory, "video.mp4");
-                
-                // Save the video stream to a file
-                using (var fileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
+                try
                 {
-                    await v.videoStream.CopyToAsync(fileStream);
-                    Console.WriteLine("Download completed!");
+                    var v = await _yts.GetVideoAsync(url);
+
+                    return Results.File(v.videoStream, "video/mp4", $"{DateTime.Now}_{Guid.NewGuid().ToString()}.mp4");
                 }
-                
-                return
+                catch(Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
             });
             
             favSongGroup.MapPut("/{songGuid:guid}", async (ISender _sender, HttpContext _httpContext,
