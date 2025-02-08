@@ -10,6 +10,7 @@ namespace Application.Repositories.Shared
         void UpdateRange(IEnumerable<TEntity> entities);
         void Delete(TEntity entity);
 
+        Task<List<Guid>> GetUniqueExistingGuidsAsync(List<Guid> inputGuids);
         Task<bool> ExistsAsync(
             Expression<Func<TEntity, bool>> predicate,
             bool asNoTracking = false,

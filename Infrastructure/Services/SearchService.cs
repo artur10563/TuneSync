@@ -1,7 +1,7 @@
 using Application.DTOs.Songs;
+using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
-using Domain.Primitives;
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 
@@ -10,6 +10,7 @@ namespace Infrastructure.Services;
 public class SearchService : ISearchService
 {
     private readonly IUnitOfWork _uow;
+    private readonly ISearchService _searchService;
 
     public SearchService(IUnitOfWork uow)
     {
@@ -18,9 +19,6 @@ public class SearchService : ISearchService
 
     public async Task<(List<SongDTO>, int totalItems)> Search(string searchQuery, int page, Guid userGuid = default)
     {
-        page = page <= 0 ? 1 : page;
-        var pageSize = 25;
-        
         var query = (
             from song in _uow.SongRepository.NoTrackingQueryable()
             join artist in _uow.ArtistRepository.NoTrackingQueryable()
@@ -28,11 +26,10 @@ public class SearchService : ISearchService
             join album in _uow.AlbumRepository.NoTrackingQueryable()
                 on song.AlbumGuid equals album.Guid into albumJoin
             from album in albumJoin.DefaultIfEmpty()
-            
             join us in _uow.UserSongRepository.NoTrackingQueryable()
-                on new {songGuid = song.Guid, userGuid =  userGuid} equals new {songGuid = us.SongGuid, userGuid = us.UserGuid} into userSongJoin
+                on new { songGuid = song.Guid, userGuid = userGuid } equals new { songGuid = us.SongGuid, userGuid = us.UserGuid } into userSongJoin
             from userSong in userSongJoin.DefaultIfEmpty()
-                
+
             #region vector
 
             let searchVector =
@@ -56,11 +53,18 @@ public class SearchService : ISearchService
 
         var totalCount = await query.CountAsync();
 
-        var sa = await query.Skip((page - 1) * pageSize)
-            .Take(pageSize)
+        var songs = await query.Page(page)
+            .Select(x => SongDTO.Create(x.song, x.artist, x.isFavorite))
             .ToListAsync();
 
-        var songs = sa.Select(x => SongDTO.Create(x.song, x.artist, x.isFavorite)).ToList();
         return (songs, totalCount);
+    }
+
+    //Will work only in transacted action due to shuffle seed
+    public IQueryable<T> Shuffle<T>(IQueryable<T> query, double? shuffleSeed = null)
+    {
+        if (shuffleSeed is >= 0 and <= 1)
+            _uow.SetSeed(shuffleSeed.Value);
+        return query.OrderBy(x => EF.Functions.Random());
     }
 }

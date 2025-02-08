@@ -44,10 +44,10 @@ namespace Domain.Primitives
         public static Result<TValue> Failure<TValue>(Error error) => new(default!, false, error);
         
         //TotalItems just to change signature 
-        public static PaginatedResult<TValue> Failure<TValue>(Error error, int totalItems = 0) where TValue : IEnumerable 
-            => new(default!, false, error, totalCount: totalItems);
-        public static PaginatedResult<TValue> Failure<TValue>(List<Error> errors, int totalItems = 0) where TValue : IEnumerable 
-            => new(default!, false, errors, totalCount: totalItems);
+        public static PaginatedResult<TValue> Failure<TValue>(Error error, int page = 0) where TValue : IEnumerable 
+            => new(default!, false, error, page: page);
+        public static PaginatedResult<TValue> Failure<TValue>(List<Error> errors, int page = 0) where TValue : IEnumerable 
+            => new(default!, false, errors, page: page);
 
         public static implicit operator Result(Error error) => Failure(error);
         public static implicit operator Result(List<Error> errors) => Failure(errors);
@@ -100,8 +100,8 @@ namespace Domain.Primitives
         
         public static implicit operator PaginatedResult<TValue>((TValue value, int page, int totalCount) paginatedData ) 
             => new(paginatedData.value, true, Error.None, paginatedData.page, paginatedData.totalCount);
-        public static implicit operator PaginatedResult<TValue>((List<Error> errors, int totalItems) failure ) => Failure<TValue>(failure.errors, failure.totalItems);
-        public static implicit operator PaginatedResult<TValue>((Error error, int totalItems) failure ) => Failure<TValue>(failure.error, failure.totalItems);
+        public static implicit operator PaginatedResult<TValue>((List<Error> errors, int page) failure ) => Failure<TValue>(failure.errors, failure.page);
+        public static implicit operator PaginatedResult<TValue>((Error error, int page) failure ) => Failure<TValue>(failure.error, failure.page);
 
         public PaginatedResponse<TValue> ToPaginatedResponse()
         {

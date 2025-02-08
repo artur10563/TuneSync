@@ -1,6 +1,7 @@
 ﻿using Application.Repositories;
 using Application.Repositories.Shared;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
 {
@@ -28,6 +29,28 @@ namespace Infrastructure.Data
             return await _context.SaveChangesAsync();
         }
 
+        public void SetSeed(double seed)
+        {
+            
+            if (seed is < 0 or > 1) throw new Exception("Seed must be between 0 and 1");
+            _context.Database.ExecuteSql($"SELECT setseed({seed})");
+        }
+
+        public void TransactedAction(Action action)
+        {
+            using var transaction = _context.Database.BeginTransaction();
+
+            try
+            {
+                action.Invoke();
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw new Exception("Transaction failed");
+            }
+        }
 
         public UnitOfWork(AppDbContext context,
             ISongRepository songRepository,

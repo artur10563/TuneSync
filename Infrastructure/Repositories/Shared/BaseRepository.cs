@@ -107,6 +107,21 @@ namespace Infrastructure.Repositories.Shared
             return await query.AnyAsync(predicate);
         }
 
+        public async Task<List<Guid>> GetUniqueExistingGuidsAsync(List<Guid> inputGuids)
+        {
+            if (inputGuids == null || inputGuids.Count == 0)
+                return [];
+            
+            var distinctGuids = inputGuids.Distinct().ToList();
+            
+            var existingGuids = await _set
+                .Where(entity => distinctGuids.Contains(entity.Guid))
+                .Select(entity => entity.Guid)
+                .ToListAsync();
+
+            return existingGuids;
+        }
+        
         public virtual async Task<TEntity?> FirstOrDefaultAsync(
             Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false,
             params Expression<Func<TEntity, object>>[] includes)

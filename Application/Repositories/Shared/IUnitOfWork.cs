@@ -15,5 +15,11 @@ namespace Application.Repositories.Shared
         IArtistRepository ArtistRepository { get; }
         int SaveChanges();
         Task<int> SaveChangesAsync();
+        /// <summary>
+        /// Sets seed for DB.random. MUST BE CALLED IN TRANSACTION TO WORK
+        /// </summary>
+        void SetSeed(double seed);
+
+        void TransactedAction(Action action);
     }
 }

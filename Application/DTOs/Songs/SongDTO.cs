@@ -40,7 +40,12 @@ namespace Application.DTOs.Songs
             );
         }
 
-        public static SongDTO Create(Song song, Artist artist, bool isFavorited)
+        public static SongDTO Create(Song song, Artist artist, bool isFavorited) => 
+            Create(song, song.Album, artist, isFavorited);
+          
+        
+        
+        public static SongDTO Create(Song song, Album? album, Artist artist, bool isFavorited)
         {
             return new SongDTO(
                 song.Guid,
@@ -54,7 +59,7 @@ namespace Application.DTOs.Songs
                 song.AudioLength,
                 ArtistInfoDTO.Create(artist),
                 AlbumGuid: song.AlbumGuid,
-                Album: song.Album?.Title,
+                Album: album?.Title,
                 IsFavorite: isFavorited // Precomputed value
             );
         }

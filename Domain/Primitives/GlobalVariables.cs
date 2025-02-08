@@ -66,6 +66,13 @@
         {
             public const int TitleMinLength = 1;
             public const int TitleMaxLength = 255;
-        }    
+        }
+
+        public static class PaginationConstants
+        {
+            public const int PageMin = 1;
+            public const int PageSize = 25;
+            
+        }
     }
 }
