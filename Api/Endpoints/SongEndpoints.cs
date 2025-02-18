@@ -71,7 +71,7 @@ namespace Api.Endpoints
                         ? Results.NoContent()
                         : Results.Ok(result.ToPaginatedResponse());
 
-            }).RequireAuthorization().WithDescription("Shuffle based on multiple albums or playlists");
+            }).RequireAuthorization().WithDescription("Shuffle based on multiple albums or playlists").Produces<PaginatedResponse<IEnumerable<SongDTO>>>();
             
             return app;
         }

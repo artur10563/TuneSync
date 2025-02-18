@@ -28,6 +28,7 @@ namespace Application.CQ.Playlists.Query.GetPlaylistsByUser
                 from favored in favoredJoin.DefaultIfEmpty()
                 join songPlaylist in _uow.PlaylistSongRepository.NoTrackingQueryable()
                     on playlist.Guid equals songPlaylist.PlaylistGuid into songGroup
+                where playlist.CreatedBy == request.UserGuid
                     select PlaylistSummaryDTO.Create(
                         playlist, 
                         favored != null && favored.IsFavorite, 
