@@ -54,7 +54,7 @@ public class SearchService : ISearchService
         var totalCount = await query.CountAsync();
 
         var songs = await query.Page(page)
-            .Select(x => SongDTO.Create(x.song, x.artist, x.isFavorite))
+            .Select(x => SongDTO.Create(x.song, x.album, x.artist, x.isFavorite))
             .ToListAsync();
 
         return (songs, totalCount);
