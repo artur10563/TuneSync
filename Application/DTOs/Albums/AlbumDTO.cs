@@ -15,6 +15,7 @@ public sealed record AlbumDTO(
     string ThumbnailUrl,
     bool IsFavorite,
     int SongCount,
+    int ExpectedCount,
     ArtistInfoDTO? Artist,
     PaginatedResponse<ICollection<SongDTO>> Songs)
 {
@@ -32,6 +33,7 @@ public sealed record AlbumDTO(
                 : "",
             Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
             IsFavorite: isFavorite, 
+            ExpectedCount: album.ExpectedSongs,
             Artist: ArtistInfoDTO.Create(artist), 
             SongCount: songCount
         );

@@ -68,6 +68,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
                     artistGuid: artist.Guid,
                     thumbnailSource: PlaylistSource.YouTube,
                     thumbnailId: playlistThumbnailId);
+                album.ExpectedSongs = songs.Count;
                 _uow.AlbumRepository.Insert(album);
                 _logger.Log($"Created new album", LogLevel.Information, new { album.Guid, album.Title });
             }

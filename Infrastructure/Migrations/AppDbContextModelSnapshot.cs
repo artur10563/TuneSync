@@ -39,6 +39,9 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("ExpectedSongs")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("ModifiedAt")
                         .ValueGeneratedOnUpdate()
                         .HasColumnType("timestamp with time zone")

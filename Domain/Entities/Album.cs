@@ -12,6 +12,7 @@ public class Album : EntityBase
     public Artist? Artist { get; set; }
     public string? ThumbnailId { get; set; }
     public string? ThumbnailSource { get; set; } //YT link or blob
+    public int ExpectedSongs { get; set; }
 
     //Song can have only one album. Album can have many songs
     public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();

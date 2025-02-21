@@ -10,7 +10,8 @@ public sealed record AlbumSummaryDTO(
     string ThumbnailUrl,
     bool IsFavorite,
     ArtistInfoDTO? Artist,
-    int SongCount)
+    int SongCount,
+    int ExpectedCount)
 {
     public static AlbumSummaryDTO Create(Album album, Artist artist, bool isFavorite, int songCount)
     {
@@ -22,7 +23,8 @@ public sealed record AlbumSummaryDTO(
                 : "",
             IsFavorite: isFavorite,
             Artist: ArtistInfoDTO.Create(artist),
-            SongCount: songCount
+            SongCount: songCount,
+            ExpectedCount: album.ExpectedSongs
         );
     }
 };
