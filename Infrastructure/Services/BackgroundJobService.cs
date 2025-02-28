@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Text.Json.Nodes;
 using Application.Services;
 using Hangfire;
 using Hangfire.Storage;
@@ -10,6 +11,7 @@ namespace Infrastructure.Services;
 public class BackgroundJobService : IBackgroundJobService
 {
     private readonly IBackgroundJobClient _backgroundClient;
+    private const string _parseErrorMessage = "Can not serialize the return value";
 
     public BackgroundJobService(IBackgroundJobClient backgroundJobClient)
     {
@@ -37,11 +39,28 @@ public class BackgroundJobService : IBackgroundJobService
         var job = jobMonitoringApi.JobDetails(jobId);
 
         // Check if job has history and if history contains a result
-        if (job.History == null || job.History.Count <= 0 || !job.History[0].Data.ContainsKey("Result"))
+        if (job.History?.FirstOrDefault()?.Data.TryGetValue("Result", out var value) != true || value == _parseErrorMessage)
             return null;
 
-        var resultSerialized = job.History[0].Data["Result"];
-        return resultSerialized;
+
+        var jsonNode = JsonNode.Parse(value);
+        
+        if (jsonNode == null) return value;
+
+        var valueNode = jsonNode["Value"];
+        var isSuccessNode = jsonNode["IsSuccess"];
+
+        // If it's not a Result<T> - return whole jsonResult
+        if (valueNode == null || isSuccessNode == null) return value;
+
+        var isSuccess = isSuccessNode.GetValue<bool>();
+        if (isSuccess)
+        {
+            return valueNode.ToString();
+        }
+        var errorsNode = jsonNode["Errors"];
+        return errorsNode == null ? value : errorsNode.ToString().Replace("\r\n", "").Replace("\n", "");
+
     }
 
     public bool IsRunning(string searchArg)

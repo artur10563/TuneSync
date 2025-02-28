@@ -11,7 +11,8 @@ public sealed record AlbumSummaryDTO(
     bool IsFavorite,
     ArtistInfoDTO? Artist,
     int SongCount,
-    int ExpectedCount)
+    int ExpectedCount,
+    string SourceUrl)
 {
     public static AlbumSummaryDTO Create(Album album, Artist artist, bool isFavorite, int songCount)
     {
@@ -24,7 +25,8 @@ public sealed record AlbumSummaryDTO(
             IsFavorite: isFavorite,
             Artist: ArtistInfoDTO.Create(artist),
             SongCount: songCount,
-            ExpectedCount: album.ExpectedSongs
+            ExpectedCount: album.ExpectedSongs,
+            SourceUrl: GlobalVariables.GetYoutubeAlbumUrl(album.SourceId)
         );
     }
 };

@@ -16,6 +16,7 @@ public sealed record AlbumDTO(
     bool IsFavorite,
     int SongCount,
     int ExpectedCount,
+    string SourceUrl,
     ArtistInfoDTO? Artist,
     PaginatedResponse<ICollection<SongDTO>> Songs)
 {
@@ -35,7 +36,8 @@ public sealed record AlbumDTO(
             IsFavorite: isFavorite, 
             ExpectedCount: album.ExpectedSongs,
             Artist: ArtistInfoDTO.Create(artist), 
-            SongCount: songCount
+            SongCount: songCount,
+            SourceUrl: GlobalVariables.GetYoutubeAlbumUrl(album.SourceId)
         );
     }
 };

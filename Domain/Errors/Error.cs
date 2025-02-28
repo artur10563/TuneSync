@@ -9,5 +9,6 @@ namespace Domain.Errors
         public static Error NotFound(string entity) => new($"{entity.Capitalize()} Not Found");
         public static Error Exists(string entity) => new($"{entity.Capitalize()} Already Exists");
         public static Error Required(string entity) => new($"{entity.Capitalize()} is Required");
+        public static readonly  Error SomethingWrong = new("Something went wrong..."); // When we don't know what caused the error
     }
 }

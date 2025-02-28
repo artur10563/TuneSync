@@ -68,8 +68,8 @@ namespace Domain.Primitives
 
         private readonly TValue _value;
         public TValue Value => IsSuccess
-            ? _value
-            : throw new InvalidOperationException("The value of a failure result can not be accessed.");
+            ? _value : default; // serialization will break for bg job if we throw. Custom serialization might fix it
+            // : throw new InvalidOperationException("The value of a failure result can not be accessed.");
 
         public static implicit operator Result<TValue>(TValue value) => Success(value);
         public static implicit operator Result<TValue>(Error error) => Failure<TValue>(error);

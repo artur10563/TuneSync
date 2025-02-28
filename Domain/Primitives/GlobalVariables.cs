@@ -11,6 +11,7 @@
         private static string YoutubeChannelStringFormat = @"https://www.youtube.com/channel/{0}";
         private static string YoutubeVideoStringFormat = @"https://www.youtube.com/watch?v={0}";
         private static string YoutubePlaylistThumbnailStringFormat = @"https://i.ytimg.com/vi/{0}/mqdefault.jpg";
+        private static string YoutubeAlbumStringFormat = @"https://www.youtube.com/playlist?list={0}";
         public static void Initialize(string fbStorage)
         {
             _fbStorage = fbStorage;
@@ -23,6 +24,9 @@
             string.Format(YoutubeThumbnailStringFormat, videoGuid);
         public static string GetYoutubePlaylistThumbnail(string thumbnailId) =>
             string.Format(YoutubePlaylistThumbnailStringFormat, thumbnailId);
+        
+        public static string GetYoutubeAlbumUrl(string albumId) =>
+            string.Format(YoutubeAlbumStringFormat, albumId);
 
         public static string GetYoutubeChannel(string channelId) =>
             string.Format(YoutubeChannelStringFormat, channelId);
@@ -72,7 +76,11 @@
         {
             public const int PageMin = 1;
             public const int PageSize = 25;
-            
+        }
+
+        public static class AlbumConstants
+        {
+            public const int MaxYoutubeAlbumLength = 30;
         }
     }
 }

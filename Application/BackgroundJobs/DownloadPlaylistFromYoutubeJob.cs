@@ -1,6 +1,7 @@
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Entities;
+using Domain.Errors;
 using Domain.Primitives;
 using static Domain.Primitives.GlobalVariables;
 
@@ -22,7 +23,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
     }
 
 
-    public async Task<Guid> ExecuteAsync(string youtubePlaylistId, Guid createdBy, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> ExecuteAsync(string youtubePlaylistId, Guid createdBy, CancellationToken cancellationToken)
     {
         try
         {
@@ -32,8 +33,11 @@ public sealed class DownloadPlaylistFromYoutubeJob
             var (songs, playlistThumbnailId) = await _youtubeService.GetPlaylistVideosAsync(youtubePlaylistId);
             var newSourceIds = songs.Select(s => s.Id);
 
-            _logger.Log("Fetching playlist from YouTube", LogLevel.Information);
-
+            if (songs.Count > AlbumConstants.MaxYoutubeAlbumLength)
+            {
+                _logger.Log("Attempt to download bad album", LogLevel.Warning, new { youtubePlaylistId, count = songs.Count });
+                return YoutubeError.MaxYoutubeLengthError;
+            }
 
             //Filter out existing songs, so duplicates are not downloaded
             var existingSongIds =
@@ -93,9 +97,6 @@ public sealed class DownloadPlaylistFromYoutubeJob
             {
                 try
                 {
-
-
-
                     _logger.Log($"Started {song.Title}", LogLevel.Information, new { song.Id, song.Title });
 
                     var (videoInfo, streamInfo) = await _youtubeService.GetVideoInfoAsync(GlobalVariables.GetYoutubeVideo(song.Id));
@@ -139,8 +140,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
         catch (Exception e)
         {
             _logger.Log(e.Message, LogLevel.Error, exception: e);
+            return Error.SomethingWrong;
         }
-
-        return Guid.Empty;
     }
 }
