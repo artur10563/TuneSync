@@ -1,5 +1,7 @@
 using Api.Extensions;
+using Application.CQ.Album.Query;
 using Application.CQ.Album.Query.GetAlbumById;
+using Application.CQ.Album.Query.GetRandomAlbums;
 using Application.DTOs.Albums;
 using MediatR;
 
@@ -25,6 +27,16 @@ public static class AlbumEndpoints
                 : Results.NotFound();
         }).Produces<AlbumDTO>();
 
+        group.MapGet("/random", async (HttpContext context, ISender _sender) =>
+        {
+            var user = await context.GetCurrentUserAsync();
+            var query = new GetRandomAlbumsQuery(user?.Guid ?? Guid.Empty);
+            var result = await _sender.Send(query);
+
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.NotFound();
+        }).Produces<IEnumerable<AlbumSummaryDTO>>();
 
         return app;
     }
