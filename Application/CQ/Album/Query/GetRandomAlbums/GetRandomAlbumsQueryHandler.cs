@@ -26,6 +26,7 @@ public sealed class GetRandomAlbumsQueryHandler : IRequestHandler<GetRandomAlbum
             from fa in favJoin.DefaultIfEmpty()
             join song in _uow.SongRepository.NoTrackingQueryable()
                 on album.Guid equals song.AlbumGuid into songGroup
+            orderby Guid.NewGuid()
             select AlbumSummaryDTO.Create(album, artist, fa != null && fa.IsFavorite, songGroup.Count()
             )
         ).Page(1).ToList();
