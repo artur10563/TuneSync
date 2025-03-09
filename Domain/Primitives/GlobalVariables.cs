@@ -82,5 +82,16 @@
         {
             public const int MaxYoutubeAlbumLength = 30;
         }
+
+        public static class ArtistConstants
+        {
+            public static readonly HashSet<string> ArtistSortColumns = ["Name", "DisplayName", "CreatedAt"];
+        }
+
+        public static class MixConstants
+        {
+            public const int MinCount = 2;
+            public const int MaxCount = 50;
+        }
     }
 }

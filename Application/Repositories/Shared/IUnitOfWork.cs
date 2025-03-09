@@ -19,7 +19,7 @@ namespace Application.Repositories.Shared
         /// Sets seed for DB.random. MUST BE CALLED IN TRANSACTION TO WORK
         /// </summary>
         void SetSeed(double seed);
-
+        IQueryable<T> ApplyOrdering<T>(IQueryable<T> query, string orderBy, bool isDescending) where T : class;
         void TransactedAction(Action action);
     }
 }

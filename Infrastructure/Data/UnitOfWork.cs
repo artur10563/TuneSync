@@ -1,6 +1,7 @@
 ﻿using Application.Repositories;
 using Application.Repositories.Shared;
 using Domain.Entities;
+using Domain.Entities.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
@@ -34,6 +35,15 @@ namespace Infrastructure.Data
             
             if (seed is < 0 or > 1) throw new Exception("Seed must be between 0 and 1");
             _context.Database.ExecuteSql($"SELECT setseed({seed})");
+        }
+
+        public IQueryable<T> ApplyOrdering<T>(IQueryable<T> query, string orderBy, bool isDescending) where T : class
+        {
+            return string.IsNullOrEmpty(orderBy) 
+                ? query 
+                : isDescending 
+                    ? query.OrderByDescending(entity => EF.Property<object>(entity, orderBy)) 
+                    : query.OrderBy(entity => EF.Property<object>(entity, orderBy));
         }
 
         public void TransactedAction(Action action)

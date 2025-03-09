@@ -1,6 +1,7 @@
 using Application.Repositories.Shared;
 using Domain.Errors;
 using FluentValidation;
+using static Domain.Primitives.GlobalVariables.MixConstants;
 
 namespace Application.CQ.Songs.Query.GetRandomSongsFromAlbumsAndPlaylist;
 
@@ -22,11 +23,11 @@ public class GetRandomSongsFromAlbumsAndPlaylistCommandValidator : AbstractValid
 
             switch (totalCount)
             {
-                case < 2:
-                    context.AddFailure("At least 2 items (albums or playlists) are required.");
+                case < MinCount:
+                    context.AddFailure($"At least {MinCount} items (albums or playlists) are required.");
                     break;
-                case > 10:
-                    context.AddFailure("You can select up to 10 items (albums or playlists).");
+                case > MaxCount:
+                    context.AddFailure($"You can select up to {MaxCount} items (albums or playlists).");
                     break;
             }
         });

@@ -1,7 +1,11 @@
 using Api.Extensions;
+using Application.CQ.Album.Query.GetArtistList;
 using Application.CQ.Artists.Query.GetArtistSummary;
 using Application.DTOs.Artists;
+using Domain.Primitives;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
+using static Domain.Primitives.GlobalVariables;
 
 namespace Api.Endpoints;
 
@@ -25,6 +29,25 @@ public static class ArtistEndpoints
                 ? Results.NotFound(result.Errors)
                 : Results.Ok(result.Value);
         }).Produces<ArtistSummaryDTO>();
+
+        artistGroup.MapGet("", async (ISender sender, HttpContext httpContext,
+            int page = PaginationConstants.PageMin,
+            int pageSize = PaginationConstants.PageSize,
+            string orderBy = "CreatedAt",
+            bool descending = false) =>
+        {
+            var user = await httpContext.GetCurrentUserAsync();
+
+            //Amount, page, order by
+            var query = new GetArtistListQuery(page, pageSize, orderBy, descending);
+            var result = await sender.Send(query);
+
+            return result.IsFailure
+                ? Results.BadRequest(result.Errors)
+                : result.Value.Count() == 0
+                    ? Results.NoContent()
+                    : Results.Ok(result.Value);
+        }).Produces<PaginatedResponse<List<ArtistInfoDTO>>>();
 
         return app;
     }
