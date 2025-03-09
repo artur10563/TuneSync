@@ -73,6 +73,6 @@ public class GetRandomSongsFromAlbumsAndPlaylistCommandHandler : IRequestHandler
                 .ToList();
         });
 
-        return (songs, request.page, baseQuery.Count());
+        return (songs, request.page, GlobalVariables.PaginationConstants.PageSize, baseQuery.Count());
     }
 }

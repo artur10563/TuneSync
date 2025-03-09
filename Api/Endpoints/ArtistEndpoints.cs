@@ -46,7 +46,7 @@ public static class ArtistEndpoints
                 ? Results.BadRequest(result.Errors)
                 : result.Value.Count() == 0
                     ? Results.NoContent()
-                    : Results.Ok(result.Value);
+                    : Results.Ok(result.ToPaginatedResponse());
         }).Produces<PaginatedResponse<List<ArtistInfoDTO>>>();
 
         return app;

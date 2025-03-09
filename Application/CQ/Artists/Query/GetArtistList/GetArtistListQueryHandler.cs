@@ -1,3 +1,4 @@
+using Application.CQ.Album.Query.GetArtistList;
 using Application.DTOs.Artists;
 using Application.Extensions;
 using Application.Repositories.Shared;
@@ -5,7 +6,7 @@ using Domain.Primitives;
 using FluentValidation;
 using MediatR;
 
-namespace Application.CQ.Album.Query.GetArtistList;
+namespace Application.CQ.Artists.Query.GetArtistList;
 
 public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, PaginatedResult<IEnumerable<ArtistInfoDTO>>>
 {
@@ -31,6 +32,6 @@ public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, Pag
             .Select(artist => ArtistInfoDTO.Create(artist))
             .ToList();
 
-        return (artists, request.Page, _uow.ArtistRepository.Queryable().Count());
+        return (artists, request.Page, request.PageSize, _uow.ArtistRepository.Queryable().Count());
     }
 }

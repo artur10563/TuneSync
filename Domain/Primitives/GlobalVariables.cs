@@ -76,6 +76,7 @@
         {
             public const int PageMin = 1;
             public const int PageSize = 25;
+            public const int PageSizeMax = 100;
         }
 
         public static class AlbumConstants

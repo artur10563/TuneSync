@@ -80,26 +80,39 @@ namespace Domain.Primitives
 
     public class PaginatedResult<TValue> : Result<TValue> where TValue : IEnumerable
     {
-        protected internal PaginatedResult(TValue value, bool isSuccess, Error error, int page = 1, int totalCount = 0)
-            : this(value, isSuccess, [error], page, totalCount)
+        protected internal PaginatedResult(
+            TValue value, 
+            bool isSuccess, 
+            Error error, 
+            int page = GlobalVariables.PaginationConstants.PageMin, 
+            int pageSize = GlobalVariables.PaginationConstants.PageSize,
+            int totalCount = 0)
+            : this(value, isSuccess, [error], page, pageSize, totalCount)
         {
         }
 
-        protected internal PaginatedResult(TValue value, bool isSuccess, List<Error> errors, int page = 1, int totalCount = 0) 
+        protected internal PaginatedResult(
+            TValue value, 
+            bool isSuccess, 
+            List<Error> errors, 
+            int page = GlobalVariables.PaginationConstants.PageMin, 
+            int pageSize = GlobalVariables.PaginationConstants.PageSize,
+            int totalCount = 0) 
             : base(value, isSuccess, errors)
         {
             if(page <= 0) throw new ArgumentException("Invalid page number", nameof(page));
             Page = page;
+            PageSize = pageSize;
             TotalCount = totalCount;
         }
         
         public int Page { get; set; }
-        public int PageSize { get; set; } = 25;
+        public int PageSize { get; set; }
         public int TotalCount { get; set; }
         public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
         
-        public static implicit operator PaginatedResult<TValue>((TValue value, int page, int totalCount) paginatedData ) 
-            => new(paginatedData.value, true, Error.None, paginatedData.page, paginatedData.totalCount);
+        public static implicit operator PaginatedResult<TValue>((TValue value, int page, int pageSize, int totalCount) paginatedData ) 
+            => new(paginatedData.value, true, Error.None, paginatedData.page, paginatedData.pageSize, paginatedData.totalCount);
         public static implicit operator PaginatedResult<TValue>((List<Error> errors, int page) failure ) => Failure<TValue>(failure.errors, failure.page);
         public static implicit operator PaginatedResult<TValue>((Error error, int page) failure ) => Failure<TValue>(failure.error, failure.page);
 
