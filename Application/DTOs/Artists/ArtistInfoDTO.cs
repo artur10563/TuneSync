@@ -7,7 +7,8 @@ namespace Application.DTOs.Artists
         Guid Guid,
         string Name,
         string DisplayName,
-        string ChannelUrl
+        string ChannelUrl,
+        string? ThumbnailUrl
     )
     {
         public static ArtistInfoDTO Create(Artist artist)
@@ -16,7 +17,8 @@ namespace Application.DTOs.Artists
                 artist.Guid,
                 artist.Name,
                 artist.DisplayName,
-                GlobalVariables.GetYoutubeChannel(artist.YoutubeChannelId)
+                GlobalVariables.GetYoutubeChannel(artist.YoutubeChannelId),
+                artist.ThumbnailUrl
             );
         }
     }

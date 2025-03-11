@@ -54,9 +54,13 @@ public sealed class DownloadPlaylistFromYoutubeJob
             var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.YoutubeChannelId == ytAuthor.Id);
             if (artist == null)
             {
-                artist = new Artist(name: ytAuthor.Title, youtubeChannelId: ytAuthor.Id);
+                var artistInfo = await _youtubeService.GetChannelInfoAsync(ytAuthor.Id);
+                artist = new Artist(
+                    name: ytAuthor.Title, 
+                    youtubeChannelId: ytAuthor.Id, 
+                    thumbnailUrl: artistInfo?.Thumbnail?.Url);
                 _uow.ArtistRepository.Insert(artist);
-                _logger.Log($"Created new artist", LogLevel.Information, new { artist.Guid, artist.Name });
+                _logger.Log($"Created new artist", LogLevel.Information, artistInfo);
             }
 
             //Get or create album

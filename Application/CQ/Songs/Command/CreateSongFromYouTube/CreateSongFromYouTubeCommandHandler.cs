@@ -49,9 +49,13 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
                 x.YoutubeChannelId == videoInfo.Author.ChannelId.Value);
             if (artist == null)
             {
+                var artistInfo = await _youtube.GetChannelInfoAsync(videoInfo.Author.ChannelId);
+                
                 artist = new Artist(
                     name: videoInfo.Author.ChannelTitle,
-                    youtubeChannelId: videoInfo.Author.ChannelId);
+                    youtubeChannelId: videoInfo.Author.ChannelId,
+                    thumbnailUrl: artistInfo?.Thumbnail?.Url
+                    );
                 _uow.ArtistRepository.Insert(artist);
             }
 

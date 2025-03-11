@@ -47,6 +47,7 @@ app.RegisterAlbumEndpoints()
     .RegisterYoutubeEndpoints()
     .RegisterJobEndpoints()
     .RegisterArtistEndpoints()
-    .RegisterFavoriteEndpoints();
+    .RegisterFavoriteEndpoints()
+    .RegisterAdminEndpoints();
 
 app.Run();

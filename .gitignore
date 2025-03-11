@@ -401,3 +401,4 @@ FodyWeavers.xsd
 Api/appsettings.Development.json
 firebase.json
 /.idea
+Infrastructure/Migrations/AppDbContextModelSnapshot.cs

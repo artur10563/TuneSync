@@ -111,6 +111,20 @@ namespace Infrastructure.Services
             return (videoInfo, streamInfo);
         }
 
+        public async Task<ChannelInfo> GetChannelInfoAsync(string channelId)
+        {
+            var v = await _youtubeExplode.Channels.GetAsync(channelId);
+            
+            SongThumbnail? channelThumbnail = null;
+            if (v.Thumbnails.Count != 0)
+            {
+                var thumbnail = v.Thumbnails[0]; 
+                channelThumbnail = new SongThumbnail(thumbnail.Resolution.Height, thumbnail.Resolution.Width, thumbnail.Url);
+            }
+            
+            return new ChannelInfo(v.Id, v.Title, v.Url, channelThumbnail);
+        }
+        
         public async Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo)
         {
             var audioStream = await _youtubeExplode.Videos.Streams.GetAsync(streamInfo);

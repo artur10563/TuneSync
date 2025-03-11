@@ -14,14 +14,17 @@ namespace Domain.Entities
         //Id of channel
         public string YoutubeChannelId { get; set; }
 
+        public string? ThumbnailUrl { get; set; }
+
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
         public virtual ICollection<Album> Albums { get; set; } = new HashSet<Album>();
 
-        public Artist(string name, string youtubeChannelId) : base()
+        public Artist(string name, string youtubeChannelId, string? thumbnailUrl = null) : base()
         {
             Name = name;
             DisplayName = SanitizeTitle(name);
             YoutubeChannelId = youtubeChannelId;
+            ThumbnailUrl = thumbnailUrl;
         }
 
         private string SanitizeTitle(string channelTitle)

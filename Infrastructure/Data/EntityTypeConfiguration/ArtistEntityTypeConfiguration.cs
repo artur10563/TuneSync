@@ -17,8 +17,8 @@ namespace Infrastructure.Data.EntityTypeConfiguration
             builder.Property(x => x.DisplayName)
                 .HasMaxLength(GlobalVariables.UserConstants.NameMaxLength)
                 .IsRequired();
+            builder.Property(x => x.ThumbnailUrl).IsRequired(false).HasMaxLength(255);
             builder.Property(x => x.YoutubeChannelId).IsRequired();
-
             builder.HasIndex(x => x.YoutubeChannelId).IsUnique();
 
             builder.HasMany(x => x.Songs)

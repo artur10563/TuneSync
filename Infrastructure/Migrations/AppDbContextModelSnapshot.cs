@@ -96,6 +96,10 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<string>("YoutubeChannelId")
                         .IsRequired()
                         .HasColumnType("text");

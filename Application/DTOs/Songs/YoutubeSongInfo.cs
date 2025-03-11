@@ -6,4 +6,6 @@
 
 	public record SongAuthor(string Id, string Title);
 	
+	public record ChannelInfo(string Id, string Title, string Url, SongThumbnail? Thumbnail = null);
+	
 }
