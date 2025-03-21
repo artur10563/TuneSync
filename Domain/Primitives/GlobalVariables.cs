@@ -48,6 +48,12 @@
 
         public static class UserConstants
         {
+            public static class Roles
+            {
+                public const string Admin = "Admin";
+                public const string User = "User";
+            }
+            
             public const int NameMinLength = 2;
             public const int NameMaxLength = 100;
 

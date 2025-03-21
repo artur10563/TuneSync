@@ -1,4 +1,5 @@
 ﻿using Domain.Entities.Shared;
+using Domain.Primitives;
 
 namespace Domain.Entities
 {
@@ -17,11 +18,14 @@ namespace Domain.Entities
         public virtual ICollection<UserFavoriteAlbum> FavoriteAlbums { get; set; } = new HashSet<UserFavoriteAlbum>();
         public virtual ICollection<UserFavoritePlaylist> FavoritePlaylists { get; set; } = new HashSet<UserFavoritePlaylist>();
 
+        public string Role { get; set; } // Only User or Admin for now; TODO: Move to separate table to allow multiple roles
+        
         public User(string name, string email, string identityId)
         {
             Name = name;
             Email = email;
             IdentityId = identityId;
+            Role = GlobalVariables.UserConstants.Roles.User;
         }
     }
 }

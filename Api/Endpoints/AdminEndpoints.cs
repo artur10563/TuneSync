@@ -1,5 +1,6 @@
 using Application.Repositories.Shared;
 using Application.Services;
+using Domain.Primitives;
 
 namespace Api.Endpoints;
 
@@ -11,7 +12,7 @@ public static class AdminEndpoints
     public static IEndpointRouteBuilder RegisterAdminEndpoints(this IEndpointRouteBuilder app)
     {
         //TODO: add role policy.
-        var group = app.MapGroup("api/admin").WithTags("Admin").RequireAuthorization();
+        var group = app.MapGroup("api/admin").WithTags("Admin").RequireAuthorization(policy => policy.RequireRole(GlobalVariables.UserConstants.Roles.Admin));
         var utils = group.MapGroup("/utils");
 
         utils.MapPost("", async (IYoutubeService _youtube, IUnitOfWork _uow) =>

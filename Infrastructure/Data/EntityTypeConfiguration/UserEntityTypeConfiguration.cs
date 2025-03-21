@@ -15,6 +15,7 @@ namespace Infrastructure.Data.EntityTypeConfiguration
 
             builder.Property(x => x.Email).HasMaxLength(GlobalVariables.UserConstants.EmailMaxLength).IsRequired();
             builder.Property(x => x.Name).HasMaxLength(GlobalVariables.UserConstants.NameMaxLength).IsRequired();
+            builder.Property(x => x.Role).HasMaxLength(GlobalVariables.UserConstants.NameMaxLength).IsRequired(false);
 
         }
     }
