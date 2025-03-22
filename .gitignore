@@ -3,6 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+**/Migrations/**
+
 # User-specific files
 *.rsuser
 *.suo
@@ -396,3 +398,7 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+Api/appsettings.Development.json
+firebase.json
+/.idea
+Infrastructure/Migrations/AppDbContextModelSnapshot.cs
