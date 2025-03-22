@@ -57,7 +57,9 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 
 # Make sure firebase.json is copied
+
 COPY ../Api/firebase.json /app/Api/firebase.json
+
 
 ENV ASPNETCORE_URLS="http://*:8080"
 
