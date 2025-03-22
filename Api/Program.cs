@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularClient", builder =>
     {
-        builder.WithOrigins("http://localhost:4200")
+        builder.WithOrigins("https://tunesync-gamma.vercel.app")
             .AllowAnyMethod()
             .AllowAnyHeader();
     });

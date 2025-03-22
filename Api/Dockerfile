@@ -4,7 +4,7 @@
 #docker run -d -p 8080:8080 -p 8081:8081 --name api-image -e ConnectionStrings__Default="database_connection" -e FirestoreStorage__Default="gs://project.com" -e FirestoreStorage__DefaultBucket="project.appspot.com" -e 
 #YouTubeApi__ApiKey="ytApiKey" -e Auth__TokenUrl="https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=FirebaseKey" -e Auth__RefreshTokenUrl="https://securetoken.googleapis
 #.com/v1/token?key=FirebaseKey" -e Auth__Key="FirebaseKey" -e Auth__ValidIssuer="https://securetoken.google.com/https://securetoken.google.com/project" -e 
-#Auth__Audience="project" api-image:latest
+#Auth__Audience="project" -e FirestoreStorage__ProjectId="project" api-image:latest
 
 # Set environment variables (These can be overridden in deployment settings or in docker-compose file)
 #ENV ConnectionStrings__Default="${DATABASE_CONNECTION_STRING}"
@@ -16,6 +16,18 @@
 #ENV Auth__Key="${FIREBASE_KEY}"
 #ENV Auth__ValidIssuer="https://securetoken.google.com/${PROJECT_ID}"
 #ENV Auth__Audience="${PROJECT_ID}"
+#ENV FirestoreStorage__ProjectId="$PROJECT_ID"
+#ENV FirebaseConfig__type = Copy_From_Firebase.json
+#ENV FirebaseConfig__project_id = Copy_From_Firebase.json
+#ENV FirebaseConfig__private_key_id = Copy_From_Firebase.json
+#ENV FirebaseConfig__private_key = Copy_From_Firebase.json
+#ENV FirebaseConfig__client_email = Copy_From_Firebase.json
+#ENV FirebaseConfig__client_id = Copy_From_Firebase.json
+#ENV FirebaseConfig__auth_uri = Copy_From_Firebase.json
+#ENV FirebaseConfig__token_uri = Copy_From_Firebase.json
+#ENV FirebaseConfig__auth_provider_x509_cert_url = Copy_From_Firebase.json
+#ENV FirebaseConfig__client_x509_cert_url = Copy_From_Firebase.json
+#ENV FirebaseConfig__universe_domain = Copy_From_Firebase.json
 
 
 # Base image with ASP.NET runtime
@@ -57,8 +69,7 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 
 # Make sure firebase.json is copied
-
-COPY ../Api/firebase.json /app/Api/firebase.json
+#COPY ../Api/firebase.json /app/Api/firebase.json
 
 
 ENV ASPNETCORE_URLS="http://*:8080"

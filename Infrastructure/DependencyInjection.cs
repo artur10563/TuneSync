@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using Application;
 using Application.CQ.Songs.Command.CreateSong;
 using Application.Repositories;
@@ -22,15 +24,33 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure
 {
+    public sealed class FirebaseConfiguration
+    {
+        public string type { get; set; }
+        public string project_id { get; set; }
+        public string private_key_id { get; set; }
+        public string private_key { get; set; }
+        public string client_email { get; set; }
+        public string client_id { get; set; }
+        public string auth_uri { get; set; }
+        public string token_uri { get; set; }
+        public string auth_provider_x509_cert_url { get; set; }
+        public string client_x509_cert_url { get; set; }
+        public string universe_domain { get; set; }
+    }
+
     public static class DependencyContainer
     {
         public static IServiceCollection DIFromContainer(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
             serviceCollection.AddValidationDI(configuration);
             
+            var jsonCreds = configuration.GetSection("FirebaseConfig").Get<FirebaseConfiguration>();
+            var credsString = JsonSerializer.Serialize(jsonCreds, new JsonSerializerOptions { WriteIndented = true });
+            
             FirebaseApp.Create(new AppOptions()
             {
-                Credential = GoogleCredential.FromFile("firebase.json")
+                Credential = GoogleCredential.FromJson(credsString),
             });
 
             serviceCollection.AddDatabase(configuration);
