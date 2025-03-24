@@ -18,5 +18,11 @@ namespace Application.Services
         Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId);
 
         Task<ChannelInfo> GetChannelInfoAsync(string channelId);
+
+
+        Task<string> GetVideoInfoAsync1(string url);
+
+
+        Task<IStreamInfo> GetStreamInfoAsync(string url);
     }
 }

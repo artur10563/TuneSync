@@ -30,7 +30,22 @@ namespace Infrastructure.Services
                 ApiKey = configuration["YouTubeApi:ApiKey"],
                 ApplicationName = this.GetType().ToString()
             });
-            _youtubeExplode = new YoutubeClient();
+            
+            //add even more variables to appsettings development for now :)
+            //normal solution - refresh the cookies automatically
+            
+            var cookieList = new List<Cookie>();
+
+            var cookieValues = configuration.GetSection("YouTubeCookies").Get<Dictionary<string, string>>();
+            if (cookieValues != null)
+            {
+                foreach (var (name, value) in cookieValues)
+                {
+                    cookieList.Add(new Cookie(name, value, "/", ".youtube.com"));
+                }
+            }
+
+            _youtubeExplode = new YoutubeClient(cookieList.AsReadOnly());
         }
 
 
@@ -110,7 +125,23 @@ namespace Infrastructure.Services
 
             return (videoInfo, streamInfo);
         }
+        
+        public async Task<string> GetVideoInfoAsync1(string url)
+        {
+            ExplodeVideo videoInfo = await _youtubeExplode.Videos.GetAsync(url);
+            return videoInfo.Url;
+        }
+        
+        public async Task<IStreamInfo> GetStreamInfoAsync(string url)
+        {
 
+            IStreamInfo streamInfo = (await _youtubeExplode.Videos.Streams.GetManifestAsync(url))
+                .GetAudioOnlyStreams()
+                .GetWithHighestBitrate();
+
+            return streamInfo;
+        }
+        
         public async Task<ChannelInfo> GetChannelInfoAsync(string channelId)
         {
             var v = await _youtubeExplode.Channels.GetAsync(channelId);

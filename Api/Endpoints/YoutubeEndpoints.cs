@@ -26,13 +26,18 @@ public static class YoutubeEndpoints
         {
             try
             {
-                logger.Log("GetVideoInfoAsync", LogLevel.Information, new { url });
-                var info = await youtube.GetVideoInfoAsync(url);
-                logger.Log("GetVideoInfoAsync", LogLevel.Information, new { info });
+                logger.Log("GetVideoInfoAsync1", LogLevel.Information, new { url });
+                var fetchedInfo = await youtube.GetVideoInfoAsync1(url);
+                logger.Log("GetVideoInfoAsync1End", LogLevel.Information, new { fetchedInfo });
+
+                logger.Log("GetStreamInfoAsync", LogLevel.Information, new { fetchedInfo });
+                var streamInfo = await youtube.GetStreamInfoAsync(fetchedInfo);
+                logger.Log("GetStreamInfoAsyncEnd", LogLevel.Information, new { streamInfo });
+
                 
                 logger.Log("GetAudioStreamAsync", LogLevel.Information, new { url });
-                var info1 = await youtube.GetAudioStreamAsync(info.streamInfo);
-                logger.Log("GetAudioStreamAsync", LogLevel.Information, new { info1 });
+                var info1 = await youtube.GetAudioStreamAsync(streamInfo);
+                logger.Log("GetAudioStreamAsyncEnd", LogLevel.Information, new { info1 });
 
                 return Results.Ok(info1);
             }
