@@ -9,6 +9,7 @@ using Domain.Errors;
 using Domain.Primitives;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
+using LogLevel = Application.Services.LogLevel;
 
 namespace Api.Endpoints;
 
@@ -20,6 +21,29 @@ public static class YoutubeEndpoints
         var songGroup = ytGroup.MapGroup("/song");
         var playlistGroup = ytGroup.MapGroup("/playlist");
 
+        //https://www.youtube.com/watch?v=pDTFR7ivvgE
+        app.MapGet("api/debug/{url}", async (IYoutubeService youtube, ILoggerService logger, string url) =>
+        {
+            try
+            {
+                logger.Log("GetVideoInfoAsync", LogLevel.Information, new { url });
+                var info = await youtube.GetVideoInfoAsync(url);
+                logger.Log("GetVideoInfoAsync", LogLevel.Information, new { info });
+                
+                logger.Log("GetAudioStreamAsync", LogLevel.Information, new { url });
+                var info1 = await youtube.GetAudioStreamAsync(info.streamInfo);
+                logger.Log("GetAudioStreamAsync", LogLevel.Information, new { info1 });
+
+                return Results.Ok(info1);
+            }
+            catch (Exception e)
+            {
+                logger.Log(e.Message, LogLevel.Error);
+                return Results.BadRequest(e.Message);
+            }
+            
+        });
+        
         songGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
         {
             var result = (await _youtube.SearchAsync(query)).ToList();
