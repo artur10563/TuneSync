@@ -39,17 +39,20 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             if (!validationResult.IsValid)
                 return validationResult.AsErrors();
 
-            var (videoInfo, streamInfo) = await _youtube.GetVideoInfoAsync(request.Url);
-
-            if (streamInfo.Size.KiloBytes > GlobalVariables.SongConstants.MaxSizeKB)
+            // var (videoInfo, streamInfo) = await _youtube.GetVideoInfoAsync(request.Url);
+            
+            var videoInfo = await _youtube.GetVideoInfoAsyncDLP(request.Url);
+            await using var stream = await _youtube.GetAudioStreamAsyncDLP(videoInfo.VideoId);
+            
+            if (stream.GetKilobytes() > GlobalVariables.SongConstants.MaxSizeKB)
                 return SongError.InvalidSize;
 
 
             var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x =>
-                x.YoutubeChannelId == videoInfo.Author.ChannelId.Value);
+                x.YoutubeChannelId == videoInfo.Author.ChannelId);
             if (artist == null)
             {
-                var artistInfo = await _youtube.GetChannelInfoAsync(videoInfo.Author.ChannelId);
+                var artistInfo = await _youtube.GetChannelInfoAsync(videoInfo.Author.ChannelId); // double check this shit. 
                 
                 artist = new Artist(
                     name: videoInfo.Author.ChannelTitle,
@@ -58,17 +61,16 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
                     );
                 _uow.ArtistRepository.Insert(artist);
             }
-
-            using var stream = await _youtube.GetAudioStreamAsync(streamInfo);
+            
             var fileGuid = await _storage.UploadFileAsync(stream);
 
             var song = new Song(title: videoInfo.Title,
                 source: GlobalVariables.SongSource.YouTube,
                 artistGuid: artist.Guid,
                 audioPath: fileGuid,
-                sourceId: videoInfo.Id,
-                audioLength: videoInfo.Duration!.Value,
-                audioSize: (int)streamInfo.Size.KiloBytes,
+                sourceId: videoInfo.VideoId,
+                audioLength: videoInfo.Duration,
+                audioSize: (int)stream.GetKilobytes(),
                 createdBy: request.CurrentUserGuid);
 
             _uow.SongRepository.Insert(song);

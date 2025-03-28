@@ -13,8 +13,10 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             //youtube/watch?v=id
             RuleFor(x => x.Url)
                 .NotEmpty()
-                .Matches(@"^(https?:\/\/)?(www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(&.*)?$")
-                .WithMessage("Invalid YouTube URL format. Please provide a valid YouTube watch URL");
+                .Length(11)
+                .WithMessage("Invalid video ID");
+                // .Matches(@"^(https?:\/\/)?(www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(&.*)?$")
+                // .WithMessage("Invalid YouTube URL format. Please provide a valid YouTube watch URL");
 
             RuleFor(x => x.Url)
                 .MustAsync(async (url, cancellationToken) =>

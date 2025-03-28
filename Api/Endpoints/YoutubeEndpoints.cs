@@ -26,29 +26,33 @@ public static class YoutubeEndpoints
         {
             try
             {
-                logger.Log("GetVideoInfoAsync1", LogLevel.Information, new { url });
-                var fetchedInfo = await youtube.GetVideoInfoAsync1(url);
-                logger.Log("GetVideoInfoAsync1End", LogLevel.Information, new { fetchedInfo });
+                var info = await youtube.GetVideoInfoAsyncDLP(url);
+                await using (var stream = await youtube.GetAudioStreamAsyncDLP(info.VideoId))
+                {
+                    await using (var fileStream = File.Create("output10563DLP.mp3"))
+                    {
+                        await stream.CopyToAsync(fileStream);
+                    }
+                }
+                //
+                // logger.Log("GetStreamInfoAsync", LogLevel.Information, new { fetchedInfo });
+                // var streamInfo = await youtube.GetStreamInfoAsync(fetchedInfo);
+                // logger.Log("GetStreamInfoAsyncEnd", LogLevel.Information, new { streamInfo });
+                //
+                //
+                // logger.Log("GetAudioStreamAsync", LogLevel.Information, new { url });
+                // var info1 = await youtube.GetAudioStreamAsync(streamInfo);
+                // logger.Log("GetAudioStreamAsyncEnd", LogLevel.Information, new { info1 });
 
-                logger.Log("GetStreamInfoAsync", LogLevel.Information, new { fetchedInfo });
-                var streamInfo = await youtube.GetStreamInfoAsync(fetchedInfo);
-                logger.Log("GetStreamInfoAsyncEnd", LogLevel.Information, new { streamInfo });
-
-                
-                logger.Log("GetAudioStreamAsync", LogLevel.Information, new { url });
-                var info1 = await youtube.GetAudioStreamAsync(streamInfo);
-                logger.Log("GetAudioStreamAsyncEnd", LogLevel.Information, new { info1 });
-
-                return Results.Ok(info1);
+                return Results.Ok(info);
             }
             catch (Exception e)
             {
                 logger.Log(e.Message, LogLevel.Error);
                 return Results.BadRequest(e.Message);
             }
-            
         });
-        
+
         songGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
         {
             var result = (await _youtube.SearchAsync(query)).ToList();
@@ -63,7 +67,7 @@ public static class YoutubeEndpoints
         {
             var user = await _httpContext.GetCurrentUserAsync();
 
-            var command = new CreateSongFromYoutubeCommand(videoLink.DecodeUrl(), user!.Guid);
+            var command = CreateSongFromYoutubeCommand.Create(videoLink.DecodeUrl(), user!.Guid);
             var result = await _sender.Send(command);
 
             return result.IsFailure
@@ -89,11 +93,11 @@ public static class YoutubeEndpoints
 
             var command = new CreatePlaylistFromYoutubeCommand(playlistId, user!.Guid);
             var result = await _sender.Send(command);
-            return result.IsFailure 
-                ? Results.BadRequest(result.Errors) 
+            return result.IsFailure
+                ? Results.BadRequest(result.Errors)
                 : Results.AcceptedAtRoute(
                     "DownloadingProgress",
-                    routeValues: new { jobId = result.Value }, 
+                    routeValues: new { jobId = result.Value },
                     value: result.Value);
         }).RequireAuthorization().Produces<string>();
 

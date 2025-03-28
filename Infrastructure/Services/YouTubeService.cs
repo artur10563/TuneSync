@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Application.Services;
 using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
@@ -13,7 +14,10 @@ using YoutubeThumbnail = Google.Apis.YouTube.v3.Data.Thumbnail;
 using ExplodeVideo = YoutubeExplode.Videos.Video;
 using ExplodeThumbnail = YoutubeExplode.Common.Thumbnail;
 using System.Net;
+using System.Text.Json;
 using System.Web;
+using Application.DTOs.Youtube;
+using Author = Application.DTOs.Youtube.Author;
 
 
 namespace Infrastructure.Services
@@ -30,22 +34,8 @@ namespace Infrastructure.Services
                 ApiKey = configuration["YouTubeApi:ApiKey"],
                 ApplicationName = this.GetType().ToString()
             });
-            
-            //add even more variables to appsettings development for now :)
-            //normal solution - refresh the cookies automatically
-            
-            var cookieList = new List<Cookie>();
 
-            var cookieValues = configuration.GetSection("YouTubeCookies").Get<Dictionary<string, string>>();
-            if (cookieValues != null)
-            {
-                foreach (var (name, value) in cookieValues)
-                {
-                    cookieList.Add(new Cookie(name, value, "/", ".youtube.com"));
-                }
-            }
-
-            _youtubeExplode = new YoutubeClient(cookieList.AsReadOnly());
+            _youtubeExplode = new YoutubeClient();
         }
 
 
@@ -125,37 +115,36 @@ namespace Infrastructure.Services
 
             return (videoInfo, streamInfo);
         }
-        
+
         public async Task<string> GetVideoInfoAsync1(string url)
         {
             ExplodeVideo videoInfo = await _youtubeExplode.Videos.GetAsync(url);
             return videoInfo.Url;
         }
-        
+
         public async Task<IStreamInfo> GetStreamInfoAsync(string url)
         {
-
             IStreamInfo streamInfo = (await _youtubeExplode.Videos.Streams.GetManifestAsync(url))
                 .GetAudioOnlyStreams()
                 .GetWithHighestBitrate();
 
             return streamInfo;
         }
-        
+
         public async Task<ChannelInfo> GetChannelInfoAsync(string channelId)
         {
             var v = await _youtubeExplode.Channels.GetAsync(channelId);
-            
+
             SongThumbnail? channelThumbnail = null;
             if (v.Thumbnails.Count != 0)
             {
-                var thumbnail = v.Thumbnails[0]; 
+                var thumbnail = v.Thumbnails[0];
                 channelThumbnail = new SongThumbnail(thumbnail.Resolution.Height, thumbnail.Resolution.Width, thumbnail.Url);
             }
-            
+
             return new ChannelInfo(v.Id, v.Title, v.Url, channelThumbnail);
         }
-        
+
         public async Task<Stream> GetAudioStreamAsync(IStreamInfo streamInfo)
         {
             var audioStream = await _youtubeExplode.Videos.Streams.GetAsync(streamInfo);
@@ -178,16 +167,16 @@ namespace Infrastructure.Services
         {
             var videosResponse = await _youtubeExplode.Playlists.GetVideosAsync(playlistId);
             var playlistInfo = await _youtubeExplode.Playlists.GetAsync(playlistId);
-            
+
             var playlistThumbnailId = GetPlaylistIdFromUrl(playlistInfo.Thumbnails[0]?.Url);
-            
-            var songs =videosResponse.Select(x => new YoutubeSongInfo(
+
+            var songs = videosResponse.Select(x => new YoutubeSongInfo(
                 Id: x.Id.Value,
                 Title: x.Title,
                 Author: new SongAuthor(x.Author.ChannelId, x.Author.ChannelTitle),
                 Description: playlistInfo.Title //Playlist name
             )).ToList();
-            
+
             return (songs, playlistThumbnailId);
         }
 
@@ -195,7 +184,7 @@ namespace Infrastructure.Services
         {
             var id = "";
             if (string.IsNullOrEmpty(url)) return id;
-            
+
             var parts = url.Split('/');
             if (parts.Length > 4)
             {
@@ -203,6 +192,100 @@ namespace Infrastructure.Services
             }
 
             return id;
+        }
+
+
+        // DLP
+        private ProcessStartInfo CreateProcessStartInfo(
+            string arguments,
+            bool redirectStandardOutput = true,
+            bool redirectStandardError = true,
+            bool useShellExecute = false,
+            bool createNoWindow = true)
+        {
+            return new ProcessStartInfo
+            {
+                FileName = "yt-dlp",
+                Arguments = arguments,
+                RedirectStandardOutput = redirectStandardOutput,
+                RedirectStandardError = redirectStandardError,
+                UseShellExecute = useShellExecute,
+                CreateNoWindow = createNoWindow
+            };
+        }
+
+        private async Task<string> RunYtDlpAsync(string arguments)
+        {
+            var processStartInfo = CreateProcessStartInfo(arguments);
+
+            using (var process = new Process { StartInfo = processStartInfo })
+            {
+                process.Start();
+                string output = await process.StandardOutput.ReadToEndAsync();
+                string error = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (!string.IsNullOrEmpty(error) && string.IsNullOrEmpty(output))
+                {
+                    throw new Exception($"yt-dlp error: {error}"); //if output present and we have error - just ignore it xd need to refactor this shit later and log
+                }
+
+                if (string.IsNullOrEmpty(output))
+                {
+                    throw new Exception("yt-dlp did not return any output.");
+                }
+
+                return output;
+            }
+        }
+
+        public async Task<YouTubeVideoInfo> GetVideoInfoAsyncDLP(string videoId)
+        {
+            string jsonOutput = await RunYtDlpAsync($"-j https://www.youtube.com/watch?v={videoId}");
+
+            using (JsonDocument doc = JsonDocument.Parse(jsonOutput))
+            {
+                JsonElement root = doc.RootElement;
+
+                var v = new YouTubeVideoInfo
+                {
+                    VideoId = root.GetProperty("id").GetString(),
+                    Title = root.GetProperty("title").GetString(),
+                    Duration = TimeSpan.FromSeconds(root.GetProperty("duration").GetDouble()),
+                    Author = new Author()
+                    {
+                        ChannelId = root.GetProperty("channel_id").GetString(),
+                        ChannelTitle = root.GetProperty("uploader").GetString()
+                    }
+                };
+                return v;
+            }
+        }
+
+        public async Task<Stream> GetAudioStreamAsyncDLP(string videoId)
+        {
+            var memoryStream = new MemoryStream();
+
+            var processStartInfo = CreateProcessStartInfo($"-f bestaudio -o - https://www.youtube.com/watch?v={videoId}");
+
+            using (var process = new Process())
+            {
+                process.StartInfo = processStartInfo;
+                process.Start();
+
+                // Copy to the memory stream
+                await process.StandardOutput.BaseStream.CopyToAsync(memoryStream);
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode != 0)
+                {
+                    string error = await process.StandardError.ReadToEndAsync();
+                    throw new Exception($"yt-dlp failed: {error}");
+                }
+            }
+
+            memoryStream.Position = 0;
+            return memoryStream;
         }
     }
 }
