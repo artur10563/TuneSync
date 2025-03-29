@@ -14,9 +14,10 @@ builder.Services.DIFromContainer(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
+    var client = builder.Configuration["CORS:Client"];
     options.AddPolicy("AllowAngularClient", builder =>
     {
-        builder.WithOrigins("https://tunesync-gamma.vercel.app")
+        builder.WithOrigins(client)
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
