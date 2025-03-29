@@ -17,6 +17,7 @@ using System.Net;
 using System.Text.Json;
 using System.Web;
 using Application.DTOs.Youtube;
+using Microsoft.Playwright;
 using Author = Application.DTOs.Youtube.Author;
 
 
@@ -26,9 +27,12 @@ namespace Infrastructure.Services
     {
         private readonly YouTubeService _service;
         private readonly YoutubeClient _youtubeExplode;
+        private string cookieFilePath = "/cookie.txt";
+        private ILoggerService _logger;
 
-        public YoutubeService(IConfiguration configuration)
+        public YoutubeService(IConfiguration configuration, ILoggerService logger)
         {
+            _logger = logger;
             _service = new YouTubeService(new BaseClientService.Initializer()
             {
                 ApiKey = configuration["YouTubeApi:ApiKey"],
@@ -36,6 +40,7 @@ namespace Infrastructure.Services
             });
 
             _youtubeExplode = new YoutubeClient();
+            GetYouTubeCookiesAsync().Wait();
         }
 
 
@@ -241,7 +246,7 @@ namespace Infrastructure.Services
 
         public async Task<YouTubeVideoInfo> GetVideoInfoAsyncDLP(string videoId)
         {
-            string jsonOutput = await RunYtDlpAsync($"-j https://www.youtube.com/watch?v={videoId}");
+            string jsonOutput = await RunYtDlpAsync($"--cookies {cookieFilePath} --verbose -j https://www.youtube.com/watch?v={videoId}");
 
             using (JsonDocument doc = JsonDocument.Parse(jsonOutput))
             {
@@ -266,7 +271,7 @@ namespace Infrastructure.Services
         {
             var memoryStream = new MemoryStream();
 
-            var processStartInfo = CreateProcessStartInfo($"-f bestaudio -o - https://www.youtube.com/watch?v={videoId}");
+            var processStartInfo = CreateProcessStartInfo($"--cookies {cookieFilePath} --verbose -f bestaudio -o - https://www.youtube.com/watch?v={videoId}");
 
             using (var process = new Process())
             {
@@ -286,6 +291,33 @@ namespace Infrastructure.Services
 
             memoryStream.Position = 0;
             return memoryStream;
+        }
+
+
+        public async Task<string> GetYouTubeCookiesAsync()
+        {
+            using var playwright = await Playwright.CreateAsync();
+            await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            {
+                Headless = true // Runs in the background
+            });
+
+            var context = await browser.NewContextAsync();
+            var page = await context.NewPageAsync();
+
+            // Navigate to YouTube and wait for the page to load
+            await page.GotoAsync("https://www.youtube.com", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+
+            // Extract cookies
+            var cookies = await context.CookiesAsync();
+            var cookiesJson = JsonSerializer.Serialize(cookies);
+
+            // Save to a temporary file
+            cookieFilePath = "/tmp/cookies.txt"; // Adjust path if needed
+            await File.WriteAllTextAsync(cookieFilePath, cookiesJson);
+
+            await browser.CloseAsync();
+            return cookieFilePath;
         }
     }
 }
