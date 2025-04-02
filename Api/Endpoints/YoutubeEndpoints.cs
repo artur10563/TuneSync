@@ -9,6 +9,7 @@ using Domain.Errors;
 using Domain.Primitives;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
+using LogLevel = Application.Services.LogLevel;
 
 namespace Api.Endpoints;
 
@@ -19,7 +20,7 @@ public static class YoutubeEndpoints
         var ytGroup = app.MapGroup("api/youtube").WithTags("Youtube");
         var songGroup = ytGroup.MapGroup("/song");
         var playlistGroup = ytGroup.MapGroup("/playlist");
-
+        
         songGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
         {
             var result = (await _youtube.SearchAsync(query)).ToList();
@@ -34,7 +35,7 @@ public static class YoutubeEndpoints
         {
             var user = await _httpContext.GetCurrentUserAsync();
 
-            var command = new CreateSongFromYoutubeCommand(videoLink.DecodeUrl(), user!.Guid);
+            var command = CreateSongFromYoutubeCommand.Create(videoLink.DecodeUrl(), user!.Guid);
             var result = await _sender.Send(command);
 
             return result.IsFailure
@@ -60,11 +61,11 @@ public static class YoutubeEndpoints
 
             var command = new CreatePlaylistFromYoutubeCommand(playlistId, user!.Guid);
             var result = await _sender.Send(command);
-            return result.IsFailure 
-                ? Results.BadRequest(result.Errors) 
+            return result.IsFailure
+                ? Results.BadRequest(result.Errors)
                 : Results.AcceptedAtRoute(
                     "DownloadingProgress",
-                    routeValues: new { jobId = result.Value }, 
+                    routeValues: new { jobId = result.Value },
                     value: result.Value);
         }).RequireAuthorization().Produces<string>();
 

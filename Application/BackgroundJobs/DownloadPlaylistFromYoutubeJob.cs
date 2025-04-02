@@ -1,3 +1,4 @@
+using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Entities;
@@ -103,8 +104,10 @@ public sealed class DownloadPlaylistFromYoutubeJob
                 {
                     _logger.Log($"Started {song.Title}", LogLevel.Information, new { song.Id, song.Title });
 
-                    var (videoInfo, streamInfo) = await _youtubeService.GetVideoInfoAsync(GlobalVariables.GetYoutubeVideo(song.Id));
-                    await using var stream = await _youtubeService.GetAudioStreamAsync(streamInfo);
+                    // var (videoInfo, streamInfo) = await _youtubeService.GetVideoInfoAsync(GlobalVariables.GetYoutubeVideo(song.Id));
+                    var videoInfo = await _youtubeService.GetVideoInfoAsyncDLP(song.Id);
+                    await using var stream = await _youtubeService.GetAudioStreamAsyncDLP(song.Id);
+                    // await using var stream = await _youtubeService.GetAudioStreamAsync(streamInfo);
 
                     _logger.Log($"Video info retrieved", LogLevel.Information);
 
@@ -117,8 +120,8 @@ public sealed class DownloadPlaylistFromYoutubeJob
                         SongSource.YouTube,
                         song.Id,
                         fileGuid,
-                        videoInfo.Duration.Value,
-                        (int)streamInfo.Size.KiloBytes,
+                        videoInfo.Duration,
+                        (int)stream.GetKilobytes(),
                         createdBy,
                         artist.Guid,
                         album.Guid

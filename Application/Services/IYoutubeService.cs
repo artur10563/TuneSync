@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.Songs;
+using Application.DTOs.Youtube;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 
@@ -18,5 +19,14 @@ namespace Application.Services
         Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId);
 
         Task<ChannelInfo> GetChannelInfoAsync(string channelId);
+
+
+        Task<string> GetVideoInfoAsync1(string url);
+
+
+        Task<IStreamInfo> GetStreamInfoAsync(string url);
+
+        Task<YouTubeVideoInfo> GetVideoInfoAsyncDLP(string videoId);
+        Task<Stream> GetAudioStreamAsyncDLP(string videoId);
     }
 }

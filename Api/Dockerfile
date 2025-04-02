@@ -7,7 +7,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
@@ -38,12 +37,18 @@ RUN dotnet publish "Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAp
 FROM base AS final
 WORKDIR /app
 
+# Install Python3, pip, and create a virtual environment
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
+    python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install yt-dlp
+
+
+# Ensure the virtual environment is used
+ENV PATH="/opt/venv/bin:$PATH"
+
 # Copy files from the publish stage
 COPY --from=publish /app/publish .
-
-# Make sure firebase.json is copied
-#COPY ../Api/firebase.json /app/Api/firebase.json
-
 
 ENV ASPNETCORE_URLS="http://*:8080"
 
