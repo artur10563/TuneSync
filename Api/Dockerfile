@@ -7,7 +7,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
@@ -44,40 +43,6 @@ RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
     /opt/venv/bin/pip install --upgrade pip && \
     /opt/venv/bin/pip install yt-dlp
 
-# Install Playwright and its dependencies
-RUN apt-get install -y \
-    wget \
-    curl \
-    gnupg \
-    libx11-dev \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
-    libxtst6 \
-    libnss3 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libnspr4 \
-    libgbm-dev \
-    libxss1 \
-    libgdk-pixbuf2.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    fonts-liberation \
-    libappindicator3-1 \
-    libasound2 \
-    lsb-release \
-    xdg-utils \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js and npm
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs
-
-# Install Playwright's required browsers
-RUN npm init playwright@latest && \
-    npx playwright install
 
 # Ensure the virtual environment is used
 ENV PATH="/opt/venv/bin:$PATH"
