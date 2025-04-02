@@ -19,9 +19,8 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
                 // .WithMessage("Invalid YouTube URL format. Please provide a valid YouTube watch URL");
 
             RuleFor(x => x.Url)
-                .MustAsync(async (url, cancellationToken) =>
+                .MustAsync(async (videoId, cancellationToken) =>
                 {
-                    var videoId = _youtube.GetVideoIdFromUrl(url);
                     var exists = _uow.SongRepository
                     .Where(x => x.Source == GlobalVariables.SongSource.YouTube && x.SourceId == videoId)
                     .Any();

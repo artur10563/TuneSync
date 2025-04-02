@@ -20,39 +20,7 @@ public static class YoutubeEndpoints
         var ytGroup = app.MapGroup("api/youtube").WithTags("Youtube");
         var songGroup = ytGroup.MapGroup("/song");
         var playlistGroup = ytGroup.MapGroup("/playlist");
-
-        //https://www.youtube.com/watch?v=pDTFR7ivvgE
-        app.MapGet("api/debug/{url}", async (IYoutubeService youtube, ILoggerService logger, string url) =>
-        {
-            try
-            {
-                var info = await youtube.GetVideoInfoAsyncDLP(url);
-                await using (var stream = await youtube.GetAudioStreamAsyncDLP(info.VideoId))
-                {
-                    await using (var fileStream = File.Create("output10563DLP.mp3"))
-                    {
-                        await stream.CopyToAsync(fileStream);
-                    }
-                }
-                //
-                // logger.Log("GetStreamInfoAsync", LogLevel.Information, new { fetchedInfo });
-                // var streamInfo = await youtube.GetStreamInfoAsync(fetchedInfo);
-                // logger.Log("GetStreamInfoAsyncEnd", LogLevel.Information, new { streamInfo });
-                //
-                //
-                // logger.Log("GetAudioStreamAsync", LogLevel.Information, new { url });
-                // var info1 = await youtube.GetAudioStreamAsync(streamInfo);
-                // logger.Log("GetAudioStreamAsyncEnd", LogLevel.Information, new { info1 });
-
-                return Results.Ok(info);
-            }
-            catch (Exception e)
-            {
-                logger.Log(e.Message, LogLevel.Error);
-                return Results.BadRequest(e.Message);
-            }
-        });
-
+        
         songGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
         {
             var result = (await _youtube.SearchAsync(query)).ToList();
