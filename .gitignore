@@ -402,3 +402,4 @@ Api/appsettings.Development.json
 firebase.json
 /.idea
 Infrastructure/Migrations/AppDbContextModelSnapshot.cs
+Api/quick_docker_run.txt
