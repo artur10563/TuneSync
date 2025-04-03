@@ -2,6 +2,7 @@ using Api.Extensions;
 using Application.CQ.Playlists.Command.CreatePlaylistFromYoutube;
 using Application.CQ.Playlists.Query.GetYoutubePlaylistId;
 using Application.CQ.Songs.Command.CreateSongFromYouTube;
+using Application.CQ.Youtube.Query.YoutubeSearch;
 using Application.DTOs.Songs;
 using Application.Repositories.Shared;
 using Application.Services;
@@ -21,11 +22,16 @@ public static class YoutubeEndpoints
         var songGroup = ytGroup.MapGroup("/song");
         var playlistGroup = ytGroup.MapGroup("/playlist");
         
-        songGroup.MapGet("/{query}", async (IYoutubeService _youtube, string query) =>
+        songGroup.MapGet("/{query}", async (ISender sender, string query) =>
         {
-            var result = (await _youtube.SearchAsync(query)).ToList();
+            var command = new YoutubeSearchQuery(query, 9);
+            var result = await sender.Send(command);
 
-            return result;
+            return result.IsFailure
+                ? Results.BadRequest(result.Errors)
+                : result.Value.Count == 0
+                    ? Results.NoContent()
+                    : Results.Ok(result.Value);
         }).WithDescription("Search song on youtube").Produces<List<YoutubeSongInfo>>();
 
 

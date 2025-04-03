@@ -15,16 +15,13 @@ namespace Application.Services
         string GetVideoIdFromUrl(string url);
         Task<string> SearchPlaylistBySongAndAuthorAsync(string authorId, string songTitle);
 
+        Task<IEnumerable<YoutubeSongInfo>> SongsByPlaylistId(string playlistId, int maxResults);
+        
         /// <returns>List of videos for specified playlist and thumbnailId for playlist</returns>
         Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId);
 
         Task<ChannelInfo> GetChannelInfoAsync(string channelId);
-
-
-        Task<string> GetVideoInfoAsync1(string url);
-
-
-        Task<IStreamInfo> GetStreamInfoAsync(string url);
+        
 
         Task<YouTubeVideoInfo> GetVideoInfoAsyncDLP(string videoId);
         Task<Stream> GetAudioStreamAsyncDLP(string videoId);

@@ -26,6 +26,8 @@ namespace Infrastructure.Services
         private readonly YoutubeClient _youtubeExplode;
         private ILoggerService _logger;
 
+        private static string _musicCategoryId = "10";
+        
         public YoutubeService(IConfiguration configuration, ILoggerService logger)
         {
             _logger = logger;
@@ -42,6 +44,43 @@ namespace Infrastructure.Services
         private const int MaxYoutubeSearchResults = 20;
 
 
+        public async Task<IEnumerable<YoutubeSongInfo>> SongsByPlaylistId(string playlistId, int maxResults)
+        {
+            if (maxResults > MaxYoutubeSearchResults) maxResults = MaxYoutubeSearchResults;
+            
+            var playlistItemsRequest = _service.PlaylistItems.List("snippet");
+            playlistItemsRequest.PlaylistId = playlistId;
+            playlistItemsRequest.MaxResults = maxResults;
+
+            var playlistItemsResponse = await playlistItemsRequest.ExecuteAsync();
+            
+            return playlistItemsResponse.Items.Select(x =>
+                {
+                    var snippet = x.Snippet;
+                    var thumbnail = snippet.Thumbnails.High;
+                    
+                    if (snippet.ResourceId.Kind == "youtube#video")
+                    {
+                        return new YoutubeSongInfo(
+                            Id: snippet.ResourceId.VideoId,
+                            Title: HttpUtility.HtmlDecode(snippet.Title),
+                            Description: HttpUtility.HtmlDecode(snippet.Description),
+                            Author: new SongAuthor(snippet.VideoOwnerChannelId, HttpUtility.HtmlDecode(snippet.VideoOwnerChannelTitle)),
+                            Thumbnail: new SongThumbnail(
+                                Height: (int)thumbnail?.Height,
+                                Width: (int)thumbnail?.Width,
+                                Url: thumbnail.Url
+                            ), 
+                            PlaylistId: snippet.PlaylistId
+                        );
+                    }
+
+                    return null;
+                })
+                .Where(item => item != null)
+                .ToList();
+        }
+        
         // Youtube explode takes 30 times longer to fetch video, so youtube api is used
         public async Task<IEnumerable<YoutubeSongInfo>> SearchAsync(string query, int maxResults = 5)
         {
@@ -51,8 +90,10 @@ namespace Infrastructure.Services
             searchListRequest.Q = query;
             searchListRequest.MaxResults = maxResults;
             searchListRequest.Type = "video";
+            searchListRequest.VideoCategoryId = _musicCategoryId;
             searchListRequest.Order = SearchResource.ListRequest.OrderEnum.Relevance;
-
+            
+            
             var searchListResponse = await searchListRequest.ExecuteAsync();
 
             var result = searchListResponse.Items
@@ -96,6 +137,7 @@ namespace Infrastructure.Services
             playlistSearchRequest.Q = songTitle;
             playlistSearchRequest.MaxResults = 1;
             playlistSearchRequest.Type = "playlist";
+            playlistSearchRequest.VideoCategoryId = _musicCategoryId;
             playlistSearchRequest.Order = SearchResource.ListRequest.OrderEnum.Relevance;
             playlistSearchRequest.ChannelId = authorId;
 
