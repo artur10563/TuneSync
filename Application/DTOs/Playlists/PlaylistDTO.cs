@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Songs;
 using Domain.Entities;
+using Domain.Helpers;
 using Domain.Primitives;
 
 namespace Application.DTOs.Playlists
@@ -27,9 +28,7 @@ namespace Application.DTOs.Playlists
                 CreatedByName: playlist?.User.Name ?? string.Empty,
                 playlist.CreatedAt,
                 playlist.ModifiedAt,
-                ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
-                    ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
-                    : "",
+                ThumbnailUrl: string.Empty,
                 Songs: new PaginatedResponse<ICollection<SongDTO>>(SongDTO.Create(playlist.Songs, userGuid), pageInfo),
                 IsFavorite: false,
                 SongCount: songCount
@@ -46,9 +45,7 @@ namespace Application.DTOs.Playlists
                 CreatedByName: album?.User.Name ?? string.Empty,
                 album.CreatedAt,
                 album.ModifiedAt,
-                ThumbnailUrl: album.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
-                    ? GlobalVariables.GetYoutubePlaylistThumbnail(album.ThumbnailId)
-                    : "",
+                ThumbnailUrl: string.Empty,
                 Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
                 IsFavorite: isFavorite,
                 SongCount: songCount
@@ -65,9 +62,7 @@ namespace Application.DTOs.Playlists
                 CreatedByName: playlist?.User.Name ?? string.Empty,
                 playlist.CreatedAt,
                 playlist.ModifiedAt,
-                ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
-                    ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
-                    : "",
+                ThumbnailUrl: string.Empty,
                 Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
                 IsFavorite: isFavorite, 
                 SongCount: songCount

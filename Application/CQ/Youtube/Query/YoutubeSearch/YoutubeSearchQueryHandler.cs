@@ -1,5 +1,6 @@
 using Application.DTOs.Songs;
 using Application.Services;
+using Domain.Helpers;
 using Domain.Primitives;
 using MediatR;
 
@@ -14,13 +15,11 @@ public class YoutubeSearchQueryHandler : IRequestHandler<YoutubeSearchQuery, Res
         _youtube = youtube;
     }
 
-    private static string YTMIdentifier = "OLAK";
-
     public async Task<Result<List<YoutubeSongInfo>>> Handle(YoutubeSearchQuery request, CancellationToken cancellationToken)
     {
         IEnumerable<YoutubeSongInfo> results = new List<YoutubeSongInfo>();
         //Search videos
-        if (request.Query.StartsWith(YTMIdentifier, StringComparison.CurrentCultureIgnoreCase))
+        if (YoutubeHelper.IsYoutubeMusic(request.Query))
         {
             results = await _youtube.SongsByPlaylistId(request.Query, request.Results);
         }

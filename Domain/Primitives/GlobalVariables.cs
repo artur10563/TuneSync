@@ -7,11 +7,7 @@
     {
         private static string _fbStorage;
         private static string FirebaseMP3StringFormat = @"https://firebasestorage.googleapis.com/v0/b/{0}/o/{1}.mp3?alt=media";
-        private static string YoutubeThumbnailStringFormat = @"https://img.youtube.com/vi/{0}/mqdefault.jpg";
-        private static string YoutubeChannelStringFormat = @"https://www.youtube.com/channel/{0}";
-        private static string YoutubeVideoStringFormat = @"https://www.youtube.com/watch?v={0}";
-        private static string YoutubePlaylistThumbnailStringFormat = @"https://i.ytimg.com/vi/{0}/mqdefault.jpg";
-        private static string YoutubeAlbumStringFormat = @"https://www.youtube.com/playlist?list={0}";
+        
         public static void Initialize(string fbStorage)
         {
             _fbStorage = fbStorage;
@@ -19,20 +15,6 @@
 
         public static string GetFirebaseMP3Link(Guid fileGuid) =>
             string.Format(FirebaseMP3StringFormat, _fbStorage, fileGuid);
-
-        public static string GetYoutubeThumbnail(string videoGuid) =>
-            string.Format(YoutubeThumbnailStringFormat, videoGuid);
-        public static string GetYoutubePlaylistThumbnail(string thumbnailId) =>
-            string.Format(YoutubePlaylistThumbnailStringFormat, thumbnailId);
-        
-        public static string GetYoutubeAlbumUrl(string albumId) =>
-            string.Format(YoutubeAlbumStringFormat, albumId);
-
-        public static string GetYoutubeChannel(string channelId) =>
-            string.Format(YoutubeChannelStringFormat, channelId);
-        
-        public static string GetYoutubeVideo(string videoId) =>
-            string.Format(YoutubeVideoStringFormat, videoId);
         
         public static class SongSource
         {
@@ -44,6 +26,7 @@
         {
             public const string User = "User";
             public const string YouTube = "Youtube";
+            public const string YouTubeMusic = "YoutubeMusic";
         }
 
         public static class UserConstants

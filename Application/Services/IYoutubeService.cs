@@ -25,5 +25,6 @@ namespace Application.Services
 
         Task<YouTubeVideoInfo> GetVideoInfoAsyncDLP(string videoId);
         Task<Stream> GetAudioStreamAsyncDLP(string videoId);
+        Task<string> GetPlaylistThumbnailIdAsync(string playlistId);
     }
 }

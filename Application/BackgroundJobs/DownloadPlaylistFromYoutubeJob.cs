@@ -3,6 +3,7 @@ using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Entities;
 using Domain.Errors;
+using Domain.Helpers;
 using Domain.Primitives;
 using static Domain.Primitives.GlobalVariables;
 
@@ -28,7 +29,11 @@ public sealed class DownloadPlaylistFromYoutubeJob
     {
         try
         {
-            _logger.Log("Fetching playlist from YouTube", LogLevel.Information);
+            var source = YoutubeHelper.IsYoutubeMusic(youtubePlaylistId) 
+                ? GlobalVariables.PlaylistSource.YouTubeMusic 
+                : GlobalVariables.PlaylistSource.YouTube;
+            
+            _logger.Log($"Fetching playlist from {source}", LogLevel.Information);
 
             //Get all playlist songs
             var (songs, playlistThumbnailId) = await _youtubeService.GetPlaylistVideosAsync(youtubePlaylistId);
@@ -75,7 +80,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
                     createdBy: createdBy,
                     sourceId: youtubePlaylistId,
                     artistGuid: artist.Guid,
-                    thumbnailSource: PlaylistSource.YouTube,
+                    thumbnailSource: source,
                     thumbnailId: playlistThumbnailId);
                 album.ExpectedSongs = songs.Count;
                 _uow.AlbumRepository.Insert(album);
@@ -91,7 +96,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
             var existingSongs = _uow.SongRepository.Where(song => newSourceIds.Contains(song.SourceId));
             foreach (var existingSong in existingSongs)
             {
-                existingSong.Source = PlaylistSource.YouTube;
+                existingSong.Source = source;
                 existingSong.AlbumGuid = album.Guid;
             }
 
@@ -103,11 +108,9 @@ public sealed class DownloadPlaylistFromYoutubeJob
                 try
                 {
                     _logger.Log($"Started {song.Title}", LogLevel.Information, new { song.Id, song.Title });
-
-                    // var (videoInfo, streamInfo) = await _youtubeService.GetVideoInfoAsync(GlobalVariables.GetYoutubeVideo(song.Id));
+                    
                     var videoInfo = await _youtubeService.GetVideoInfoAsyncDLP(song.Id);
                     await using var stream = await _youtubeService.GetAudioStreamAsyncDLP(song.Id);
-                    // await using var stream = await _youtubeService.GetAudioStreamAsync(streamInfo);
 
                     _logger.Log($"Video info retrieved", LogLevel.Information);
 

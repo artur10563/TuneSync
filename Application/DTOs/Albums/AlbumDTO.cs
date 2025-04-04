@@ -1,6 +1,7 @@
 using Application.DTOs.Artists;
 using Application.DTOs.Songs;
 using Domain.Entities;
+using Domain.Helpers;
 using Domain.Primitives;
 
 namespace Application.DTOs.Albums;
@@ -29,15 +30,15 @@ public sealed record AlbumDTO(
             CreatedByName: album?.User.Name ?? string.Empty,
             album.CreatedAt,
             album.ModifiedAt,
-            ThumbnailUrl: album.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
-                ? GlobalVariables.GetYoutubePlaylistThumbnail(album.ThumbnailId)
+            ThumbnailUrl: album.ThumbnailSource is GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic
+                ? YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId)
                 : "",
             Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
             IsFavorite: isFavorite, 
             ExpectedCount: album.ExpectedSongs,
             Artist: ArtistInfoDTO.Create(artist), 
             SongCount: songCount,
-            SourceUrl: GlobalVariables.GetYoutubeAlbumUrl(album.SourceId)
+            SourceUrl: YoutubeHelper.GetYoutubeAlbumUrl(album.SourceId)
         );
     }
 };

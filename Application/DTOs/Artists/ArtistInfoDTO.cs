@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Helpers;
 using Domain.Primitives;
 
 namespace Application.DTOs.Artists
@@ -17,7 +18,7 @@ namespace Application.DTOs.Artists
                 artist.Guid,
                 artist.Name,
                 artist.DisplayName,
-                GlobalVariables.GetYoutubeChannel(artist.YoutubeChannelId),
+                YoutubeHelper.GetYoutubeChannel(artist.YoutubeChannelId),
                 artist.ThumbnailUrl
             );
         }

@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Artists;
 using Domain.Entities;
+using Domain.Helpers;
 using Domain.Primitives;
 
 namespace Application.DTOs.Playlists
@@ -17,9 +18,7 @@ namespace Application.DTOs.Playlists
             return new PlaylistSummaryDTO(
                 playlist.Guid,
                 playlist.Title,
-                ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
-                    ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
-                    : "",
+                ThumbnailUrl: string.Empty,
                 IsFavorite: isFavorite,
                 SongCount: songCount);
         }
@@ -29,9 +28,7 @@ namespace Application.DTOs.Playlists
             return new PlaylistSummaryDTO(
                 playlist.Guid,
                 playlist.Title,
-                ThumbnailUrl: playlist.ThumbnailSource == GlobalVariables.PlaylistSource.YouTube
-                    ? GlobalVariables.GetYoutubePlaylistThumbnail(playlist.ThumbnailId)
-                    : "",
+                ThumbnailUrl: string.Empty,
                 IsFavorite: playlist.FavoredBy.Any(ufp => ufp.UserGuid == userGuid && ufp.PlaylistGuid == playlist.Guid && ufp.IsFavorite),
                 SongCount: songCount
             );

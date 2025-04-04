@@ -15,6 +15,7 @@ using System.Net;
 using System.Text.Json;
 using System.Web;
 using Application.DTOs.Youtube;
+using Domain.Helpers;
 using Author = Application.DTOs.Youtube.Author;
 
 
@@ -158,21 +159,6 @@ namespace Infrastructure.Services
             return (videoInfo, streamInfo);
         }
 
-        public async Task<string> GetVideoInfoAsync1(string url)
-        {
-            ExplodeVideo videoInfo = await _youtubeExplode.Videos.GetAsync(url);
-            return videoInfo.Url;
-        }
-
-        public async Task<IStreamInfo> GetStreamInfoAsync(string url)
-        {
-            IStreamInfo streamInfo = (await _youtubeExplode.Videos.Streams.GetManifestAsync(url))
-                .GetAudioOnlyStreams()
-                .GetWithHighestBitrate();
-
-            return streamInfo;
-        }
-
         public async Task<ChannelInfo> GetChannelInfoAsync(string channelId)
         {
             var v = await _youtubeExplode.Channels.GetAsync(channelId);
@@ -204,14 +190,20 @@ namespace Infrastructure.Services
             return ampIndex == -1 ? videoId : videoId.Substring(0, ampIndex);
         }
 
+        public async Task<string> GetPlaylistThumbnailIdAsync(string playlistId)
+        {
+            var playlistInfo = await _youtubeExplode.Playlists.GetAsync(playlistId);
+            return YoutubeHelper.GetPlaylistThumbnailIdFromUrl(playlistInfo.Thumbnails[0]?.Url, playlistId);
+        }
 
         public async Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId)
         {
             var videosResponse = await _youtubeExplode.Playlists.GetVideosAsync(playlistId);
             var playlistInfo = await _youtubeExplode.Playlists.GetAsync(playlistId);
-
-            var playlistThumbnailId = GetPlaylistIdFromUrl(playlistInfo.Thumbnails[0]?.Url);
-
+            
+            var playlistThumbnailId = YoutubeHelper.GetPlaylistThumbnailIdFromUrl(playlistInfo.Thumbnails[0]?.Url, playlistId);
+            
+            
             var songs = videosResponse.Select(x => new YoutubeSongInfo(
                 Id: x.Id.Value,
                 Title: x.Title,
@@ -221,22 +213,7 @@ namespace Infrastructure.Services
 
             return (songs, playlistThumbnailId);
         }
-
-        private string GetPlaylistIdFromUrl(string? url)
-        {
-            var id = "";
-            if (string.IsNullOrEmpty(url)) return id;
-
-            var parts = url.Split('/');
-            if (parts.Length > 4)
-            {
-                id = parts[4];
-            }
-
-            return id;
-        }
-
-
+        
         // DLP
         private ProcessStartInfo CreateProcessStartInfo(
             string arguments,

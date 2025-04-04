@@ -15,7 +15,7 @@ public static class AdminEndpoints
         var group = app.MapGroup("api/admin").WithTags("Admin").RequireAuthorization(policy => policy.RequireRole(GlobalVariables.UserConstants.Roles.Admin));
         var utils = group.MapGroup("/utils");
 
-        utils.MapPost("", async (IYoutubeService _youtube, IUnitOfWork _uow) =>
+        utils.MapPost("/artist", async (IYoutubeService _youtube, IUnitOfWork _uow) =>
         {
             var channelsToCheck = _uow.ArtistRepository
                 .Where(x => string.IsNullOrEmpty(x.ThumbnailUrl))
@@ -34,6 +34,25 @@ public static class AdminEndpoints
             return Results.Ok($"Updated {rows} records");
         });
 
+        utils.MapPost("/albums", async (IYoutubeService _youtube, IUnitOfWork _uow) =>
+        {
+            var albumsToCheck = _uow.AlbumRepository
+                .Where(x => string.IsNullOrEmpty(x.ThumbnailId))
+                .ToList();
+            
+            foreach (var album in albumsToCheck)
+            {
+                var thumbnailId = await _youtube.GetPlaylistThumbnailIdAsync(album.SourceId);
+                if (string.IsNullOrEmpty(thumbnailId)) continue;
+
+                album.ThumbnailId = thumbnailId;
+                _uow.AlbumRepository.Update(album);
+            }
+
+            var rows =await _uow.SaveChangesAsync();
+            return Results.Ok($"Updated {rows} records");
+        });
+        
         return app;
     }
 }
