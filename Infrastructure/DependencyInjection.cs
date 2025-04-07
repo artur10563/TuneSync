@@ -10,6 +10,7 @@ using Application.Services.Auth;
 using Domain.Entities;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Storage.V1;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Infrastructure.Data;
@@ -51,6 +52,10 @@ namespace Infrastructure
             FirebaseApp.Create(new AppOptions()
             {
                 Credential = GoogleCredential.FromJson(credsString),
+            });
+            serviceCollection.AddScoped<StorageClient>(provider =>
+            {
+                return StorageClient.Create(GoogleCredential.FromJson(credsString));
             });
 
             serviceCollection.AddDatabase(configuration);

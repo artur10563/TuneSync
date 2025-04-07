@@ -1,5 +1,6 @@
 using Api.Endpoints;
 using Api.Extensions;
+using Application.BackgroundJobs;
 using Hangfire;
 using Infrastructure;
 
@@ -31,6 +32,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseHangfireDashboard();
 }
 
 if (app.Environment.IsProduction())
@@ -43,7 +45,12 @@ app.UseCors("AllowAngularClient");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHangfireDashboard();
+
+RecurringJob.AddOrUpdate<AudioFileCleanupJob>(
+    AudioFileCleanupJob.Id,
+    job => job.ExecuteAsync(),
+    Cron.Weekly(DayOfWeek.Friday)
+);
 
 app.RegisterAlbumEndpoints()
     .RegisterSongsEndpoints()

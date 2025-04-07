@@ -1,6 +1,8 @@
+using Application.BackgroundJobs;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Primitives;
+using Hangfire;
 
 namespace Api.Endpoints;
 
@@ -51,6 +53,12 @@ public static class AdminEndpoints
 
             var rows =await _uow.SaveChangesAsync();
             return Results.Ok($"Updated {rows} records");
+        });
+        
+        //Manually trigger file cleanup
+        utils.MapPost("/cleanup", () =>
+        {
+            RecurringJob.TriggerJob(AudioFileCleanupJob.Id);
         });
         
         return app;
