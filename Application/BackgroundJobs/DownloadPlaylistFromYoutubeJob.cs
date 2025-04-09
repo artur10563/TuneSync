@@ -125,7 +125,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
                     _logger.Log($"Video info retrieved", LogLevel.Information);
 
-                    var fileGuid = await _storageService.UploadFileAsync(stream);
+                    var fileGuid = await _storageService.UploadFileAsync(stream, StorageFolder.Audio);
 
                     _logger.Log($"File uploaded to Firebase", LogLevel.Information, fileGuid);
 

@@ -4,8 +4,10 @@ public enum StorageFolder
 {
     [StoragePath("")]
     None,
-    [StoragePath("images/")]
-    Images
+    [StoragePath("images")]
+    Images,
+    [StoragePath("audio")]
+    Audio
 }
 	
 public class StoragePathAttribute : Attribute

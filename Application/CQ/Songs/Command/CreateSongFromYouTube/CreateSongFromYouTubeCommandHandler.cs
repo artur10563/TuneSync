@@ -8,6 +8,7 @@ using Domain.Primitives;
 using FluentValidation;
 using MediatR;
 using System.Text.RegularExpressions;
+using Domain.Enums;
 
 namespace Application.CQ.Songs.Command.CreateSongFromYouTube
 {
@@ -62,7 +63,7 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
                 _uow.ArtistRepository.Insert(artist);
             }
             
-            var fileGuid = await _storage.UploadFileAsync(stream);
+            var fileGuid = await _storage.UploadFileAsync(stream, StorageFolder.Audio);
 
             var song = new Song(title: videoInfo.Title,
                 source: GlobalVariables.SongSource.YouTube,

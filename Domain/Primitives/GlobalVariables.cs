@@ -1,4 +1,6 @@
-﻿namespace Domain.Primitives
+﻿using Domain.Enums;
+
+namespace Domain.Primitives
 {
     /// <summary>
     /// Changing constants might require running a migration
@@ -8,20 +10,21 @@
         private static string _fbStorage;
         public static string FirebaseBaseUrl => $"https://firebasestorage.googleapis.com/v0/b/{_fbStorage}/o/";
 
-        public static string FirebaseMediaFileFormat (string fileExtension)=> $"{FirebaseBaseUrl}{{0}}.{fileExtension}?alt=media";
+        public static string FirebaseMediaFileFormat(string fileExtension) => $"{FirebaseBaseUrl}{{0}}.{fileExtension}?alt=media";
+
         public static void Initialize(string fbStorage)
         {
             _fbStorage = fbStorage;
         }
 
-        public static string GetFirebaseMP3Link(Guid fileGuid) => string.Format(FirebaseMediaFileFormat("mp3"), fileGuid );
-        
+        public static string GetFirebaseMP3Link(Guid fileGuid) => string.Format(FirebaseMediaFileFormat("mp3"), $"{StorageFolder.Audio + "%2F" + fileGuid}");
+
         public static class SongSource
         {
             public const string File = "File";
             public const string YouTube = "Youtube";
         }
-        
+
         public static class PlaylistSource
         {
             public const string User = "User";
@@ -36,7 +39,7 @@
                 public const string Admin = "Admin";
                 public const string User = "User";
             }
-            
+
             public const int NameMinLength = 2;
             public const int NameMaxLength = 100;
 

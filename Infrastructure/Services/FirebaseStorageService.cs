@@ -28,21 +28,27 @@ namespace Infrastructure.Services
         /// <param name="fileStream">File as fileStream</param>
         /// <param name="folder">File folder</param>
         /// <returns>Path from which the file can be downloaded</returns>
-        public async Task<string> UploadFileAsync(Stream fileStream, StorageFolder folder = StorageFolder.None)
+        public async Task<string> UploadFileAsync(Stream fileStream, StorageFolder folder)
         {
             var guid = NewGuid();
+            var folderName = folder.GetPath();
             switch (folder)
             {
-                case StorageFolder.None:
-                    await _fileStorage.Child(guid+ ".mp3").PutAsync(fileStream: fileStream);
+                case StorageFolder.Audio:
+                    await _fileStorage.Child(folderName).Child(guid + ".mp3").PutAsync(fileStream: fileStream);
+                    return guid.ToString();
                     break;
                 case StorageFolder.Images:
-                    await _fileStorage.Child("images").Child(guid+ ".jpg").PutAsync(fileStream);
+                    await _fileStorage.Child(folderName).Child(guid + ".jpg").PutAsync(fileStream);
+                    break;
+                case StorageFolder.None:
+                    await _fileStorage.Child(folderName).Child(guid.ToString()).PutAsync(fileStream); //TODO: add extension
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(folder), folder, null);
             }
-            return folder.GetPath().Replace("/", "%2F") + guid;
+
+            return folder + "%2F" + guid;
         }
 
         public async IAsyncEnumerable<string> GetFileNames()

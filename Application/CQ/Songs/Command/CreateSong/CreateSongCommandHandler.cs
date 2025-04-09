@@ -7,6 +7,7 @@ using Domain.Primitives;
 using FluentValidation;
 using MediatR;
 using System.IO;
+using Domain.Enums;
 
 namespace Application.CQ.Songs.Command.CreateSong
 {
@@ -30,7 +31,7 @@ namespace Application.CQ.Songs.Command.CreateSong
             if (!validationResults.IsValid)
                 return validationResults.AsErrors();
 
-            var filePath = await _fileStorage.UploadFileAsync(request.AudioFileStream);
+            var filePath = await _fileStorage.UploadFileAsync(request.AudioFileStream, StorageFolder.Audio);
 
             var song = new Song(title: request.Title,
                 artistGuid: request.ArtistGuid,
