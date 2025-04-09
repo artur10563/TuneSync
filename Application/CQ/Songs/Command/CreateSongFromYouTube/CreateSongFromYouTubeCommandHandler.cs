@@ -67,7 +67,7 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             var song = new Song(title: videoInfo.Title,
                 source: GlobalVariables.SongSource.YouTube,
                 artistGuid: artist.Guid,
-                audioPath: fileGuid,
+                audioPath: new Guid(fileGuid),
                 sourceId: videoInfo.VideoId,
                 audioLength: videoInfo.Duration,
                 audioSize: (int)stream.GetKilobytes(),

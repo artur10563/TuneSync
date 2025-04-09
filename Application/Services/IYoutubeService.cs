@@ -18,13 +18,15 @@ namespace Application.Services
         Task<IEnumerable<YoutubeSongInfo>> SongsByPlaylistId(string playlistId, int maxResults);
         
         /// <returns>List of videos for specified playlist and thumbnailId for playlist</returns>
-        Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId);
+        Task<(List<YoutubeSongInfo>, SongThumbnail)> GetPlaylistVideosAsync(string playlistId);
 
         Task<ChannelInfo> GetChannelInfoAsync(string channelId);
         
 
         Task<YouTubeVideoInfo> GetVideoInfoAsyncDLP(string videoId);
         Task<Stream> GetAudioStreamAsyncDLP(string videoId);
-        Task<string> GetPlaylistThumbnailIdAsync(string playlistId);
+
+        /// <returns>Full url for YTM and only ID for others</returns>
+        Task<AlbumInfo> GetPlaylistInfoAsync(string playlistId);
     }
 }

@@ -34,7 +34,7 @@ namespace Application.CQ.Songs.Command.CreateSong
 
             var song = new Song(title: request.Title,
                 artistGuid: request.ArtistGuid,
-                audioPath: filePath,
+                audioPath: new Guid(filePath),
                 source: GlobalVariables.SongSource.File,
                 sourceId: null,
                 audioSize: (int)(request.AudioFileStream.Length/1000),

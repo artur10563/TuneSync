@@ -1,6 +1,9 @@
 using Application.BackgroundJobs;
+using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
+using Domain.Enums;
+using Domain.Helpers;
 using Domain.Primitives;
 using Hangfire;
 
@@ -36,7 +39,7 @@ public static class AdminEndpoints
             return Results.Ok($"Updated {rows} records");
         });
 
-        utils.MapPost("/albums", async (IYoutubeService _youtube, IUnitOfWork _uow) =>
+        utils.MapPost("/albums", async (IYoutubeService _youtube, IUnitOfWork _uow, IStorageService _storageService) =>
         {
             var albumsToCheck = _uow.AlbumRepository
                 .Where(x => string.IsNullOrEmpty(x.ThumbnailId))
@@ -44,8 +47,16 @@ public static class AdminEndpoints
             
             foreach (var album in albumsToCheck)
             {
-                var thumbnailId = await _youtube.GetPlaylistThumbnailIdAsync(album.SourceId);
+                var albumInfo = await _youtube.GetPlaylistInfoAsync(album.SourceId);
+                var thumbnailId = albumInfo.Thumbnail?.Url;
                 if (string.IsNullOrEmpty(thumbnailId)) continue;
+
+                if (YoutubeHelper.IsYoutubeMusic(album.SourceId))
+                {
+                    var httpClient = new HttpClient();
+                    await using var stream = await httpClient.GetStreamFromUrlAsync(thumbnailId);
+                    thumbnailId = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
+                }
 
                 album.ThumbnailId = thumbnailId;
                 _uow.AlbumRepository.Update(album);
@@ -56,11 +67,8 @@ public static class AdminEndpoints
         });
         
         //Manually trigger file cleanup
-        utils.MapPost("/cleanup", () =>
-        {
-            RecurringJob.TriggerJob(AudioFileCleanupJob.Id);
-        });
-        
+        utils.MapPost("/cleanup", () => { RecurringJob.TriggerJob(AudioFileCleanupJob.Id); });
+
         return app;
     }
 }

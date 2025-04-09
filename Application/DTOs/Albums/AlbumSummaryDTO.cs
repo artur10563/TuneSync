@@ -20,9 +20,12 @@ public sealed record AlbumSummaryDTO(
         return new AlbumSummaryDTO(
             album.Guid,
             album.Title,
-            ThumbnailUrl: album.ThumbnailSource is GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic
-                ? YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId)
-                : "",
+            ThumbnailUrl: album.ThumbnailSource switch
+            {
+                GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic => 
+                    YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId),
+                _ => ""
+            },
             IsFavorite: isFavorite,
             Artist: ArtistInfoDTO.Create(artist),
             SongCount: songCount,

@@ -2,6 +2,7 @@ using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Errors;
 using Domain.Helpers;
 using Domain.Primitives;
@@ -29,14 +30,15 @@ public sealed class DownloadPlaylistFromYoutubeJob
     {
         try
         {
-            var source = YoutubeHelper.IsYoutubeMusic(youtubePlaylistId) 
+            var isYTM = YoutubeHelper.IsYoutubeMusic(youtubePlaylistId);
+            var source = isYTM
                 ? GlobalVariables.PlaylistSource.YouTubeMusic 
                 : GlobalVariables.PlaylistSource.YouTube;
             
             _logger.Log($"Fetching playlist from {source}", LogLevel.Information);
 
             //Get all playlist songs
-            var (songs, playlistThumbnailId) = await _youtubeService.GetPlaylistVideosAsync(youtubePlaylistId);
+            var (songs, playlistThumbnail) = await _youtubeService.GetPlaylistVideosAsync(youtubePlaylistId);
             var newSourceIds = songs.Select(s => s.Id);
 
             if (songs.Count > AlbumConstants.MaxYoutubeAlbumLength)
@@ -75,6 +77,15 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
             if (album == null)
             {
+                var playlistThumbnailId = playlistThumbnail.Url;
+                //GetStreamFromUrl
+                if (isYTM)
+                {
+                    var httpClient = new HttpClient();
+                    await using var stream = await httpClient.GetStreamFromUrlAsync(playlistThumbnail.Url, cancellationToken);
+                    playlistThumbnailId = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
+                }
+                
                 album = new Album(
                     title: songs.First().Description,
                     createdBy: createdBy,
@@ -122,7 +133,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
                         song.Title,
                         SongSource.YouTube,
                         song.Id,
-                        fileGuid,
+                        new Guid(fileGuid),
                         videoInfo.Duration,
                         (int)stream.GetKilobytes(),
                         createdBy,

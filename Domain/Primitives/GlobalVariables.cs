@@ -6,15 +6,15 @@
     public static class GlobalVariables
     {
         private static string _fbStorage;
-        private static string FirebaseMP3StringFormat = @"https://firebasestorage.googleapis.com/v0/b/{0}/o/{1}.mp3?alt=media";
-        
+        public static string FirebaseBaseUrl => $"https://firebasestorage.googleapis.com/v0/b/{_fbStorage}/o/";
+
+        public static string FirebaseMediaFileFormat (string fileExtension)=> $"{FirebaseBaseUrl}{{0}}.{fileExtension}?alt=media";
         public static void Initialize(string fbStorage)
         {
             _fbStorage = fbStorage;
         }
 
-        public static string GetFirebaseMP3Link(Guid fileGuid) =>
-            string.Format(FirebaseMP3StringFormat, _fbStorage, fileGuid);
+        public static string GetFirebaseMP3Link(Guid fileGuid) => string.Format(FirebaseMediaFileFormat("mp3"), fileGuid );
         
         public static class SongSource
         {

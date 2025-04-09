@@ -46,11 +46,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
-RecurringJob.AddOrUpdate<AudioFileCleanupJob>(
-    AudioFileCleanupJob.Id,
-    job => job.ExecuteAsync(),
-    Cron.Weekly(DayOfWeek.Friday)
-);
+using (var scope = app.Services.CreateScope())
+{
+    var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    jobManager.AddOrUpdate<AudioFileCleanupJob>(
+        AudioFileCleanupJob.Id,
+        job => job.ExecuteAsync(),
+        Cron.Weekly(DayOfWeek.Friday)
+    );
+}
 
 app.RegisterAlbumEndpoints()
     .RegisterSongsEndpoints()

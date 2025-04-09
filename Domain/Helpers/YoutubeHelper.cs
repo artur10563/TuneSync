@@ -1,3 +1,5 @@
+using Domain.Primitives;
+
 namespace Domain.Helpers;
 
 public static class YoutubeHelper
@@ -7,8 +9,7 @@ public static class YoutubeHelper
     private static string YoutubeVideoStringFormat = @"https://www.youtube.com/watch?v={0}";
 
     private static string YoutubePlaylistThumbnailStringFormat = @"https://i.ytimg.com/vi/{0}/mqdefault.jpg";
-    private static string YoutubeMusicPlaylistThumbnailStringFormat = @"https://i9.ytimg.com/s_p/{0}";
-
+  
     private static string YoutubeAlbumStringFormat = @"https://www.youtube.com/playlist?list={0}";
 
     public static string GetYoutubeThumbnail(string videoGuid) =>
@@ -17,7 +18,7 @@ public static class YoutubeHelper
     public static string GetYoutubePlaylistThumbnail(string thumbnailId, string playlistId)
     {
         return string.Format(IsYoutubeMusic(playlistId)
-            ? YoutubeMusicPlaylistThumbnailStringFormat
+            ? string.Format(GlobalVariables.FirebaseMediaFileFormat("jpg"), thumbnailId)
             : YoutubePlaylistThumbnailStringFormat, thumbnailId);
     }
 

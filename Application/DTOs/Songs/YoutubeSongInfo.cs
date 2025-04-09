@@ -8,4 +8,6 @@
 	
 	public record ChannelInfo(string Id, string Title, string Url, SongThumbnail? Thumbnail = null);
 	
+	public record AlbumInfo(string Id, string Title, string AlbumUrl, SongThumbnail? Thumbnail = null);
+	
 }

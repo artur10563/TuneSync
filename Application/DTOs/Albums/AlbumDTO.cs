@@ -30,9 +30,12 @@ public sealed record AlbumDTO(
             CreatedByName: album?.User.Name ?? string.Empty,
             album.CreatedAt,
             album.ModifiedAt,
-            ThumbnailUrl: album.ThumbnailSource is GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic
-                ? YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId)
-                : "",
+            ThumbnailUrl: album.ThumbnailSource switch
+            {
+                GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic => 
+                    YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId),
+                _ => ""
+            },
             Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
             IsFavorite: isFavorite, 
             ExpectedCount: album.ExpectedSongs,

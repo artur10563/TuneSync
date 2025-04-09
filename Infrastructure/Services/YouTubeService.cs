@@ -190,19 +190,24 @@ namespace Infrastructure.Services
             return ampIndex == -1 ? videoId : videoId.Substring(0, ampIndex);
         }
 
-        public async Task<string> GetPlaylistThumbnailIdAsync(string playlistId)
+        public async Task<AlbumInfo> GetPlaylistInfoAsync(string playlistId)
         {
             var playlistInfo = await _youtubeExplode.Playlists.GetAsync(playlistId);
-            return YoutubeHelper.GetPlaylistThumbnailIdFromUrl(playlistInfo.Thumbnails[0]?.Url, playlistId);
+            var thumbnail = playlistInfo.Thumbnails.FirstOrDefault();
+            
+            var playlistThumbnailId = YoutubeHelper.IsYoutubeMusic(playlistId) 
+                ? thumbnail?.Url 
+                : YoutubeHelper.GetPlaylistThumbnailIdFromUrl(thumbnail?.Url, playlistId);
+            
+            var albumThumbnail = new SongThumbnail(thumbnail?.Resolution.Height ?? 0, thumbnail?.Resolution.Width ?? 0, playlistThumbnailId);
+            return new AlbumInfo(playlistInfo.Id, playlistInfo.Title, playlistInfo.Url, albumThumbnail);
         }
+        
 
-        public async Task<(List<YoutubeSongInfo>, string)> GetPlaylistVideosAsync(string playlistId)
+        public async Task<(List<YoutubeSongInfo>, SongThumbnail)> GetPlaylistVideosAsync(string playlistId)
         {
             var videosResponse = await _youtubeExplode.Playlists.GetVideosAsync(playlistId);
-            var playlistInfo = await _youtubeExplode.Playlists.GetAsync(playlistId);
-            
-            var playlistThumbnailId = YoutubeHelper.GetPlaylistThumbnailIdFromUrl(playlistInfo.Thumbnails[0]?.Url, playlistId);
-            
+            var playlistInfo = await GetPlaylistInfoAsync(playlistId);
             
             var songs = videosResponse.Select(x => new YoutubeSongInfo(
                 Id: x.Id.Value,
@@ -211,7 +216,7 @@ namespace Infrastructure.Services
                 Description: playlistInfo.Title //Playlist name
             )).ToList();
 
-            return (songs, playlistThumbnailId);
+            return (songs, playlistInfo.Thumbnail);
         }
         
         // DLP

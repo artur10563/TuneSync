@@ -1,4 +1,5 @@
 ﻿using Application.Services;
+using Domain.Enums;
 using Firebase.Storage;
 using Microsoft.Extensions.Configuration;
 using Google.Cloud.Storage.V1;
@@ -25,14 +26,23 @@ namespace Infrastructure.Services
         /// Uploads file and return its Guid
         /// </summary>
         /// <param name="fileStream">File as fileStream</param>
+        /// <param name="folder">File folder</param>
         /// <returns>Path from which the file can be downloaded</returns>
-        public async Task<Guid> UploadFileAsync(Stream fileStream)
+        public async Task<string> UploadFileAsync(Stream fileStream, StorageFolder folder = StorageFolder.None)
         {
             var guid = NewGuid();
-            var fileName = guid.ToString() + ".mp3";
-            await _fileStorage.Child(fileName).PutAsync(fileStream: fileStream);
-
-            return guid;
+            switch (folder)
+            {
+                case StorageFolder.None:
+                    await _fileStorage.Child(guid+ ".mp3").PutAsync(fileStream: fileStream);
+                    break;
+                case StorageFolder.Images:
+                    await _fileStorage.Child("images").Child(guid+ ".jpg").PutAsync(fileStream);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(folder), folder, null);
+            }
+            return folder.GetPath().Replace("/", "%2F") + guid;
         }
 
         public async IAsyncEnumerable<string> GetFileNames()
