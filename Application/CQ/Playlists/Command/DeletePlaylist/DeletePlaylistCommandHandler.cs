@@ -19,9 +19,7 @@ public class DeletePlaylistCommandHandler : IRequestHandler<DeletePlaylistComman
     {
         if (request.PlaylistGuid == Guid.Empty) return Error.AccessDenied;
 
-        var playlist = await _uow.PlaylistRepository
-            .FirstOrDefaultAsync(x => x.Guid == request.PlaylistGuid && x.CreatedBy == request.UserGuid
-                , includes: p => p.Songs); //Must include songs for cascade deletion
+        var playlist = await _uow.PlaylistRepository.FirstOrDefaultWithDependantAsync(x => x.Guid == request.PlaylistGuid);
 
         if (playlist == null)
             return Error.NotFound(nameof(Playlist));

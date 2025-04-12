@@ -24,7 +24,7 @@ namespace Infrastructure.Data.EntityTypeConfiguration
             builder.HasMany(x => x.Songs)
                 .WithOne(x => x.Artist)
                 .HasForeignKey(x => x.ArtistGuid)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

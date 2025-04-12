@@ -27,6 +27,7 @@ namespace Infrastructure.Data.EntityTypeConfiguration
 
             builder.Property(s => s.Source).IsRequired();
             builder.Property(s => s.SourceId).IsRequired(false);
+            builder.HasIndex(x => x.SourceId).IsUnique();
             
         }
     }

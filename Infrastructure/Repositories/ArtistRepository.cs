@@ -1,4 +1,5 @@
-﻿using Application.Repositories;
+﻿using System.Linq.Expressions;
+using Application.Repositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Repositories.Shared;
@@ -19,6 +20,11 @@ namespace Infrastructure.Repositories
                 .ThenInclude(x => x.FavoredBy)
                 .Include(x => x.Songs).AsQueryable()
                 .FirstOrDefaultAsync(x => x.Guid == artistGuid);
+        }
+
+        public override Task<Artist?> FirstOrDefaultWithDependantAsync(Expression<Func<Artist, bool>> predicate)
+        {
+            throw new NotImplementedException();
         }
     }
 }

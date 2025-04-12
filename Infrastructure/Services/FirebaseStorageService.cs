@@ -47,13 +47,13 @@ namespace Infrastructure.Services
                 default:
                     throw new ArgumentOutOfRangeException(nameof(folder), folder, null);
             }
-
-            return folder + "%2F" + guid;
+            
+             return folder + "/" + guid;
         }
 
-        public async IAsyncEnumerable<string> GetFileNames()
+        public async IAsyncEnumerable<string> GetFileNames(StorageFolder? folder = null)
         {
-            var objects = _storageClient.ListObjectsAsync(_bucketName);
+            var objects = _storageClient.ListObjectsAsync(_bucketName,folder?.GetPath());
             await foreach (var item in objects)
             {
                 yield return item.Name;

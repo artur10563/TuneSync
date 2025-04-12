@@ -1,4 +1,5 @@
-﻿using Application.Repositories;
+﻿using System.Linq.Expressions;
+using Application.Repositories;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Repositories.Shared;
@@ -17,6 +18,12 @@ namespace Infrastructure.Repositories
         public async Task<User?> GetByExternalIdAsync(string uid)
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.IdentityId == uid);
+        }
+
+        public override Task<User?> FirstOrDefaultWithDependantAsync(Expression<Func<User, bool>> predicate)
+        {
+            //TODO: Implement it if we will ever have user deletion :)
+            throw new NotImplementedException();
         }
     }
 }

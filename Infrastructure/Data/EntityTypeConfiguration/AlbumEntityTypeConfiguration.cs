@@ -18,7 +18,7 @@ internal class AlbumEntityTypeConfiguration : BaseEntityConfiguration<Album>
         builder.HasOne(x => x.User)
             .WithMany(x => x.Albums)
             .HasForeignKey(x => x.CreatedBy)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.Property(x => x.SourceId).IsRequired(true);
 
@@ -28,12 +28,12 @@ internal class AlbumEntityTypeConfiguration : BaseEntityConfiguration<Album>
         builder.HasMany(a => a.Songs)
             .WithOne(s => s.Album)
             .HasForeignKey(s => s.AlbumGuid)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(a => a.Artist)
             .WithMany(a => a.Albums)
             .HasForeignKey(a => a.ArtistGuid)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(a => a.ExpectedSongs)
             .IsRequired(true);

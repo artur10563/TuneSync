@@ -18,7 +18,7 @@ public static class YoutubeHelper
     public static string GetYoutubePlaylistThumbnail(string thumbnailId, string playlistId)
     {
         return string.Format(IsYoutubeMusic(playlistId)
-            ? string.Format(GlobalVariables.FirebaseMediaFileFormat("jpg"), thumbnailId)
+            ? string.Format(GlobalVariables.FirebaseMediaFileFormat("jpg"), thumbnailId.Replace("/", "%2F"))
             : YoutubePlaylistThumbnailStringFormat, thumbnailId);
     }
 

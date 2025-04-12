@@ -225,6 +225,9 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatedBy");
 
+                    b.HasIndex("SourceId")
+                        .IsUnique();
+
                     b.ToTable("Song", (string)null);
                 });
 
@@ -343,12 +346,12 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.Artist", "Artist")
                         .WithMany("Albums")
                         .HasForeignKey("ArtistGuid")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Albums")
                         .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("Artist");
@@ -361,7 +364,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Playlists")
                         .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -391,12 +394,12 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.Album", "Album")
                         .WithMany("Songs")
                         .HasForeignKey("AlbumGuid")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Domain.Entities.Artist", "Artist")
                         .WithMany("Songs")
                         .HasForeignKey("ArtistGuid")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "User")

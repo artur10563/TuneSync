@@ -33,5 +33,8 @@ namespace Application.Repositories.Shared
             Expression<Func<TEntity, bool>> predicate,
             bool asNoTracking = false,
             params Expression<Func<TEntity, object>>[] includes);
+        
+        //Get entity with all includes. Required for cascade deletion
+        Task<TEntity?> FirstOrDefaultWithDependantAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

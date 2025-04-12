@@ -6,6 +6,6 @@ namespace Application.Services
 	{
 		Task<string> UploadFileAsync(Stream fileStream, StorageFolder folder);
 		Task<bool> TryDeleteFileAsync(string fileName);
-		IAsyncEnumerable<string> GetFileNames();
+		IAsyncEnumerable<string> GetFileNames(StorageFolder? folder = null);
 	}
 }

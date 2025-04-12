@@ -1,4 +1,7 @@
 using Application.BackgroundJobs;
+using Application.CQ.Admin.Albums.Command.DeleteAlbum;
+using Application.CQ.Admin.Artists.Command.DeleteArtist;
+using Application.CQ.Admin.Songs.Command.DeleteSong;
 using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
@@ -6,6 +9,7 @@ using Domain.Enums;
 using Domain.Helpers;
 using Domain.Primitives;
 using Hangfire;
+using MediatR;
 
 namespace Api.Endpoints;
 
@@ -16,7 +20,6 @@ public static class AdminEndpoints
     /// </summary>
     public static IEndpointRouteBuilder RegisterAdminEndpoints(this IEndpointRouteBuilder app)
     {
-        //TODO: add role policy.
         var group = app.MapGroup("api/admin").WithTags("Admin").RequireAuthorization(policy => policy.RequireRole(GlobalVariables.UserConstants.Roles.Admin));
         var utils = group.MapGroup("/utils");
 
@@ -67,8 +70,38 @@ public static class AdminEndpoints
         });
         
         //Manually trigger file cleanup
-        utils.MapPost("/cleanup", () => { RecurringJob.TriggerJob(AudioFileCleanupJob.Id); });
+        utils.MapPost("/cleanup", () => { RecurringJob.TriggerJob(FileCleanupJob.Id); });
 
+        utils.MapDelete("/song/{guid:guid}", async (Guid guid, ISender sender) =>
+        {
+            var command = new DeleteSongCommand(guid);
+            var result = await sender.Send(command);
+            
+            return result.IsSuccess 
+                ? Results.Ok() 
+                : Results.BadRequest(result.Errors);
+        });
+        
+        utils.MapDelete("/album/{guid:guid}", async (Guid guid, ISender sender) =>
+        {
+            var command = new DeleteAlbumCommand(guid);
+            var result = await sender.Send(command);
+            
+            return result.IsSuccess 
+                ? Results.Ok() 
+                : Results.BadRequest(result.Errors);
+        });
+        
+        utils.MapDelete("/artist/{guid:guid}", async (Guid guid, ISender sender) =>
+        {
+            var command = new DeleteArtistCommand(guid);
+            var result = await sender.Send(command);
+            
+            return result.IsSuccess 
+                ? Results.Ok() 
+                : Results.BadRequest(result.Errors);
+        });
+        
         return app;
     }
 }

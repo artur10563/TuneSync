@@ -18,7 +18,7 @@ namespace Infrastructure.Data.EntityTypeConfiguration
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Playlists)
                 .HasForeignKey(x => x.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
             
             builder.Property(x => x.Source).IsRequired();
 

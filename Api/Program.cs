@@ -49,8 +49,8 @@ app.UseAuthorization();
 using (var scope = app.Services.CreateScope())
 {
     var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-    jobManager.AddOrUpdate<AudioFileCleanupJob>(
-        AudioFileCleanupJob.Id,
+    jobManager.AddOrUpdate<FileCleanupJob>(
+        FileCleanupJob.Id,
         job => job.ExecuteAsync(),
         Cron.Weekly(DayOfWeek.Friday)
     );

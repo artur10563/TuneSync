@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Domain.Entities.Shared;
+using Domain.Enums;
 
 namespace Domain.Entities
 {
@@ -21,7 +22,7 @@ namespace Domain.Entities
         public virtual ICollection<Playlist> Playlists { get; set; } = new HashSet<Playlist>();
         public virtual ICollection<UserSong> FavoredBy { get; set; } = new HashSet<UserSong>();
 
-        public virtual Guid? AlbumGuid { get; set; }
+        public Guid? AlbumGuid { get; set; }
         public virtual Album? Album { get; set; }
 
         public Song(string title, string source, string? sourceId, Guid audioPath, TimeSpan audioLength, int audioSize, Guid? createdBy,
@@ -56,6 +57,11 @@ namespace Domain.Entities
             result = Regex.Replace(result, @"\s*-\s*", "-").Trim('-');
 
             return result;
+        }
+
+        public string GetAudioPath()
+        {
+            return StorageFolder.Audio.GetPath() + "/" + this.AudioPath;
         }
     }
 }

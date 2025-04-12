@@ -88,6 +88,8 @@ namespace Infrastructure.Repositories.Shared
             return query.Where(predicate);
         }
 
+        public abstract Task<TEntity?> FirstOrDefaultWithDependantAsync(Expression<Func<TEntity, bool>> predicate);
+
         public virtual async Task<bool> ExistsAsync(
             Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false,
             params Expression<Func<TEntity, object>>[] includes)

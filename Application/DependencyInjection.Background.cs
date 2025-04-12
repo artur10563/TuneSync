@@ -8,7 +8,7 @@ public static partial class DependencyInjection
     public static IServiceCollection AddBackgroundWorkers(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddTransient<DownloadPlaylistFromYoutubeJob>();
-        serviceCollection.AddTransient<AudioFileCleanupJob>();
+        serviceCollection.AddTransient<FileCleanupJob>();
         return serviceCollection;
     }
 }
