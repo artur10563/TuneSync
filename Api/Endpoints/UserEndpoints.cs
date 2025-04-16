@@ -1,7 +1,10 @@
-﻿using Application.CQ.Users.Login;
+﻿using Api.Extensions;
+using Application.CQ.Users.Login;
 using Application.CQ.Users.RefreshToken;
 using Application.CQ.Users.Register;
 using Application.DTOs.Auth;
+using Application.Repositories.Shared;
+using Domain.Primitives;
 using MediatR;
 
 namespace Api.Endpoints
@@ -35,6 +38,12 @@ namespace Api.Endpoints
                     ? Results.BadRequest(result.Errors)
                     : Results.Ok(result.Value);
             }).WithDescription("Refresh the token").Produces<TokenResponse>();;
+            
+            group.MapGet("roles", async (IUnitOfWork _uow, HttpContext httpContext) =>
+            {
+                var user = await httpContext.GetCurrentUserAsync();
+                return Results.Ok(new[] { user?.Role ?? GlobalVariables.UserConstants.Roles.User });
+            }).RequireAuthorization().WithDescription("Returns user roles").Produces<List<string>>();
             
             return app;
         }
