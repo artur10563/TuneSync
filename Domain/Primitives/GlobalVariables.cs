@@ -17,7 +17,7 @@ namespace Domain.Primitives
             _fbStorage = fbStorage;
         }
 
-        public static string GetFirebaseMP3Link(Guid fileGuid) => string.Format(FirebaseMediaFileFormat("mp3"), $"{StorageFolder.Audio + "%2F" + fileGuid}");
+        public static string GetFirebaseMP3Link(Guid fileGuid) => string.Format(FirebaseMediaFileFormat("mp3"), $"{StorageFolder.Audio.GetPath() + "%2F" + fileGuid}");
 
         public static class SongSource
         {

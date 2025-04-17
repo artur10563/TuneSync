@@ -47,7 +47,7 @@ public class GetRandomSongsFromAlbumsAndPlaylistCommandHandler : IRequestHandler
                     (request.AlbumGuids.Count != 0 && song.AlbumGuid.HasValue && request.AlbumGuids.Contains(song.AlbumGuid.Value)) ||
                     (request.PlaylistGuids.Count != 0 && request.PlaylistGuids.Contains(songPlaylist.PlaylistGuid))
                 select song
-            );
+            ).Distinct();
 
         var songQuery = (
             from song in baseQuery
