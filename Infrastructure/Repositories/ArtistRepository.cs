@@ -24,7 +24,14 @@ namespace Infrastructure.Repositories
 
         public override Task<Artist?> FirstOrDefaultWithDependantAsync(Expression<Func<Artist, bool>> predicate)
         {
-            throw new NotImplementedException();
+            return _set
+                .Include(a => a.Albums)
+                    .ThenInclude(alb => alb.FavoredBy)
+                .Include(a => a.Albums)
+                .ThenInclude(alb => alb.Songs)
+                    .ThenInclude(song => song.FavoredBy)
+                .Include(a => a.Songs)
+                .FirstOrDefaultAsync(predicate);
         }
     }
 }

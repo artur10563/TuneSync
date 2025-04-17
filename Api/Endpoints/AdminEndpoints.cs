@@ -78,7 +78,7 @@ public static class AdminEndpoints
             var result = await sender.Send(command);
             
             return result.IsSuccess 
-                ? Results.Ok() 
+                ? Results.NoContent() 
                 : Results.BadRequest(result.Errors);
         });
         
@@ -88,7 +88,7 @@ public static class AdminEndpoints
             var result = await sender.Send(command);
             
             return result.IsSuccess 
-                ? Results.Ok() 
+                ? Results.NoContent() 
                 : Results.BadRequest(result.Errors);
         });
         
@@ -98,7 +98,7 @@ public static class AdminEndpoints
             var result = await sender.Send(command);
             
             return result.IsSuccess 
-                ? Results.Ok() 
+                ? Results.NoContent() 
                 : Results.BadRequest(result.Errors);
         });
         
