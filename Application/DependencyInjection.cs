@@ -19,5 +19,5 @@ namespace Application
     }
 
     //Used to register all validators from application assembly
-    interface IApplicationMarker { }
+    public interface IApplicationMarker { }
 }
