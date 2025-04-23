@@ -13,15 +13,12 @@ public class SongMappingTest : BaseTest
     public async Task GetUserFavoriteSongsQuery_ShouldReturnUserFavoriteSongs()
     {
         // Arrange: Create test data
-        var user = new User("user", "userEmail", "externalId");
-        var artist = new Artist("Artist", "ytchannelid", null);
+        var user = new User("user", RandomString(), RandomString());
+        var artist = new Artist("Artist", RandomString(), RandomString());
 
-        // Add the user and artist to the context
-        _uow.ArtistRepository.Insert(artist);
-        await _uow.SaveChangesAsync();
-
-        var song1 = new Song("Song 1", "source", "sourceId1", Guid.NewGuid(), TimeSpan.FromMinutes(3), 1000, user.Guid, artist.Guid);
-        var song2 = new Song("Song 2", "source", "sourceId2", Guid.NewGuid(), TimeSpan.FromMinutes(4), 1200, user.Guid, artist.Guid);
+        
+        var song1 = new Song(RandomString(), RandomString(), RandomString(), Guid.NewGuid(), TimeSpan.FromMinutes(3), 1000, user.Guid, artist.Guid);
+        var song2 = new Song(RandomString(), RandomString(), RandomString(), Guid.NewGuid(), TimeSpan.FromMinutes(4), 1200, user.Guid, artist.Guid);
 
         var userFavorite1 = new UserSong
         {
@@ -38,6 +35,8 @@ public class SongMappingTest : BaseTest
         };
 
         // Add songs and favorites to the context
+        _uow.UserRepository.Insert(user);
+        _uow.ArtistRepository.Insert(artist);
         _uow.SongRepository.Insert(song1);
         _uow.SongRepository.Insert(song2);
         _uow.UserSongRepository.Insert(userFavorite1);
@@ -45,29 +44,27 @@ public class SongMappingTest : BaseTest
         await _uow.SaveChangesAsync();
 
 
-        // Call the handler via MediatR
+        
         var request = new GetUserFavoriteSongsQuery(user.Guid);
         var result = await _mediator.Send(request);
 
         Assert.True(result.IsSuccess, string.Join(", ", result.Errors.Select(x => x.Description)));
 
         var firstSong = result.Value.First();
-        // Assertions
+        
         Assert.Single(result.Value);
         Assert.Equal(song1.Title, firstSong.Title);
         Assert.Equal(artist.Name, firstSong.Artist.Name);
-        Assert.Equal("Song 1", firstSong.Title);
-        Assert.Equal("Song 1", firstSong.Title);
-        Assert.Equal("Song 1", firstSong.Title);
+
     }
 
     [Fact]
     public async Task Album_ShouldReturnDTOs()
     {
-        var user = new User("user", "userEmail", "externalId");
-        var artist = new Artist("Artist", "ytchannelid", null);
-        var album = new Album("title", user.Guid, "sourceId", artist.Guid,
-            "thumbnailId", GlobalVariables.PlaylistSource.YouTubeMusic);
+        var user = new User(RandomString(), RandomString(), RandomString());
+        var artist = new Artist(RandomString(), RandomString(), null);
+        var album = new Album(RandomString(), user.Guid, RandomString(), artist.Guid,
+            RandomString(), GlobalVariables.PlaylistSource.YouTubeMusic);
 
 
         _uow.UserRepository.Insert(user);
@@ -107,8 +104,9 @@ public class SongMappingTest : BaseTest
 
         var dto = albumSummaryDtoQuery.FirstOrDefault();
 
+        Assert.NotNull(dto);
         Assert.Equal(album.Guid, dto.Guid);
-        Assert.Equal("title", dto.Title);
+        Assert.Equal(album.Title, dto.Title);
         Assert.Equal(
             YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId),
             dto.ThumbnailUrl

@@ -27,6 +27,21 @@ namespace Infrastructure.Repositories.Shared
             entity.ModifiedAt = DateTime.Now.ToUniversalTime();
             _set.Update(entity);
         }
+
+        public virtual Task<int> BulkUpdatePropertyAsync<TProperty>(
+            Expression<Func<TEntity, bool>> predicate,
+            Func<TEntity, TProperty> propertySelector,
+            Func<TEntity, TProperty> valueSelector)
+        {
+            return _set
+                .Where(predicate)
+                .ExecuteUpdateAsync(setters =>
+                    setters
+                        .SetProperty(propertySelector, valueSelector)
+                        .SetProperty(x => x.ModifiedAt, x => DateTime.UtcNow)
+                );
+        }
+        
         public virtual void UpdateRange(IEnumerable<TEntity> entities)
         {
             foreach (var entity in entities)

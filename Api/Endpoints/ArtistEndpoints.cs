@@ -1,5 +1,6 @@
 using Api.Extensions;
 using Application.CQ.Album.Query.GetArtistList;
+using Application.CQ.Artists.Command.MergeArtists;
 using Application.CQ.Artists.Query.GetArtistSummary;
 using Application.DTOs.Artists;
 using Domain.Primitives;
@@ -49,6 +50,17 @@ public static class ArtistEndpoints
                     : Results.Ok(result.ToPaginatedResponse());
         }).Produces<PaginatedResponse<List<ArtistInfoDTO>>>();
 
+        artistGroup.MapPost("/{parentId}/merge/{childId}", async (Guid parentId, Guid childId, ISender sender) =>
+        {
+            var command = new MergeArtistsCommand(parentId, childId);
+            var result = await sender.Send(command);
+
+            return result.IsFailure
+                ? Results.BadRequest(result.Errors)
+                : Results.Created();
+            
+        }).RequireAuthorization().RequireAuthorization(UserConstants.Roles.Admin);
+            
         return app;
     }
 }

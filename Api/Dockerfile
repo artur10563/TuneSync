@@ -18,9 +18,11 @@ COPY ["../Api/Api.csproj", "Api/"]
 COPY ["../Application/Application.csproj", "Application/"]
 COPY ["../Domain/Domain.csproj", "Domain/"]
 COPY ["../Infrastructure/Infrastructure.csproj", "Infrastructure/"]
+COPY ["../Tests/Tests.csproj", "Tests/"]
 
 # Restore dependencies
 RUN dotnet restore "Api/Api.csproj"
+RUN dotnet restore "Tests/Tests.csproj"
 
 # Copy remaining source files
 COPY .. .
@@ -28,6 +30,10 @@ COPY .. .
 # Build application
 WORKDIR "/src/Api"
 RUN dotnet build "Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+WORKDIR "/src/Tests"
+RUN dotnet build "Tests.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet test "Tests/Tests.csproj" -c $BUILD_CONFIGURATION --no-build
 
 # Publish stage
 FROM build AS publish

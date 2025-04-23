@@ -28,17 +28,19 @@ public abstract class BaseTest : IAsyncLifetime
             .WithUsername("user")
             .WithPassword("pass")
             .Build();
-
+        
         await postgres.StartAsync();
         _postgresContainer = postgres;
 
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(postgres.GetConnectionString()));
+                options.UseNpgsql(postgres.GetConnectionString() + ";Include Error Detail=true")
+            );
 
         builder.Services.AddRepositories();
         builder.Services.AddValidatorsFromAssemblyContaining<IApplicationMarker>();
         builder.Services.AddScoped<ISearchService, SearchService>();
+        builder.Services.AddScoped<ILoggerService, LoggerService>();
         builder.Services.AddMediatR(config => 
             config.RegisterServicesFromAssembly(typeof(CreateSongCommand).Assembly));
 
@@ -58,4 +60,6 @@ public abstract class BaseTest : IAsyncLifetime
         _scope.Dispose();
         _serviceProvider.Dispose();
     }
+
+    public string RandomString() => Guid.NewGuid().ToString();
 }

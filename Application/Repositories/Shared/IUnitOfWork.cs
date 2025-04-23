@@ -21,5 +21,6 @@ namespace Application.Repositories.Shared
         void SetSeed(double seed);
         IQueryable<T> ApplyOrdering<T>(IQueryable<T> query, string orderBy, bool isDescending) where T : class;
         void TransactedAction(Action action);
+        Task TransactedActionAsync(Func<Task> action);
     }
 }
