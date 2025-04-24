@@ -30,18 +30,19 @@ public static class ArtistEndpoints
                 ? Results.NotFound(result.Errors)
                 : Results.Ok(result.Value);
         }).Produces<ArtistSummaryDTO>();
-
+        
         artistGroup.MapGet("", async (ISender sender, HttpContext httpContext,
+            string? query = null,
             int page = PaginationConstants.PageMin,
             int pageSize = PaginationConstants.PageSize,
             string orderBy = "CreatedAt",
             bool descending = false) =>
         {
-            var user = await httpContext.GetCurrentUserAsync();
+            var user = await httpContext.GetCurrentUserAsync(); // TODO: update it after favorite-artists is implemented
 
             //Amount, page, order by
-            var query = new GetArtistListQuery(page, pageSize, orderBy, descending);
-            var result = await sender.Send(query);
+            var command = new GetArtistListQuery(query, page, pageSize, orderBy, descending);
+            var result = await sender.Send(command);
 
             return result.IsFailure
                 ? Results.BadRequest(result.Errors)

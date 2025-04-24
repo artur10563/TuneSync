@@ -26,12 +26,20 @@ public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, Pag
             return validationErrors.AsErrors(request.Page);
 
         var query = _uow.ArtistRepository.NoTrackingQueryable();
+        if (!string.IsNullOrEmpty(request.Query))
+        {
+            var isGuidSearch = Guid.TryParse(request.Query, out var parsedGuid);
+
+            query = query.Where(x =>
+                x.Name.Contains(request.Query) ||
+                (isGuidSearch && x.Guid == parsedGuid));
+        }
 
         var artists = _uow.ApplyOrdering(query, request.OrderBy, request.IsDescending)
             .Page(request.Page, request.PageSize)
             .Select(artist => ArtistInfoDTO.Create(artist))
             .ToList();
 
-        return (artists, request.Page, request.PageSize, _uow.ArtistRepository.Queryable().Count());
+        return (artists, request.Page, request.PageSize, query.Count());
     }
 }
