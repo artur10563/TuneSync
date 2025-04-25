@@ -103,6 +103,18 @@ namespace Infrastructure.Repositories.Shared
             return query.Where(predicate);
         }
 
+        public IQueryable<TEntity> Includes(params Expression<Func<TEntity, object>>[] includes)
+        {
+            IQueryable<TEntity> query = _set;
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return query;
+        }
+
         public abstract Task<TEntity?> FirstOrDefaultWithDependantAsync(Expression<Func<TEntity, bool>> predicate);
 
         public virtual async Task<bool> ExistsAsync(

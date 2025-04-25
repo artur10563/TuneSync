@@ -8,7 +8,7 @@ using MediatR;
 
 namespace Application.CQ.Artists.Query.GetArtistList;
 
-public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, PaginatedResult<IEnumerable<ArtistInfoDTO>>>
+public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, PaginatedResult<IEnumerable<ArtistInfoWithCountsDTO>>>
 {
     private readonly IUnitOfWork _uow;
     private readonly IValidator<GetArtistListQuery> _validator;
@@ -19,25 +19,30 @@ public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, Pag
         _validator = validator;
     }
 
-    public async Task<PaginatedResult<IEnumerable<ArtistInfoDTO>>> Handle(GetArtistListQuery request, CancellationToken cancellationToken)
+    public async Task<PaginatedResult<IEnumerable<ArtistInfoWithCountsDTO>>> Handle(GetArtistListQuery request, CancellationToken cancellationToken)
     {
         var validationErrors = _validator.Validate(request);
         if (!validationErrors.IsValid)
             return validationErrors.AsErrors(request.Page);
 
-        var query = _uow.ArtistRepository.NoTrackingQueryable();
+        var query = _uow.ArtistRepository.Includes(
+            x => x.Songs, 
+            x => x.TopLvlParent,
+            x => x.AllChildren, 
+            x => x.Albums);
+
         if (!string.IsNullOrEmpty(request.Query))
         {
             var isGuidSearch = Guid.TryParse(request.Query, out var parsedGuid);
-
+            var filter = request.Query.ToLower();
             query = query.Where(x =>
-                x.Name.Contains(request.Query) ||
+                x.Name.ToLower().Contains(filter) ||
                 (isGuidSearch && x.Guid == parsedGuid));
         }
 
         var artists = _uow.ApplyOrdering(query, request.OrderBy, request.IsDescending)
             .Page(request.Page, request.PageSize)
-            .Select(artist => ArtistInfoDTO.Create(artist))
+            .Select(artist => ArtistInfoWithCountsDTO.Create(artist))
             .ToList();
 
         return (artists, request.Page, request.PageSize, query.Count());

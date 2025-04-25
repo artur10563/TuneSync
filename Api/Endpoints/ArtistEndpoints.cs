@@ -49,7 +49,7 @@ public static class ArtistEndpoints
                 : result.Value.Count() == 0
                     ? Results.NoContent()
                     : Results.Ok(result.ToPaginatedResponse());
-        }).Produces<PaginatedResponse<List<ArtistInfoDTO>>>();
+        }).Produces<PaginatedResponse<List<ArtistInfoWithCountsDTO>>>();
 
         artistGroup.MapPost("/{parentId}/merge/{childId}", async (Guid parentId, Guid childId, ISender sender) =>
         {
@@ -60,7 +60,7 @@ public static class ArtistEndpoints
                 ? Results.BadRequest(result.Errors)
                 : Results.Created();
             
-        }).RequireAuthorization().RequireAuthorization(UserConstants.Roles.Admin);
+        }).RequireAuthorization(policy=> policy.RequireRole(UserConstants.Roles.Admin));
             
         return app;
     }
