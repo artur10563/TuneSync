@@ -23,13 +23,19 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
 
     public async Task<Result<ArtistSummaryDTO>> Handle(GetArtistSummaryQuery request, CancellationToken cancellationToken)
     {
-        var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.Guid == request.ArtistGuid, asNoTracking: true);
+        var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.Guid == request.ArtistGuid, 
+            asNoTracking: true,
+            includes: x => x.AllChildren);
 
         if (artist == null)
             return Error.NotFound(nameof(Artist));
 
+        var artistGuids = new HashSet<Guid> { artist.Guid };
+        artistGuids.UnionWith(artist.AllChildren.Select(child => child.Guid));
+
+        
         var abandonedSongs = _uow.SongRepository
-            .Where(x => x.ArtistGuid == artist.Guid && x.AlbumGuid == null, asNoTracking: true)
+            .Where(x => artistGuids.Contains(x.ArtistGuid) && x.AlbumGuid == null, asNoTracking: true)
             .ToList();
 
         foreach (var song in abandonedSongs)
@@ -58,7 +64,7 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
             (from album in _uow.AlbumRepository.NoTrackingQueryable()
                 join song in _uow.SongRepository.NoTrackingQueryable()
                     on album.Guid equals song.AlbumGuid into songs
-                where album.ArtistGuid == artist.Guid
+                where artistGuids.Contains(album.ArtistGuid.Value)
                 select new
                 {
                     album = album,
