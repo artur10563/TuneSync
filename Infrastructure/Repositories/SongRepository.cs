@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-	internal class SongRepository : BaseRepository<Song>, ISongRepository
+	public class SongRepository : BaseRepository<Song>, ISongRepository
 	{
 		public SongRepository(AppDbContext context) : base(context) { }
 

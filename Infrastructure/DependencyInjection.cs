@@ -76,7 +76,7 @@ namespace Infrastructure
             return serviceCollection;
         }
 
-        private static IServiceCollection AddRepositories(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddRepositories(this IServiceCollection serviceCollection)
         {
             serviceCollection
                 .AddScoped<IUnitOfWork, UnitOfWork>()

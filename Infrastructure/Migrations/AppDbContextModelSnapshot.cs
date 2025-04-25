@@ -96,15 +96,25 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ThumbnailUrl")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<Guid?>("TopLvlParentId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("YoutubeChannelId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Guid");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("TopLvlParentId");
 
                     b.HasIndex("YoutubeChannelId")
                         .IsUnique();
@@ -359,6 +369,23 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Artist", b =>
+                {
+                    b.HasOne("Domain.Entities.Artist", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.Artist", "TopLvlParent")
+                        .WithMany("AllChildren")
+                        .HasForeignKey("TopLvlParentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("TopLvlParent");
+                });
+
             modelBuilder.Entity("Domain.Entities.Playlist", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -469,6 +496,10 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Artist", b =>
                 {
                     b.Navigation("Albums");
+
+                    b.Navigation("AllChildren");
+
+                    b.Navigation("Children");
 
                     b.Navigation("Songs");
                 });

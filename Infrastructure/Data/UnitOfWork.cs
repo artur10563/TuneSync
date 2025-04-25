@@ -61,6 +61,22 @@ namespace Infrastructure.Data
                 throw new Exception("Transaction failed");
             }
         }
+        
+        public async Task TransactedActionAsync(Func<Task> action)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                await action.Invoke();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw new Exception("Transaction failed");
+            }
+        }
 
         public UnitOfWork(AppDbContext context,
             ISongRepository songRepository,

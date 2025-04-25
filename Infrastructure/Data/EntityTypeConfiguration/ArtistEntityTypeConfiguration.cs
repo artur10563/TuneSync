@@ -25,6 +25,21 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .WithOne(x => x.Artist)
                 .HasForeignKey(x => x.ArtistGuid)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            
+            //TODO: re-test if deletion of Parent/TopParent works with nested children
+            // On deletion need to manually re-calculate top lvl parentId
+            builder.HasMany(x => x.Children)
+                .WithOne(x => x.Parent)
+                .HasForeignKey(x => x.ParentId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasMany(x => x.AllChildren)
+                .WithOne(x => x.TopLvlParent)
+                .HasForeignKey(x => x.TopLvlParentId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

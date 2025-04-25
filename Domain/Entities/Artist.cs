@@ -15,10 +15,29 @@ namespace Domain.Entities
         public string YoutubeChannelId { get; set; }
 
         public string? ThumbnailUrl { get; set; }
-
         public virtual ICollection<Song> Songs { get; set; } = new HashSet<Song>();
         public virtual ICollection<Album> Albums { get; set; } = new HashSet<Album>();
 
+        #region Parent_Child
+
+        public Guid? ParentId { get; set; }
+        public virtual Artist? Parent { get; set; }
+        
+        public Guid? TopLvlParentId { get; set; }
+        public virtual Artist? TopLvlParent { get; set; }
+        
+        /// <summary>
+        /// All descendants by TopLvlParentId. Includes nested children
+        /// </summary>
+        public virtual ICollection<Artist> AllChildren { get; set; } = new HashSet<Artist>();
+        
+        /// <summary>
+        /// Only descendants by parentId
+        /// </summary>
+        public virtual ICollection<Artist> Children { get; set; }
+
+        #endregion
+        
         public Artist(string name, string youtubeChannelId, string? thumbnailUrl = null) : base()
         {
             Name = name;

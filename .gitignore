@@ -404,3 +404,4 @@ firebase.json
 Infrastructure/Migrations/AppDbContextModelSnapshot.cs
 Api/quick_docker_run.txt
 /Api/myenv
+TuneSync.sln.DotSettings
