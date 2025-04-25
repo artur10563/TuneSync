@@ -15,6 +15,25 @@ public class MergeArtistsTest : BaseTest
         Assert.True(result.IsFailure);
         Assert.Contains(ArtistError.SelfMergeAttempt, result.Errors);
     }
+    
+    [Fact]
+    public async Task Handle_ShouldReturnAlreadyLinked_WhenPairExists()
+    {
+        var parent = new Artist("Parent", RandomString(), RandomString());
+        var child = new Artist("Child", RandomString(), RandomString());
+
+        _uow.ArtistRepository.Insert(parent);
+        _uow.ArtistRepository.Insert(child);
+        await _uow.SaveChangesAsync();
+        
+        //Do same merge twice
+        var command = new MergeArtistsCommand(parent.Guid, child.Guid);
+        var result = await _mediator.Send(command);
+        var result1 = await _mediator.Send(command);
+        Assert.True(result.IsSuccess);
+        Assert.True(result1.IsFailure);
+        Assert.Contains(ArtistError.AlreadyLinked, result1.Errors);
+    }
 
     [Fact]
     public async Task Handle_ShouldReturnInvalidMergePair_WhenParentOrChildDoesNotExist()

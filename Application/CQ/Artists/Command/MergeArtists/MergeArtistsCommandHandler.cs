@@ -27,6 +27,7 @@ public class MergeArtistsCommandHandler : IRequestHandler<MergeArtistsCommand, R
 
         if (parent == null || child == null) return ArtistError.InvalidMergePair;
         if (child.Guid == parent.TopLvlParentId) return ArtistError.CircularDependency;
+        if (parent.AllChildren.Contains(child)) return ArtistError.AlreadyLinked;
 
         try
         {
