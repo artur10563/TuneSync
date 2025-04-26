@@ -37,7 +37,6 @@ namespace Infrastructure.Services
                 case StorageFolder.Audio:
                     await _fileStorage.Child(folderName).Child(guid + ".mp3").PutAsync(fileStream: fileStream);
                     return guid.ToString();
-                    break;
                 case StorageFolder.Images:
                     await _fileStorage.Child(folderName).Child(guid + ".jpg").PutAsync(fileStream);
                     break;
@@ -48,7 +47,7 @@ namespace Infrastructure.Services
                     throw new ArgumentOutOfRangeException(nameof(folder), folder, null);
             }
             
-             return folder + "/" + guid;
+             return folderName + "/" + guid;
         }
 
         public async IAsyncEnumerable<string> GetFileNames(StorageFolder? folder = null)
