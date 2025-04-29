@@ -6,18 +6,18 @@ using Domain.Primitives;
 using FluentValidation;
 using MediatR;
 
-namespace Application.CQ.Songs.Query.GetRandomSongsFromAlbumsAndPlaylist;
+namespace Application.CQ.Songs.Query.GetSongsMix;
 
-public class GetRandomSongsFromAlbumsAndPlaylistCommandHandler : IRequestHandler<GetRandomSongsFromAlbumsAndPlaylistCommand, PaginatedResult<IEnumerable<SongDTO>>>
+public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, PaginatedResult<IEnumerable<SongDTO>>>
 {
     private readonly IUnitOfWork _uow;
     private readonly ISearchService _searchService;
-    private readonly IValidator<GetRandomSongsFromAlbumsAndPlaylistCommand> _validator;
+    private readonly IValidator<GetSongsMixCommand> _validator;
 
-    public GetRandomSongsFromAlbumsAndPlaylistCommandHandler(
+    public GetSongsMixCommandHandler(
         IUnitOfWork uow,
         ISearchService searchService,
-        IValidator<GetRandomSongsFromAlbumsAndPlaylistCommand> validator)
+        IValidator<GetSongsMixCommand> validator)
     {
         _uow = uow;
         _searchService = searchService;
@@ -31,7 +31,7 @@ public class GetRandomSongsFromAlbumsAndPlaylistCommandHandler : IRequestHandler
         return new Random(seed.GetHashCode()).NextDouble();
     }
 
-    public async Task<PaginatedResult<IEnumerable<SongDTO>>> Handle(GetRandomSongsFromAlbumsAndPlaylistCommand request, CancellationToken cancellationToken)
+    public async Task<PaginatedResult<IEnumerable<SongDTO>>> Handle(GetSongsMixCommand request, CancellationToken cancellationToken)
     {
         var validationErrors = await _validator.ValidateAsync(request);
         if (!validationErrors.IsValid)
@@ -39,13 +39,24 @@ public class GetRandomSongsFromAlbumsAndPlaylistCommandHandler : IRequestHandler
 
         var userGuid = request.UserGuid ?? Guid.Empty;
 
-        var baseQuery = (from song in _uow.SongRepository.NoTrackingQueryable()
+        var artistChildren =
+            _uow.ArtistRepository.Where(a => request.ArtistGuids.Contains(a.Guid),
+                includes: a => a.AllChildren,
+                asNoTracking: true)
+                .SelectMany(a => a.AllChildren.Select(ch => ch.Guid));
+        
+        var allArtist = request.ArtistGuids.Union(artistChildren).ToList();
+
+        //TODO: cache artist album? artist mix' are heavy to compute
+        var baseQuery = (
+                from song in _uow.SongRepository.NoTrackingQueryable()
                 join songPlaylist in _uow.PlaylistSongRepository.NoTrackingQueryable()
                     on song.Guid equals songPlaylist.SongGuid into songPlaylistsJoin
                 from songPlaylist in songPlaylistsJoin.DefaultIfEmpty()
                 where
                     (request.AlbumGuids.Count != 0 && song.AlbumGuid.HasValue && request.AlbumGuids.Contains(song.AlbumGuid.Value)) ||
-                    (request.PlaylistGuids.Count != 0 && request.PlaylistGuids.Contains(songPlaylist.PlaylistGuid))
+                    (request.PlaylistGuids.Count != 0 && request.PlaylistGuids.Contains(songPlaylist.PlaylistGuid)) ||
+                    (allArtist.Count != 0 && allArtist.Contains(song.ArtistGuid))
                 select song
             ).Distinct();
 
