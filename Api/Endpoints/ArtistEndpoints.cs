@@ -33,6 +33,7 @@ public static class ArtistEndpoints
         
         artistGroup.MapGet("", async (ISender sender, HttpContext httpContext,
             string? query = null,
+            bool collapseChildren = false,
             int page = PaginationConstants.PageMin,
             int pageSize = PaginationConstants.PageSize,
             string orderBy = "CreatedAt",
@@ -41,7 +42,7 @@ public static class ArtistEndpoints
             var user = await httpContext.GetCurrentUserAsync(); // TODO: update it after favorite-artists is implemented
 
             //Amount, page, order by
-            var command = new GetArtistListQuery(query, page, pageSize, orderBy, descending);
+            var command = new GetArtistListQuery(query, collapseChildren, page, pageSize, orderBy, descending);
             var result = await sender.Send(command);
 
             return result.IsFailure

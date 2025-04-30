@@ -40,6 +40,12 @@ public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, Pag
                 (isGuidSearch && x.Guid == parsedGuid));
         }
 
+        //Only return artists who don't have parent
+        if (request.CollapseChildren)
+        {
+            query = query.Where(x => x.ParentId == null && x.TopLvlParentId == null);
+        }
+
         var artists = _uow.ApplyOrdering(query, request.OrderBy, request.IsDescending)
             .Page(request.Page, request.PageSize)
             .Select(artist => ArtistInfoWithCountsDTO.Create(artist))
