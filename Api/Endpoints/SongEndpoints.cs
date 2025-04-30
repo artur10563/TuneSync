@@ -1,14 +1,10 @@
 ﻿using Api.Extensions;
 using Application.CQ.Songs.Command.CreateSong;
 using Application.CQ.Songs.Query.GetSongFromDb;
-using Application.Repositories.Shared;
 using MediatR;
-using Application.CQ.Songs.Command;
-using Application.CQ.Songs.Query.GetRandomSongsFromAlbumsAndPlaylist;
-using Application.CQ.Songs.Query.GetUserFavoriteSongs;
+using Application.CQ.Songs.Query.GetSongsMix;
 using Application.DTOs.Songs;
 using Domain.Primitives;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Api.Endpoints
 {
@@ -51,15 +47,20 @@ namespace Api.Endpoints
             }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); //TODO: Add Antiforgery
 
 
-            songGroup.MapGet("", async (ISender _sender, HttpContext _httpContext,  string albumGuids = "", string playlistGuids = "", int page = 1, string? shuffleSeed = null) =>
+            songGroup.MapGet("", async (ISender _sender, HttpContext _httpContext,  
+                string albumGuids = "", 
+                string playlistGuids = "", 
+                string artistGuids = "", 
+                int page = 1, string? shuffleSeed = null) =>
             {
                 var user = await _httpContext.GetCurrentUserAsync();
                 
 
-                var command = new GetRandomSongsFromAlbumsAndPlaylistCommand(
+                var command = new GetSongsMixCommand(
                     UserGuid: user?.Guid,
                     AlbumGuids: ExtractGuids(albumGuids),
                     PlaylistGuids: ExtractGuids(playlistGuids),
+                    ArtistGuids: ExtractGuids(artistGuids),
                     page: page,
                     ShuffleSeed: shuffleSeed);
                 
@@ -71,7 +72,7 @@ namespace Api.Endpoints
                         ? Results.NoContent()
                         : Results.Ok(result.ToPaginatedResponse());
 
-            }).RequireAuthorization().WithDescription("Shuffle based on multiple albums or playlists").Produces<PaginatedResponse<IEnumerable<SongDTO>>>();
+            }).RequireAuthorization().WithDescription("Shuffle based on multiple albums or playlists or artists").Produces<PaginatedResponse<IEnumerable<SongDTO>>>();
             
             return app;
         }

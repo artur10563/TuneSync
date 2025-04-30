@@ -3,19 +3,21 @@ using Domain.Errors;
 using FluentValidation;
 using static Domain.Primitives.GlobalVariables.MixConstants;
 
-namespace Application.CQ.Songs.Query.GetRandomSongsFromAlbumsAndPlaylist;
+namespace Application.CQ.Songs.Query.GetSongsMix;
 
-public class GetRandomSongsFromAlbumsAndPlaylistCommandValidator : AbstractValidator<GetRandomSongsFromAlbumsAndPlaylistCommand>
+public class GetSongsMixCommandValidator : AbstractValidator<GetSongsMixCommand>
 {
-    public GetRandomSongsFromAlbumsAndPlaylistCommandValidator(IUnitOfWork _uow)
+    public GetSongsMixCommandValidator(IUnitOfWork _uow)
     {
         RuleFor(x => x.page)
             .Must(page => page > 0)
             .WithMessage(PageError.InvalidPage.Description);
         
-        //Min 2, max 10 unique Albums + Playlists
+        //Min 2, max 50 unique Albums
         RuleFor(x => x).CustomAsync(async (x, context, cancellationToken) =>
         {
+            if (x.ArtistGuids.Count > 0) return; //Stop further validation as single artist in enough for mix
+            
             var uniquePlaylistGuids = await _uow.PlaylistRepository.GetUniqueExistingGuidsAsync(x.PlaylistGuids);
             var uniqueAlbumGuids = await _uow.AlbumRepository.GetUniqueExistingGuidsAsync(x.AlbumGuids);
 
