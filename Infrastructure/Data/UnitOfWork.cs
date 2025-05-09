@@ -39,11 +39,21 @@ namespace Infrastructure.Data
 
         public IQueryable<T> ApplyOrdering<T>(IQueryable<T> query, string orderBy, bool isDescending) where T : class
         {
+            if(!IsValidSortColumn<T>(orderBy))
+            {
+                orderBy = typeof(T).GetProperties().First().ToString()!; // Order by default
+            }
             return string.IsNullOrEmpty(orderBy) 
                 ? query 
                 : isDescending 
                     ? query.OrderByDescending(entity => EF.Property<object>(entity, orderBy)) 
                     : query.OrderBy(entity => EF.Property<object>(entity, orderBy));
+        }
+        
+        public bool IsValidSortColumn<T>(string columnName)
+        {
+            return typeof(T).GetProperties()
+                .Any(p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));
         }
 
         public void TransactedAction(Action action)
