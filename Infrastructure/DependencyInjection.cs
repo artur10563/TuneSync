@@ -14,6 +14,7 @@ using Google.Cloud.Storage.V1;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Infrastructure.Data;
+using Infrastructure.Interceptors;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.Shared;
 using Infrastructure.Services;
@@ -171,7 +172,9 @@ namespace Infrastructure
                 options.SchedulePollingInterval = TimeSpan.FromSeconds(1));
             
             serviceCollection.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseNpgsql(connectionString)
+                    .AddInterceptors(new DbInterceptor())
+                );
             
             return serviceCollection;
         }
