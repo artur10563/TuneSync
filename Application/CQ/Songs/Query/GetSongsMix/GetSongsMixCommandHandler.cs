@@ -41,24 +41,24 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
 
         var artistChildren =
             _uow.ArtistRepository.Where(a => request.ArtistGuids.Contains(a.Guid),
-                includes: a => a.AllChildren,
-                asNoTracking: true)
+                    includes: a => a.AllChildren,
+                    asNoTracking: true)
                 .SelectMany(a => a.AllChildren.Select(ch => ch.Guid));
-        
+
         var allArtist = request.ArtistGuids.Union(artistChildren).ToList();
 
         //TODO: cache artist album? artist mix' are heavy to compute
         var baseQuery = (
-                from song in _uow.SongRepository.NoTrackingQueryable()
-                join songPlaylist in _uow.PlaylistSongRepository.NoTrackingQueryable()
-                    on song.Guid equals songPlaylist.SongGuid into songPlaylistsJoin
-                from songPlaylist in songPlaylistsJoin.DefaultIfEmpty()
-                where
-                    (request.AlbumGuids.Count != 0 && song.AlbumGuid.HasValue && request.AlbumGuids.Contains(song.AlbumGuid.Value)) ||
-                    (request.PlaylistGuids.Count != 0 && request.PlaylistGuids.Contains(songPlaylist.PlaylistGuid)) ||
-                    (allArtist.Count != 0 && allArtist.Contains(song.ArtistGuid))
-                select song
-            ).Distinct();
+            from song in _uow.SongRepository.NoTrackingQueryable()
+            join songPlaylist in _uow.PlaylistSongRepository.NoTrackingQueryable()
+                on song.Guid equals songPlaylist.SongGuid into songPlaylistsJoin
+            from songPlaylist in songPlaylistsJoin.DefaultIfEmpty()
+            where
+                (request.AlbumGuids.Count != 0 && song.AlbumGuid.HasValue && request.AlbumGuids.Contains(song.AlbumGuid.Value)) ||
+                (request.PlaylistGuids.Count != 0 && request.PlaylistGuids.Contains(songPlaylist.PlaylistGuid)) ||
+                (allArtist.Count != 0 && allArtist.Contains(song.ArtistGuid))
+            select song
+        ).Distinct();
 
         var songQuery = (
             from song in baseQuery
@@ -75,7 +75,14 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
         );
         
         var songs = new List<SongDTO>();
-        
+
+
+        var totalSeconds = baseQuery.Sum(song => song.AudioLength.TotalSeconds);
+        var metadata = new Dictionary<string, object>()
+        {
+            { "totalLength", TimeSpan.FromSeconds(totalSeconds) }
+        };
+
         //Transaction is required for ShuffleSeed to work 
         _uow.TransactedAction(() =>
         {
@@ -83,7 +90,7 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
                 .Page(request.page)
                 .ToList();
         });
-
-        return (songs, request.page, GlobalVariables.PaginationConstants.PageSize, baseQuery.Count());
+        
+        return (songs, request.page, GlobalVariables.PaginationConstants.PageSize, baseQuery.Count(), metadata);
     }
 }

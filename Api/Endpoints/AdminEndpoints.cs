@@ -101,6 +101,14 @@ public static class AdminEndpoints
                 ? Results.NoContent() 
                 : Results.BadRequest(result.Errors);
         });
+
+
+
+
+        utils.MapGet("/example", (string orderBy ) =>
+        {
+
+        });
         
         return app;
     }

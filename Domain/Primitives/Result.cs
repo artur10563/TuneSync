@@ -86,8 +86,9 @@ namespace Domain.Primitives
             Error error, 
             int page = GlobalVariables.PaginationConstants.PageMin, 
             int pageSize = GlobalVariables.PaginationConstants.PageSize,
-            int totalCount = 0)
-            : this(value, isSuccess, [error], page, pageSize, totalCount)
+            int totalCount = 0,
+            Dictionary<string, object>? metadata = null)
+            : this(value, isSuccess, [error], page, pageSize, totalCount, metadata)
         {
         }
 
@@ -97,35 +98,42 @@ namespace Domain.Primitives
             List<Error> errors, 
             int page = GlobalVariables.PaginationConstants.PageMin, 
             int pageSize = GlobalVariables.PaginationConstants.PageSize,
-            int totalCount = 0) 
+            int totalCount = 0,
+            Dictionary<string, object>? metadata = null) 
             : base(value, isSuccess, errors)
         {
             if(page <= 0) throw new ArgumentException("Invalid page number", nameof(page));
             Page = page;
             PageSize = pageSize;
             TotalCount = totalCount;
+            Metadata = metadata;
         }
         
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int TotalCount { get; set; }
         public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+        public Dictionary<string, object>? Metadata { get; set; } // Any other info about page
+        
+        public static implicit operator PaginatedResult<TValue>((TValue value, int page, int pageSize, int totalCount, Dictionary<string, object>? metadata) paginatedData ) 
+            => new(paginatedData.value, true, Error.None, paginatedData.page, paginatedData.pageSize, paginatedData.totalCount, paginatedData.metadata);
         
         public static implicit operator PaginatedResult<TValue>((TValue value, int page, int pageSize, int totalCount) paginatedData ) 
             => new(paginatedData.value, true, Error.None, paginatedData.page, paginatedData.pageSize, paginatedData.totalCount);
+        
         public static implicit operator PaginatedResult<TValue>((List<Error> errors, int page) failure ) => Failure<TValue>(failure.errors, failure.page);
         public static implicit operator PaginatedResult<TValue>((Error error, int page) failure ) => Failure<TValue>(failure.error, failure.page);
 
         public PaginatedResponse<TValue> ToPaginatedResponse()
         {
-            var pageInfo = new PageInfo(Page, PageSize, TotalCount, TotalPages);
+            var pageInfo = new PageInfo(Page, PageSize, TotalCount, TotalPages, Metadata);
             return new PaginatedResponse<TValue>(Items: Value, PageInfo: pageInfo);
         }
     }
     
     public sealed record PaginatedResponse<TValue>(TValue Items, PageInfo PageInfo) where TValue : IEnumerable;
 
-    public sealed record PageInfo(int Page, int PageSize, int TotalCount, int TotalPages)
+    public sealed record PageInfo(int Page, int PageSize, int TotalCount, int TotalPages, Dictionary<string, object>? Metadata = null)
     {
         public static PageInfo Create(int page, int pageSize, int totalCount)
         {
