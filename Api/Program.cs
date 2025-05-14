@@ -1,6 +1,7 @@
 using Api.Endpoints;
 using Api.Extensions;
 using Application.BackgroundJobs;
+using BlockchainSQL.Web.Endpoints;
 using Hangfire;
 using Infrastructure;
 
@@ -55,6 +56,7 @@ using (var scope = app.Services.CreateScope())
         Cron.Weekly(DayOfWeek.Friday)
     );
 }
+app.UseRequestInfoMiddleware();
 
 app.RegisterAlbumEndpoints()
     .RegisterSongsEndpoints()
@@ -64,6 +66,7 @@ app.RegisterAlbumEndpoints()
     .RegisterJobEndpoints()
     .RegisterArtistEndpoints()
     .RegisterFavoriteEndpoints()
-    .RegisterAdminEndpoints();
+    .RegisterAdminEndpoints()
+    .RegisterBlockchainSqlEndpoints();
 
 app.Run();

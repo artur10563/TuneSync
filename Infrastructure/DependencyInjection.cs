@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 using Application;
 using Application.CQ.Songs.Command.CreateSong;
@@ -7,6 +6,7 @@ using Application.Repositories;
 using Application.Repositories.Shared;
 using Application.Services;
 using Application.Services.Auth;
+using BlockchainSQL.Interceptors;
 using Domain.Entities;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -169,12 +169,20 @@ namespace Infrastructure
 
             serviceCollection.AddHangfireServer(options=>
                 options.SchedulePollingInterval = TimeSpan.FromSeconds(1));
+
+            serviceCollection
+                .AddBlockchainSql(configuration)
+                .AddQueryInterceptor(configuration);
             
-            serviceCollection.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString));
+            serviceCollection.AddDbContext<AppDbContext>((serviceProvider, options) =>
+            {
+                var interceptor = serviceProvider.GetRequiredService<DbQueryInterceptor>();
+
+                options.UseNpgsql(connectionString)
+                    .AddInterceptors(interceptor);
+            });
             
             return serviceCollection;
         }
-        
     }
 }
