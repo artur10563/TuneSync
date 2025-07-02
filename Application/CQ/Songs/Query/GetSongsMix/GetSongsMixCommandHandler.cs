@@ -1,5 +1,6 @@
 using Application.DTOs.Songs;
 using Application.Extensions;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Primitives;
@@ -13,15 +14,17 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
     private readonly IUnitOfWork _uow;
     private readonly ISearchService _searchService;
     private readonly IValidator<GetSongsMixCommand> _validator;
-
+    private readonly IProjectionProvider _projectionProvider;
+    
     public GetSongsMixCommandHandler(
         IUnitOfWork uow,
         ISearchService searchService,
-        IValidator<GetSongsMixCommand> validator)
+        IValidator<GetSongsMixCommand> validator, IProjectionProvider projectionProvider)
     {
         _uow = uow;
         _searchService = searchService;
         _validator = validator;
+        _projectionProvider = projectionProvider;
     }
 
     private double GetRandomDoubleFromSeed(string? seed = null)
@@ -33,7 +36,7 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
 
     public async Task<PaginatedResult<IEnumerable<SongDTO>>> Handle(GetSongsMixCommand request, CancellationToken cancellationToken)
     {
-        var validationErrors = await _validator.ValidateAsync(request);
+        var validationErrors = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationErrors.IsValid)
             return validationErrors.AsErrors(request.page);
 
@@ -48,46 +51,28 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
         var allArtist = request.ArtistGuids.Union(artistChildren).ToList();
 
         //TODO: cache artist album? artist mix' are heavy to compute
-        var baseQuery = (
-            from song in _uow.SongRepository.NoTrackingQueryable()
-            join songPlaylist in _uow.PlaylistSongRepository.NoTrackingQueryable()
-                on song.Guid equals songPlaylist.SongGuid into songPlaylistsJoin
-            from songPlaylist in songPlaylistsJoin.DefaultIfEmpty()
-            where
-                (request.AlbumGuids.Count != 0 && song.AlbumGuid.HasValue && request.AlbumGuids.Contains(song.AlbumGuid.Value)) ||
-                (request.PlaylistGuids.Count != 0 && request.PlaylistGuids.Contains(songPlaylist.PlaylistGuid)) ||
-                (allArtist.Count != 0 && allArtist.Contains(song.ArtistGuid))
-            select song
+        var baseQuery =_uow.SongRepository.NoTrackingQueryable().Where(s =>
+               (request.AlbumGuids.Count != 0 && s.AlbumGuid.HasValue && request.AlbumGuids.Contains(s.AlbumGuid.Value))
+            || (request.PlaylistGuids.Count != 0 && s.Playlists.Any(ps => request.PlaylistGuids.Contains(ps.Guid)))
+            || (allArtist.Count != 0 && allArtist.Contains(s.ArtistGuid))
         ).Distinct();
-
-        var songQuery = (
-            from song in baseQuery
-            join artist in _uow.ArtistRepository.NoTrackingQueryable()
-                on song.ArtistGuid equals artist.Guid into artistsJoin
-            from artist in artistsJoin.DefaultIfEmpty()
-            join album in _uow.AlbumRepository.NoTrackingQueryable()
-                on song.AlbumGuid equals album.Guid into albumsJoin
-            from album in albumsJoin.DefaultIfEmpty()
-            join us in _uow.UserSongRepository.NoTrackingQueryable()
-                on new { songGuid = song.Guid, userGuid = userGuid } equals new { songGuid = us.SongGuid, userGuid = us.UserGuid } into userSongJoin
-            from userSong in userSongJoin.DefaultIfEmpty()
-            select SongDTO.Create(song, album, artist, userSong != null && userSong.IsFavorite)
-        );
         
-        var songs = new List<SongDTO>();
-
-
-        var totalSeconds = baseQuery.Sum(song => song.AudioLength.TotalSeconds);
         var metadata = new Dictionary<string, object>()
         {
-            { "totalLength", TimeSpan.FromSeconds(totalSeconds) }
+            { "totalLength", TimeSpan.FromSeconds(baseQuery.Sum(song => song.AudioLength.TotalSeconds)) }
         };
+        
+        var songQuery = baseQuery.Select(_projectionProvider.GetSongWithArtistProjection(userGuid));
+
+        var songs = new List<SongDTO>();
 
         //Transaction is required for ShuffleSeed to work 
         _uow.TransactedAction(() =>
         {
             songs = _searchService.Shuffle(songQuery, GetRandomDoubleFromSeed(request.ShuffleSeed))
                 .Page(request.page)
+                .ToList()
+                .Select(SongDTO.FromProjection)
                 .ToList();
         });
         

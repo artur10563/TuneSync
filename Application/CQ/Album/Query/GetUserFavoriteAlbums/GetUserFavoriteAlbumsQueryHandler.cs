@@ -1,4 +1,5 @@
 using Application.DTOs.Albums;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Domain.Errors;
 using Domain.Primitives;
@@ -9,10 +10,12 @@ namespace Application.CQ.Album.Query.GetUserFavoriteAlbums;
 public class GetUserFavoriteAlbumsQueryHandler : IRequestHandler<GetUserFavoriteAlbumsQuery, Result<IEnumerable<AlbumSummaryDTO>>>
 {
     private readonly IUnitOfWork _uow;
-
-    public GetUserFavoriteAlbumsQueryHandler(IUnitOfWork uow)
+    private readonly IProjectionProvider _projectionProvider;
+    
+    public GetUserFavoriteAlbumsQueryHandler(IUnitOfWork uow, IProjectionProvider projectionProvider)
     {
         _uow = uow;
+        _projectionProvider = projectionProvider;
     }
 
     public async Task<Result<IEnumerable<AlbumSummaryDTO>>> Handle(GetUserFavoriteAlbumsQuery request, CancellationToken cancellationToken)
@@ -20,21 +23,13 @@ public class GetUserFavoriteAlbumsQueryHandler : IRequestHandler<GetUserFavorite
         if (request.UserGuid == Guid.Empty)
             return Error.NotFound(nameof(Album));
 
-        var userFA =
-        (
-            from album in _uow.AlbumRepository.NoTrackingQueryable()
-            join artist in _uow.ArtistRepository.NoTrackingQueryable()
-                on album.ArtistGuid equals artist.Guid
-            join fb in _uow.UserFavoriteAlbumRepository.NoTrackingQueryable()
-                on new { a = album.Guid, u = request.UserGuid } equals new { a = fb.AlbumGuid, u = fb.UserGuid } into favAlbumJoin
-            from favAlbum in favAlbumJoin.DefaultIfEmpty()
-            join song in _uow.SongRepository.NoTrackingQueryable()
-                on album.Guid equals song.AlbumGuid into songGroup
-            where favAlbum.IsFavorite
-            orderby album.CreatedBy ascending
-            select AlbumSummaryDTO.Create(album, artist, true, songGroup.Count())
-        ).ToList();
-
+        var userFA = _uow.AlbumRepository.NoTrackingQueryable()
+            .Where(p => p.FavoredBy.Any(ufp => ufp.UserGuid == request.UserGuid))
+            .OrderBy(x => x.CreatedAt)
+            .Select(_projectionProvider.GetAlbumSummaryProjection(request.UserGuid))
+            .Select(x => AlbumSummaryDTO.FromProjection(x))
+            .ToList();
+        
         return userFA;
     }
 }

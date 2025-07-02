@@ -1,7 +1,5 @@
-﻿using Application.DTOs.Artists;
-using Domain.Entities;
-using Domain.Helpers;
-using Domain.Primitives;
+﻿using Application.Projections.Playlists;
+
 
 namespace Application.DTOs.Playlists
 {
@@ -13,25 +11,14 @@ namespace Application.DTOs.Playlists
         int SongCount
     )
     {
-        public static PlaylistSummaryDTO Create(Playlist playlist, bool isFavorite, int songCount)
+        public static PlaylistSummaryDTO FromProjection(PlaylistSummaryProjection projection)
         {
             return new PlaylistSummaryDTO(
-                playlist.Guid,
-                playlist.Title,
-                ThumbnailUrl: string.Empty,
-                IsFavorite: isFavorite,
-                SongCount: songCount);
-        }
-
-        public static PlaylistSummaryDTO Create(Playlist playlist, Guid userGuid, int songCount)
-        {
-            return new PlaylistSummaryDTO(
-                playlist.Guid,
-                playlist.Title,
-                ThumbnailUrl: string.Empty,
-                IsFavorite: playlist.FavoredBy.Any(ufp => ufp.UserGuid == userGuid && ufp.PlaylistGuid == playlist.Guid && ufp.IsFavorite),
-                SongCount: songCount
-            );
+                projection.Guid,
+                projection.Title,
+                projection.ThumbnailUrl,
+                projection.IsFavorite,
+                projection.SongCount);
         }
     }
 }

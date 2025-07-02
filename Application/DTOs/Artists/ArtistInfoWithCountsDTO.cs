@@ -1,4 +1,4 @@
-using Domain.Entities;
+using Application.Projections.Artists;
 using Domain.Helpers;
 
 namespace Application.DTOs.Artists;
@@ -15,33 +15,18 @@ public record ArtistInfoWithCountsDTO(
     int ChildrenCount)
 {
 
-    public static ArtistInfoWithCountsDTO Create(Artist artist)
+    public static ArtistInfoWithCountsDTO FromProjection(ArtistInfoWithCountsProjection projection)
     {
         return new ArtistInfoWithCountsDTO(
-            artist.Guid,
-            artist.Name,
-            artist.DisplayName,
-            YoutubeHelper.GetYoutubeChannel(artist.YoutubeChannelId),
-            artist.ThumbnailUrl,
-            artist.TopLvlParent?.Name,
-            artist.Songs.Count,
-            artist.Albums.Count,
-            artist.AllChildren.Count
-        );
-    }
-
-    public static ArtistInfoWithCountsDTO Create(Artist artist, int songCount, int albumCount, int childrenCount)
-    {
-        return new ArtistInfoWithCountsDTO(
-            artist.Guid,
-            artist.Name,
-            artist.DisplayName,
-            YoutubeHelper.GetYoutubeChannel(artist.YoutubeChannelId),
-            artist.ThumbnailUrl,
-            artist.Parent?.Name,
-            songCount,
-            albumCount,
-            childrenCount
+            projection.Guid,
+            projection.Name,
+            projection.DisplayName,
+            YoutubeHelper.GetYoutubeChannel(projection.ChannelId),
+            projection.ThumbnailUrl,
+            projection.ParentName,
+            projection.SongCount,
+            projection.AlbumCount,
+            projection.ChildrenCount
         );
     }
 };

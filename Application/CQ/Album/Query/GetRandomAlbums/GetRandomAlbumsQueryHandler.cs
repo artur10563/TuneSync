@@ -1,5 +1,6 @@
 using Application.DTOs.Albums;
 using Application.Extensions;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Domain.Primitives;
 using MediatR;
@@ -9,28 +10,23 @@ namespace Application.CQ.Album.Query.GetRandomAlbums;
 public sealed class GetRandomAlbumsQueryHandler : IRequestHandler<GetRandomAlbumsQuery, Result<IEnumerable<AlbumSummaryDTO>>>
 {
     private readonly IUnitOfWork _uow;
+    private readonly IProjectionProvider _projectionProvider;
 
-    public GetRandomAlbumsQueryHandler(IUnitOfWork uow)
+    public GetRandomAlbumsQueryHandler(IUnitOfWork uow, IProjectionProvider projectionProvider)
     {
         _uow = uow;
+        _projectionProvider = projectionProvider;
     }
 
     public async Task<Result<IEnumerable<AlbumSummaryDTO>>> Handle(GetRandomAlbumsQuery request, CancellationToken cancellationToken)
     {
-        var result = (
-            from album in _uow.AlbumRepository.NoTrackingQueryable()
-            join artist in _uow.ArtistRepository.NoTrackingQueryable()
-                on album.ArtistGuid equals artist.Guid
-            join fa in _uow.UserFavoriteAlbumRepository.NoTrackingQueryable()
-                on new { userGuid = request.UserGuid, albumGuid = album.Guid } equals new { userGuid = fa.UserGuid, albumGuid = fa.AlbumGuid } into favJoin
-            from fa in favJoin.DefaultIfEmpty()
-            join song in _uow.SongRepository.NoTrackingQueryable()
-                on album.Guid equals song.AlbumGuid into songGroup
-            orderby Guid.NewGuid()
-            select AlbumSummaryDTO.Create(album, artist, fa != null && fa.IsFavorite, songGroup.Count()
-            )
-        ).Page(1).ToList();
 
+        var result = _uow.AlbumRepository.NoTrackingQueryable()
+            .Select(_projectionProvider.GetAlbumSummaryProjection(request.UserGuid))
+            .Page(1)
+            .Select(x => AlbumSummaryDTO.FromProjection(x))
+            .ToList();
+        
         return result;
     }
 }

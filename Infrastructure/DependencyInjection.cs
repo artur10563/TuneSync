@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Application;
 using Application.CQ.Songs.Command.CreateSong;
+using Application.Projections;
 using Application.Repositories;
 using Application.Repositories.Shared;
 using Application.Services;
@@ -14,6 +15,7 @@ using Google.Cloud.Storage.V1;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Infrastructure.Data;
+using Infrastructure.Projections;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.Shared;
 using Infrastructure.Services;
@@ -91,6 +93,8 @@ namespace Infrastructure
                 .AddScoped<ILinkEntityRepository<UserFavoritePlaylist>, LinkEntityRepository<UserFavoritePlaylist>>()
                 .AddScoped<IArtistRepository, ArtistRepository>()
                 .AddScoped<IAlbumRepository, AlbumRepository>();
+
+            serviceCollection.AddScoped<IProjectionProvider, ProjectionProvider>();
             
             return serviceCollection;
         }

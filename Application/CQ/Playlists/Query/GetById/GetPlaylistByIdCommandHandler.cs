@@ -1,5 +1,7 @@
 ﻿using Application.DTOs.Playlists;
 using Application.DTOs.Songs;
+using Application.Extensions;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Domain.Entities;
 using Domain.Errors;
@@ -11,51 +13,30 @@ namespace Application.CQ.Playlists.Query.GetById
     internal sealed class GetPlaylistByIdCommandHandler : IRequestHandler<GetPlaylistByIdCommand, Result<PlaylistDTO>>
     {
         private readonly IUnitOfWork _uow;
-
-        public GetPlaylistByIdCommandHandler(IUnitOfWork uow)
+        private readonly IProjectionProvider _projectionProvider;
+        
+        public GetPlaylistByIdCommandHandler(IUnitOfWork uow, IProjectionProvider projectionProvider)
         {
             _uow = uow;
+            _projectionProvider = projectionProvider;
         }
 
         public async Task<Result<PlaylistDTO>> Handle(GetPlaylistByIdCommand request, CancellationToken cancellationToken)
         {
-            var page = 1;
-            var pageSize = 25;
-            
             var userGuid = request.UserGuid ?? Guid.Empty;
             
-            var playlistDetails = (await _uow.PlaylistRepository.FirstOrDefaultAsync(x => x.Guid == request.PlaylistGuid,
-                asNoTracking: true,
-                 p => p.User));
+            //TODO: add pagination for playlists. All songs are pulled rn
+            var playlist = _uow.PlaylistRepository
+                .Where(x => x.Guid == request.PlaylistGuid, asNoTracking: true)
+                .Select(_projectionProvider.GetPlaylistWithSongsProjection(userGuid))
+                .FirstOrDefault();
             
-            var isFavorite = await _uow.UserFavoritePlaylistRepository
-                .ExistsAsync(ufa => ufa.UserGuid == userGuid && ufa.PlaylistGuid == request.PlaylistGuid && ufa.IsFavorite);
-
-            if(playlistDetails == null)
+            if(playlist == null)
                 return Error.NotFound(nameof(Playlist));
-
-            var playlistSongsQuery = _uow.SongRepository
-                .Where(song => song.Playlists.Any(p => p.Guid == request.PlaylistGuid),
-                    asNoTracking: true,
-                    song => song.Album,
-                    song => song.Artist,
-                    song => song.FavoredBy).OrderBy(x=>x.CreatedAt).Select(x => SongDTO.Create(x, userGuid));
             
-            var totalCount = playlistSongsQuery.Count();
+            var playlistDto = PlaylistDTO.FromProjection(playlist);
             
-            var playlistSongs = playlistSongsQuery
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize).ToList();
-            
-
-            var paginatedPlaylistDTO = PlaylistDTO.Create(
-                playlistDetails, 
-                playlistSongs, 
-                PageInfo.Create(page, pageSize, totalCount), 
-                isFavorite,
-                totalCount);
-            
-            return paginatedPlaylistDTO;
+            return playlistDto;
         }
     }
 }

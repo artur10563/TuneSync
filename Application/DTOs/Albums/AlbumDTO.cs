@@ -1,6 +1,6 @@
 using Application.DTOs.Artists;
 using Application.DTOs.Songs;
-using Domain.Entities;
+using Application.Projections.Albums;
 using Domain.Helpers;
 using Domain.Primitives;
 
@@ -21,27 +21,30 @@ public sealed record AlbumDTO(
     ArtistInfoDTO? Artist,
     PaginatedResponse<ICollection<SongDTO>> Songs)
 {
-    public static AlbumDTO Create(Album album, Artist artist, List<SongDTO> songs,  PageInfo pageInfo, bool isFavorite, int songCount)
+    public static AlbumDTO FromProjection(AlbumProjection projection, PaginatedResponse<ICollection<SongDTO>> songsPage)
     {
+        var thumbnailUrl = projection.ThumbnailSource switch
+        {
+            GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic =>
+                YoutubeHelper.GetYoutubePlaylistThumbnail(projection.ThumbnailId, projection.SourceId),
+            _ => ""
+        };
+        
+        
         return new AlbumDTO(
-            album.Guid,
-            album.Title,
-            album.CreatedBy,
-            CreatedByName: album?.User.Name ?? string.Empty,
-            album.CreatedAt,
-            album.ModifiedAt,
-            ThumbnailUrl: album.ThumbnailSource switch
-            {
-                GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic => 
-                    YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId),
-                _ => ""
-            },
-            Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
-            IsFavorite: isFavorite, 
-            ExpectedCount: album.ExpectedSongs,
-            Artist: ArtistInfoDTO.Create(artist), 
-            SongCount: songCount,
-            SourceUrl: YoutubeHelper.GetYoutubeAlbumUrl(album.SourceId)
+            projection.Guid,
+            projection.Title,
+            projection.CreatedBy,
+            projection.CreatedByName,
+            projection.CreatedAt,
+            projection.ModifiedAt,
+            thumbnailUrl,
+            projection.IsFavorite,
+            projection.SongCount,
+            projection.ExpectedCount,
+            YoutubeHelper.GetYoutubeAlbumUrl(projection.SourceId),
+            ArtistInfoDTO.FromProjection(projection.ArtistProjection),
+            songsPage
         );
     }
 };

@@ -1,6 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Projections.Artists;
 using Domain.Helpers;
-using Domain.Primitives;
 
 namespace Application.DTOs.Artists
 {
@@ -12,14 +11,14 @@ namespace Application.DTOs.Artists
         string? ThumbnailUrl
     )
     {
-        public static ArtistInfoDTO Create(Artist artist)
+        public static ArtistInfoDTO FromProjection(ArtistInfoProjection projection)
         {
             return new ArtistInfoDTO(
-                artist.Guid,
-                artist.Name,
-                artist.DisplayName,
-                YoutubeHelper.GetYoutubeChannel(artist.YoutubeChannelId),
-                artist.ThumbnailUrl
+                projection.Guid,
+                projection.Name,
+                projection.DisplayName,
+                YoutubeHelper.GetYoutubeChannel(projection.YoutubeChannelId),
+                projection.ThumbnailUrl
             );
         }
     }
