@@ -1,6 +1,6 @@
 ﻿using Application.DTOs.Songs;
+using Application.Projections.Playlists;
 using Domain.Entities;
-using Domain.Helpers;
 using Domain.Primitives;
 
 namespace Application.DTOs.Playlists
@@ -15,57 +15,22 @@ namespace Application.DTOs.Playlists
         string ThumbnailUrl,
         bool IsFavorite,
         int SongCount,
-        PaginatedResponse<ICollection<SongDTO>> Songs
+        List<SongDTO> Songs
     )
     {
-        public static PlaylistDTO Create(Playlist playlist, Guid userGuid, PageInfo pageInfo, int songCount)
+        public static PlaylistDTO FromProjection(PlaylistProjection projection)
         {
             return new PlaylistDTO(
-                playlist.Guid,
-                playlist.Title,
-                //Will be replaced by UserDto
-                playlist.CreatedBy,
-                CreatedByName: playlist?.User.Name ?? string.Empty,
-                playlist.CreatedAt,
-                playlist.ModifiedAt,
-                ThumbnailUrl: string.Empty,
-                Songs: new PaginatedResponse<ICollection<SongDTO>>(SongDTO.Create(playlist.Songs, userGuid), pageInfo),
-                IsFavorite: false,
-                SongCount: songCount
-            );
-        }
-        
-        public static PlaylistDTO Create(Album album, List<SongDTO> songs,  PageInfo pageInfo, bool isFavorite, int songCount)
-        {
-            return new PlaylistDTO(
-                album.Guid,
-                album.Title,
-                //Will be replaced by UserDto
-                album.CreatedBy,
-                CreatedByName: album?.User.Name ?? string.Empty,
-                album.CreatedAt,
-                album.ModifiedAt,
-                ThumbnailUrl: string.Empty,
-                Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
-                IsFavorite: isFavorite,
-                SongCount: songCount
-            );
-        }
-
-        public static PlaylistDTO Create(Playlist playlist, List<SongDTO> songs,  PageInfo pageInfo, bool isFavorite, int songCount)
-        {
-            return new PlaylistDTO(
-                playlist.Guid,
-                playlist.Title,
-                //Will be replaced by UserDto
-                playlist.CreatedBy,
-                CreatedByName: playlist?.User.Name ?? string.Empty,
-                playlist.CreatedAt,
-                playlist.ModifiedAt,
-                ThumbnailUrl: string.Empty,
-                Songs: new PaginatedResponse<ICollection<SongDTO>>(songs, pageInfo),
-                IsFavorite: isFavorite, 
-                SongCount: songCount
+                projection.Guid,
+                projection.Title,
+                projection.CreatedBy,
+                projection.CreatedByName,
+                projection.CreatedAt,
+                projection.ModifiedAt,
+                projection.ThumbnailUrl,
+                projection.IsFavorite,
+                projection.SongCount,
+                projection.Songs.Select(SongDTO.FromProjection).ToList()
             );
         }
     }

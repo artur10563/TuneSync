@@ -1,6 +1,7 @@
 using Application.CQ.Album.Query.GetArtistList;
 using Application.DTOs.Artists;
 using Application.Extensions;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Domain.Primitives;
 using FluentValidation;
@@ -12,24 +13,22 @@ public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, Pag
 {
     private readonly IUnitOfWork _uow;
     private readonly IValidator<GetArtistListQuery> _validator;
+    private readonly IProjectionProvider _projectionProvider;
 
-    public GetArtistListQueryHandler(IUnitOfWork uow, IValidator<GetArtistListQuery> validator)
+    public GetArtistListQueryHandler(IUnitOfWork uow, IValidator<GetArtistListQuery> validator, IProjectionProvider projectionProvider)
     {
         _uow = uow;
         _validator = validator;
+        _projectionProvider = projectionProvider;
     }
 
     public async Task<PaginatedResult<IEnumerable<ArtistInfoWithCountsDTO>>> Handle(GetArtistListQuery request, CancellationToken cancellationToken)
     {
-        var validationErrors = _validator.Validate(request);
+        var validationErrors = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationErrors.IsValid)
             return validationErrors.AsErrors(request.Page);
 
-        var query = _uow.ArtistRepository.Includes(
-            x => x.Songs, 
-            x => x.TopLvlParent,
-            x => x.AllChildren, 
-            x => x.Albums);
+        var query = _uow.ArtistRepository.NoTrackingQueryable();
 
         if (!string.IsNullOrEmpty(request.Query))
         {
@@ -46,9 +45,12 @@ public class GetArtistListQueryHandler : IRequestHandler<GetArtistListQuery, Pag
             query = query.Where(x => x.ParentId == null && x.TopLvlParentId == null);
         }
 
-        var artists = _uow.ApplyOrdering(query, request.OrderBy, request.IsDescending)
+        query = _uow.ApplyOrdering(query, request.OrderBy, request.IsDescending);
+        var filteredQuery = query.Select(_projectionProvider.GetArtistInfoWithCountsProjection());
+        
+        var artists = filteredQuery
             .Page(request.Page, request.PageSize)
-            .Select(artist => ArtistInfoWithCountsDTO.Create(artist))
+            .Select(x => ArtistInfoWithCountsDTO.FromProjection(x))
             .ToList();
 
         return (artists, request.Page, request.PageSize, query.Count());

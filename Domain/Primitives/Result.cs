@@ -36,8 +36,8 @@ namespace Domain.Primitives
 
         public static Result Success() => new(isSuccess: true, error: Error.None);
         public static Result<TValue> Success<TValue>(TValue value) => new(value, true, Error.None);
-        public static PaginatedResult<TValue> Success<TValue>(TValue items, int pageNumber, int totalItems) where TValue : IEnumerable 
-            => new(items, true, Error.None, pageNumber, totalItems);
+        public static PaginatedResult<TValue> Success<TValue>(TValue items, int pageNumber, int pageSize, int totalItems) where TValue : IEnumerable 
+            => new(items, true, Error.None, pageNumber, pageSize, totalItems);
 
         public static Result Failure(Error error) => new(isSuccess: false, error: error);
         public static Result Failure(List<Error> errors) => new(isSuccess: false, errors: errors);

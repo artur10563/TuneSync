@@ -1,5 +1,6 @@
 using Application;
 using Application.CQ.Songs.Command.CreateSong;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Application.Services;
 using DotNet.Testcontainers.Containers;
@@ -20,6 +21,7 @@ public abstract class BaseTest : IAsyncLifetime
     protected IMediator _mediator = null!;
     protected IUnitOfWork _uow = null!;
     private IContainer _postgresContainer = null!;
+    protected IProjectionProvider _projectionProvider = null!;
 
     public async Task InitializeAsync()
     {
@@ -49,6 +51,7 @@ public abstract class BaseTest : IAsyncLifetime
         _scope = _serviceProvider.CreateScope();
         _mediator = _scope.ServiceProvider.GetRequiredService<IMediator>();
         _uow = _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        _projectionProvider = _scope.ServiceProvider.GetRequiredService<IProjectionProvider>();
 
         var db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.EnsureCreatedAsync();

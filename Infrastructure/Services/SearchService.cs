@@ -1,5 +1,6 @@
 using Application.DTOs.Songs;
 using Application.Extensions;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Application.Services;
 using Microsoft.EntityFrameworkCore;
@@ -10,51 +11,42 @@ namespace Infrastructure.Services;
 public class SearchService : ISearchService
 {
     private readonly IUnitOfWork _uow;
-    private readonly ISearchService _searchService;
+    private readonly IProjectionProvider _projectionProvider;
 
-    public SearchService(IUnitOfWork uow)
+    public SearchService(IUnitOfWork uow, IProjectionProvider projectionProvider)
     {
         _uow = uow;
+        _projectionProvider = projectionProvider;
     }
 
     public async Task<(List<SongDTO>, int totalItems)> Search(string searchQuery, int page, Guid userGuid = default)
     {
-        var query = (
+
+        var query =
+        (
             from song in _uow.SongRepository.NoTrackingQueryable()
-            join artist in _uow.ArtistRepository.NoTrackingQueryable()
-                on song.ArtistGuid equals artist.Guid
-            join album in _uow.AlbumRepository.NoTrackingQueryable()
-                on song.AlbumGuid equals album.Guid into albumJoin
-            from album in albumJoin.DefaultIfEmpty()
-            join us in _uow.UserSongRepository.NoTrackingQueryable()
-                on new { songGuid = song.Guid, userGuid = userGuid } equals new { songGuid = us.SongGuid, userGuid = us.UserGuid } into userSongJoin
-            from userSong in userSongJoin.DefaultIfEmpty()
-
-            #region vector
-
+            
             let searchVector =
                 EF.Functions.ToTsVector("english", song.Title ?? " ")
                     .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
                     .Concat(
-                        EF.Functions.ToTsVector("english", artist.DisplayName ?? " ")
+                        EF.Functions.ToTsVector("english", song.Artist.DisplayName ?? " ")
                             .SetWeight(NpgsqlTsVector.Lexeme.Weight.B))
                     .Concat(
-                        EF.Functions.ToTsVector("english", album.Title ?? " ")
+                        EF.Functions.ToTsVector("english", song.Album.Title ?? " ")
                             .SetWeight(NpgsqlTsVector.Lexeme.Weight.B)
                     )
             let searchQueryVector = EF.Functions.PlainToTsQuery("english", searchQuery)
-
-            #endregion
-
+            
             orderby searchVector.Rank(searchQueryVector) descending
-            where searchVector.Matches(searchQueryVector)
-            select new { song, artist, album, isFavorite = userSong != null && userSong.IsFavorite }
-        );
-
+            where searchVector.Matches(searchQueryVector) 
+            select song // Whole song wont get selected due to projection
+            ).Select(_projectionProvider.GetSongWithArtistProjection(userGuid));
+        
         var totalCount = await query.CountAsync();
 
         var songs = await query.Page(page)
-            .Select(x => SongDTO.Create(x.song, x.album, x.artist, x.isFavorite))
+            .Select(x => SongDTO.FromProjection(x))
             .ToListAsync();
 
         return (songs, totalCount);

@@ -1,5 +1,5 @@
 using Application.DTOs.Artists;
-using Domain.Entities;
+using Application.Projections.Albums;
 using Domain.Helpers;
 using Domain.Primitives;
 
@@ -15,22 +15,22 @@ public sealed record AlbumSummaryDTO(
     int ExpectedCount,
     string SourceUrl)
 {
-    public static AlbumSummaryDTO Create(Album album, Artist artist, bool isFavorite, int songCount)
+    public static AlbumSummaryDTO FromProjection(AlbumSummaryProjection projection)
     {
         return new AlbumSummaryDTO(
-            album.Guid,
-            album.Title,
-            ThumbnailUrl: album.ThumbnailSource switch
+            projection.Guid,
+            projection.Title,
+            ThumbnailUrl: projection.ThumbnailSource switch
             {
                 GlobalVariables.PlaylistSource.YouTube or GlobalVariables.PlaylistSource.YouTubeMusic => 
-                    YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId),
+                    YoutubeHelper.GetYoutubePlaylistThumbnail(projection.ThumbnailId, projection.SourceId),
                 _ => ""
             },
-            IsFavorite: isFavorite,
-            Artist: ArtistInfoDTO.Create(artist),
-            SongCount: songCount,
-            ExpectedCount: album.ExpectedSongs,
-            SourceUrl: YoutubeHelper.GetYoutubeAlbumUrl(album.SourceId)
+            IsFavorite: projection.IsFavorite,
+            Artist: ArtistInfoDTO.FromProjection(projection.Artist),
+            SongCount: projection.SongCount,
+            ExpectedCount: projection.ExpectedCount,
+            SourceUrl: YoutubeHelper.GetYoutubeAlbumUrl(projection.SourceId)
         );
     }
 };

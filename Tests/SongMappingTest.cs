@@ -4,6 +4,7 @@ using Application.DTOs.Artists;
 using Domain.Entities;
 using Domain.Helpers;
 using Domain.Primitives;
+using Infrastructure.Projections;
 
 namespace Tests;
 
@@ -84,41 +85,27 @@ public class SongMappingTest : BaseTest
 
         var mockUserGuid = user.Guid;
 
-        var albumSummaryDtoQuery = (
-            from alb in _uow.AlbumRepository.NoTrackingQueryable()
-            join art in _uow.ArtistRepository.NoTrackingQueryable()
-                on alb.ArtistGuid equals art.Guid
-            join fa in _uow.UserFavoriteAlbumRepository.NoTrackingQueryable()
-                on new { userGuid = mockUserGuid, albumGuid = alb.Guid } equals new { userGuid = fa.UserGuid, albumGuid = fa.AlbumGuid } into favJoin
-            from fa in favJoin.DefaultIfEmpty()
-            join s in _uow.SongRepository.NoTrackingQueryable()
-                on alb.Guid equals s.AlbumGuid into songGroup
-            where alb.Guid == album.Guid
-            select AlbumSummaryDTO.Create(
-                alb,
-                art,
-                fa != null && fa.IsFavorite,
-                songGroup.Count()
-            )
-        );
+        var albumSummaryDto = _uow.AlbumRepository.NoTrackingQueryable()
+            .Select(_projectionProvider.GetAlbumSummaryProjection(mockUserGuid))
+            .Select(x => AlbumSummaryDTO.FromProjection(x))
+            .FirstOrDefault();
 
-        var dto = albumSummaryDtoQuery.FirstOrDefault();
 
-        Assert.NotNull(dto);
-        Assert.Equal(album.Guid, dto.Guid);
-        Assert.Equal(album.Title, dto.Title);
+        Assert.NotNull(albumSummaryDto);
+        Assert.Equal(album.Guid, albumSummaryDto.Guid);
+        Assert.Equal(album.Title, albumSummaryDto.Title);
         Assert.Equal(
             YoutubeHelper.GetYoutubePlaylistThumbnail(album.ThumbnailId, album.SourceId),
-            dto.ThumbnailUrl
+            albumSummaryDto.ThumbnailUrl
         );
-        Assert.True(dto.IsFavorite);
-        Assert.Equal(artist.Guid, dto.Artist.Guid);
-        Assert.Equal(artist.Name, dto.Artist.Name);
-        Assert.Equal(artist.DisplayName, dto.Artist.DisplayName);
-        Assert.Equal(YoutubeHelper.GetYoutubeChannel(artist.YoutubeChannelId), dto.Artist.ChannelUrl);
-        Assert.Equal(artist.ThumbnailUrl, dto.Artist.ThumbnailUrl);
-        Assert.Equal(expectedSongCount, dto.SongCount);
-        Assert.Equal(album.ExpectedSongs, dto.ExpectedCount);
-        Assert.Equal(YoutubeHelper.GetYoutubeAlbumUrl(album.SourceId), dto.SourceUrl);
+        Assert.True(albumSummaryDto.IsFavorite);
+        Assert.Equal(artist.Guid, albumSummaryDto.Artist.Guid);
+        Assert.Equal(artist.Name, albumSummaryDto.Artist.Name);
+        Assert.Equal(artist.DisplayName, albumSummaryDto.Artist.DisplayName);
+        Assert.Equal(YoutubeHelper.GetYoutubeChannel(artist.YoutubeChannelId), albumSummaryDto.Artist.ChannelUrl);
+        Assert.Equal(artist.ThumbnailUrl, albumSummaryDto.Artist.ThumbnailUrl);
+        Assert.Equal(expectedSongCount, albumSummaryDto.SongCount);
+        Assert.Equal(album.ExpectedSongs, albumSummaryDto.ExpectedCount);
+        Assert.Equal(YoutubeHelper.GetYoutubeAlbumUrl(album.SourceId), albumSummaryDto.SourceUrl);
     }
 }

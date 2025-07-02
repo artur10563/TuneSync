@@ -1,6 +1,7 @@
 using Application.DTOs.Albums;
 using Application.DTOs.Artists;
 using Application.DTOs.Songs;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Application.Services;
 using Domain.Entities;
@@ -14,72 +15,37 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
 {
     private readonly IUnitOfWork _uow;
     private readonly ILoggerService _logger;
+    private readonly IProjectionProvider _projectionProvider;
 
-    public GetArtistSummaryQueryHandler(IUnitOfWork uow, ILoggerService logger)
+    public GetArtistSummaryQueryHandler(IUnitOfWork uow, ILoggerService logger, IProjectionProvider projectionProvider)
     {
         _uow = uow;
         _logger = logger;
+        _projectionProvider = projectionProvider;
     }
 
     public async Task<Result<ArtistSummaryDTO>> Handle(GetArtistSummaryQuery request, CancellationToken cancellationToken)
     {
-        var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.Guid == request.ArtistGuid, 
-            asNoTracking: true,
-            includes: x => x.AllChildren);
-
-        if (artist == null)
-            return Error.NotFound(nameof(Artist));
-
-        var artistGuids = new HashSet<Guid> { artist.Guid };
-        artistGuids.UnionWith(artist.AllChildren.Select(child => child.Guid));
-
+        var exists = await _uow.ArtistRepository.ExistsAsync(x => x.Guid == request.ArtistGuid);
+        if(!exists) return Error.NotFound(nameof(Artist));
         
-        var abandonedSongs = _uow.SongRepository
-            .Where(x => artistGuids.Contains(x.ArtistGuid) && x.AlbumGuid == null, asNoTracking: true)
+        //Get songs of artist
+        var standaloneSongs = _uow.SongRepository.NoTrackingQueryable()
+            .Where(x => x.Artist.TopLvlParent.Guid == request.ArtistGuid || x.Guid == request.ArtistGuid)
+            .Where(x => x.AlbumGuid == null)
+            .Select(_projectionProvider.GetSongWithArtistProjection(request.CurrentUserGuid))
+            .Select(x => SongDTO.FromProjection(x))
+            .ToList();
+        
+        //Get albums summary (albums without songs)
+        var albums = _uow.AlbumRepository
+            .NoTrackingQueryable()
+            .Where(x => x.ArtistGuid == request.ArtistGuid || x.Artist.TopLvlParent.Guid == request.ArtistGuid)
+            .Select(_projectionProvider.GetAlbumSummaryProjection(request.CurrentUserGuid))
+            .Select(x => AlbumSummaryDTO.FromProjection(x))
             .ToList();
 
-        foreach (var song in abandonedSongs)
-        {
-            song.Artist = artist;
-        }
-
-        var userFavoriteSongs = new HashSet<Guid>(_uow.UserSongRepository
-            .Where(usf => usf.UserGuid == request.CurrentUserGuid && usf.IsFavorite, asNoTracking: true)
-            .Select(x => x.SongGuid)
-            .ToList());
-
-        var userFavoriteAlbums = new HashSet<Guid>(_uow.UserFavoriteAlbumRepository
-            .Where(ufa => ufa.UserGuid == request.CurrentUserGuid && ufa.IsFavorite, asNoTracking: true)
-            .Select(x => x.AlbumGuid)
-            .ToList());
-
-        var songDTOs = abandonedSongs
-            .Select(x => SongDTO.Create(
-                x,
-                artist,
-                userFavoriteSongs.Any(usfGuid => usfGuid == x.Guid)
-            )).ToList();
-
-        var albumSongCount =
-            (from album in _uow.AlbumRepository.NoTrackingQueryable()
-                join song in _uow.SongRepository.NoTrackingQueryable()
-                    on album.Guid equals song.AlbumGuid into songs
-                where artistGuids.Contains(album.ArtistGuid.Value)
-                select new
-                {
-                    album = album,
-                    songCount = songs.Count()
-                }).ToList();
-
-
-        var albumDTOs = albumSongCount.Select(albumInfo => AlbumSummaryDTO.Create(
-                albumInfo.album,
-                artist,
-                isFavorite: userFavoriteAlbums.Contains(albumInfo.album.Guid),
-                songCount: albumInfo.songCount
-            )
-        ).ToList();
-        return new ArtistSummaryDTO(ArtistInfoDTO.Create(artist), albumDTOs, songDTOs);
-
+        var resultDto = new ArtistSummaryDTO(albums.First().Artist!, albums, standaloneSongs);
+        return resultDto;
     }
 }

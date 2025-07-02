@@ -1,5 +1,7 @@
 using Application.DTOs.Albums;
 using Application.DTOs.Songs;
+using Application.Extensions;
+using Application.Projections;
 using Application.Repositories.Shared;
 using Domain.Errors;
 using Domain.Primitives;
@@ -10,52 +12,45 @@ namespace Application.CQ.Album.Query.GetAlbumById;
 public class GetAlbumByIdQueryHandler : IRequestHandler<GetAlbumByIdQuery, Result<AlbumDTO>>
 {
     private readonly IUnitOfWork _uow;
+    private readonly IProjectionProvider _projectionProvider;
 
-    public GetAlbumByIdQueryHandler(IUnitOfWork uow)
+    public GetAlbumByIdQueryHandler(IUnitOfWork uow, IProjectionProvider projectionProvider)
     {
         _uow = uow;
+        _projectionProvider = projectionProvider;
     }
 
     public async Task<Result<AlbumDTO>> Handle(GetAlbumByIdQuery request, CancellationToken cancellationToken)
     {
+        var pageSize = 25;
         var userGuid = request.UserGuid ?? Guid.Empty;
 
-        var albumDetails = (await _uow.AlbumRepository.FirstOrDefaultAsync(x => x.Guid == request.AlbumGuid,
-            asNoTracking: true,
-            p => p.User, p=> p.Artist));
-
-        var isFavorite = await _uow.UserFavoriteAlbumRepository
-            .ExistsAsync(ufa => ufa.UserGuid == userGuid && ufa.AlbumGuid == request.AlbumGuid && ufa.IsFavorite);
+        var albumInfo = _uow.AlbumRepository
+            .NoTrackingQueryable()
+            .Where(x => x.Guid == request.AlbumGuid)
+            .Select(_projectionProvider.GetAlbumWithArtistProjection(userGuid))
+            .FirstOrDefault();
         
-        if (albumDetails == null)
+        if (albumInfo == null)
             return Error.NotFound(nameof(Album));
 
+
         var albumSongsQuery = _uow.SongRepository
-            .Where(s => s.AlbumGuid == request.AlbumGuid,
-                asNoTracking: true,
-                includes:
-                [
-                    song => song.Artist,
-                    song => song.FavoredBy,
-                    song => song.Album
-                ]).OrderBy(x=>x.CreatedAt)
-            .Select(x => SongDTO.Create(x, userGuid));
-        
-        var totalCount = albumSongsQuery.Count();
-
-        var albumSongs = albumSongsQuery
-            .Skip((request.Page - 1) * 25)
-            .Take(25)
+            .NoTrackingQueryable()
+            .Where(s => s.AlbumGuid == request.AlbumGuid)
+            .OrderBy(x => x.CreatedAt)
+            .Select(_projectionProvider.GetSongWithArtistProjection(userGuid))
+            .Page(request.Page, pageSize)
             .ToList();
-        
-        var albumDto = AlbumDTO.Create(
-            album: albumDetails,
-            isFavorite: isFavorite,
-            songs: albumSongs,
-            pageInfo: PageInfo.Create(request.Page, 25, totalCount),
-            artist: albumDetails.Artist,
-            songCount: totalCount);
 
+        var songDtos = albumSongsQuery.Select(SongDTO.FromProjection).ToList();
+
+        var pageInfo = PageInfo.Create(request.Page, pageSize, albumInfo.SongCount);
+        var songPage = new PaginatedResponse<ICollection<SongDTO>>(songDtos, pageInfo);
+
+        var albumDto = AlbumDTO.FromProjection(albumInfo, songPage); 
+
+        
         return albumDto;
     }
 }

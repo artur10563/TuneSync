@@ -1,5 +1,8 @@
 using Application.DTOs.Songs;
+using Application.Projections;
 using Application.Repositories.Shared;
+using Domain.Entities;
+using Domain.Errors;
 using Domain.Primitives;
 using MediatR;
 
@@ -8,21 +11,26 @@ namespace Application.CQ.Songs.Query.GetUserFavoriteSongs;
 public class GetUserFavoriteSongsQueryHandler : IRequestHandler<GetUserFavoriteSongsQuery, Result<IEnumerable<SongDTO>>>
 {
     private readonly IUnitOfWork _uow;
-
-    public GetUserFavoriteSongsQueryHandler(IUnitOfWork uow)
+    private readonly IProjectionProvider _projectionProvider;
+    
+    public GetUserFavoriteSongsQueryHandler(IUnitOfWork uow, IProjectionProvider projectionProvider)
     {
         _uow = uow;
+        _projectionProvider = projectionProvider;
     }
 
     public async Task<Result<IEnumerable<SongDTO>>> Handle(GetUserFavoriteSongsQuery request, CancellationToken cancellationToken)
     {
-        var userFS = _uow.SongRepository
-            .Where(s => s.FavoredBy
-                    .Any(us => us.UserGuid == request.UserGuid && us.IsFavorite),
-                asNoTracking:true,
-                includes: [s => s.FavoredBy, s => s.Artist]
-            ).OrderBy(x=>x.CreatedAt).Select(song => SongDTO.Create(song, song.Artist, true)).ToList();
+        if (request.UserGuid == Guid.Empty)
+            return Error.NotFound(nameof(Song));
+        
+        var ufs = _uow.SongRepository.NoTrackingQueryable()
+            .Where(x => x.FavoredBy.Any(us => us.UserGuid == request.UserGuid && us.IsFavorite))
+            .OrderBy(x => x.CreatedAt)
+            .Select(_projectionProvider.GetSongWithArtistProjection(request.UserGuid))
+            .Select(x => SongDTO.FromProjection(x))
+            .ToList();
 
-        return userFS;
+        return ufs;
     }
 }

@@ -26,7 +26,7 @@ namespace Application.CQ.Songs.Query.GetSongFromDb
             
             var (songs, totalItems) = await _searchService.Search(request.query, request.page, userGuid);
 
-            return Result.Success(songs, request.page, totalItems);
+            return Result.Success(songs, request.page, GlobalVariables.PaginationConstants.PageSize, totalItems);
         }
     }
 }
