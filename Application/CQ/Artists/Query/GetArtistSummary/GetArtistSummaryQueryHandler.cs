@@ -31,7 +31,7 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
         
         //Get songs of artist
         var standaloneSongs = _uow.SongRepository.NoTrackingQueryable()
-            .Where(x => x.Artist.TopLvlParent.Guid == request.ArtistGuid || x.Guid == request.ArtistGuid)
+            .Where(x => x.Artist.TopLvlParentId == request.ArtistGuid || x.Artist.Guid == request.ArtistGuid)
             .Where(x => x.AlbumGuid == null)
             .Select(_projectionProvider.GetSongWithArtistProjection(request.CurrentUserGuid))
             .Select(x => SongDTO.FromProjection(x))
@@ -45,7 +45,14 @@ public class GetArtistSummaryQueryHandler : IRequestHandler<GetArtistSummaryQuer
             .Select(x => AlbumSummaryDTO.FromProjection(x))
             .ToList();
 
-        var resultDto = new ArtistSummaryDTO(albums.First().Artist!, albums, standaloneSongs);
+        var artistInfo = standaloneSongs.FirstOrDefault()?.Artist 
+                         ?? albums.FirstOrDefault()?.Artist 
+                         ?? _uow.ArtistRepository.NoTrackingQueryable()
+                             .Where(x => x.Guid == request.ArtistGuid)
+                             .Select(_projectionProvider.GetArtistInfoProjection())
+                             .Select(ArtistInfoDTO.FromProjection).First();
+        
+        var resultDto = new ArtistSummaryDTO(artistInfo, albums, standaloneSongs);
         return resultDto;
     }
 }

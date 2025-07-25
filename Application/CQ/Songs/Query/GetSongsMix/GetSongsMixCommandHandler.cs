@@ -51,8 +51,8 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
         var allArtist = request.ArtistGuids.Union(artistChildren).ToList();
 
         //TODO: cache artist album? artist mix' are heavy to compute
-        var baseQuery =_uow.SongRepository.NoTrackingQueryable().Where(s =>
-               (request.AlbumGuids.Count != 0 && s.AlbumGuid.HasValue && request.AlbumGuids.Contains(s.AlbumGuid.Value))
+        var baseQuery = _uow.SongRepository.NoTrackingQueryable().Where(s =>
+            (request.AlbumGuids.Count != 0 && s.AlbumGuid.HasValue && request.AlbumGuids.Contains(s.AlbumGuid.Value))
             || (request.PlaylistGuids.Count != 0 && s.Playlists.Any(ps => request.PlaylistGuids.Contains(ps.Guid)))
             || (allArtist.Count != 0 && allArtist.Contains(s.ArtistGuid))
         ).Distinct();

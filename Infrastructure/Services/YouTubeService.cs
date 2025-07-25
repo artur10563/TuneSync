@@ -290,21 +290,25 @@ namespace Infrastructure.Services
         {
             var memoryStream = new MemoryStream();
 
-            var processStartInfo = CreateProcessStartInfo($"--verbose -f bestaudio -o - https://www.youtube.com/watch?v={videoId}");
+            var processStartInfo = CreateProcessStartInfo($"--quiet --no-warnings -f bestaudio -o - https://www.youtube.com/watch?v={videoId}");
 
             using (var process = new Process())
             {
                 process.StartInfo = processStartInfo;
                 process.Start();
 
-                // Copy to the memory stream
+                // Start reading stderr to avoid deadlocks
+                var stderrTask = process.StandardError.ReadToEndAsync();
+
+                // Stream the audio into memory
                 await process.StandardOutput.BaseStream.CopyToAsync(memoryStream);
+
                 await process.WaitForExitAsync();
+                var stderr = await stderrTask;
 
                 if (process.ExitCode != 0)
                 {
-                    string error = await process.StandardError.ReadToEndAsync();
-                    throw new Exception($"yt-dlp failed: {error}");
+                    throw new Exception($"yt-dlp failed: {stderr}");
                 }
             }
 
