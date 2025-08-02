@@ -14,8 +14,7 @@ namespace Application.DTOs.Playlists
         DateTime ModifiedAt,
         string ThumbnailUrl,
         bool IsFavorite,
-        int SongCount,
-        List<SongDTO> Songs
+        int SongCount
     )
     {
         public static PlaylistDTO FromProjection(PlaylistProjection projection)
@@ -29,8 +28,7 @@ namespace Application.DTOs.Playlists
                 projection.ModifiedAt,
                 projection.ThumbnailUrl,
                 projection.IsFavorite,
-                projection.SongCount,
-                projection.Songs.Select(SongDTO.FromProjection).ToList()
+                projection.SongCount
             );
         }
     }

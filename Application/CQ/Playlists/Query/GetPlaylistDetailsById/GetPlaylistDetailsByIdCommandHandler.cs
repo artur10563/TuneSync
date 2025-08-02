@@ -1,6 +1,4 @@
 ﻿using Application.DTOs.Playlists;
-using Application.DTOs.Songs;
-using Application.Extensions;
 using Application.Projections;
 using Application.Repositories.Shared;
 using Domain.Entities;
@@ -10,25 +8,24 @@ using MediatR;
 
 namespace Application.CQ.Playlists.Query.GetById
 {
-    internal sealed class GetPlaylistByIdCommandHandler : IRequestHandler<GetPlaylistByIdCommand, Result<PlaylistDTO>>
+    internal sealed class GetPlaylistDetailsByIdCommandHandler : IRequestHandler<GetPlaylistDetailsByIdCommand, Result<PlaylistDTO>>
     {
         private readonly IUnitOfWork _uow;
         private readonly IProjectionProvider _projectionProvider;
         
-        public GetPlaylistByIdCommandHandler(IUnitOfWork uow, IProjectionProvider projectionProvider)
+        public GetPlaylistDetailsByIdCommandHandler(IUnitOfWork uow, IProjectionProvider projectionProvider)
         {
             _uow = uow;
             _projectionProvider = projectionProvider;
         }
 
-        public async Task<Result<PlaylistDTO>> Handle(GetPlaylistByIdCommand request, CancellationToken cancellationToken)
+        public async Task<Result<PlaylistDTO>> Handle(GetPlaylistDetailsByIdCommand request, CancellationToken cancellationToken)
         {
             var userGuid = request.UserGuid ?? Guid.Empty;
             
-            //TODO: add pagination for playlists. All songs are pulled rn
             var playlist = _uow.PlaylistRepository
                 .Where(x => x.Guid == request.PlaylistGuid, asNoTracking: true)
-                .Select(_projectionProvider.GetPlaylistWithSongsProjection(userGuid))
+                .Select(_projectionProvider.GetPlaylistProjection(userGuid))
                 .FirstOrDefault();
             
             if(playlist == null)

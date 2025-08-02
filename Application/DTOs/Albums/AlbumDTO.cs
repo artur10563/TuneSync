@@ -18,10 +18,9 @@ public sealed record AlbumDTO(
     int SongCount,
     int ExpectedCount,
     string SourceUrl,
-    ArtistInfoDTO? Artist,
-    PaginatedResponse<ICollection<SongDTO>> Songs)
+    ArtistInfoDTO? Artist)
 {
-    public static AlbumDTO FromProjection(AlbumProjection projection, PaginatedResponse<ICollection<SongDTO>> songsPage)
+    public static AlbumDTO FromProjection(AlbumProjection projection)
     {
         var thumbnailUrl = projection.ThumbnailSource switch
         {
@@ -43,8 +42,7 @@ public sealed record AlbumDTO(
             projection.SongCount,
             projection.ExpectedCount,
             YoutubeHelper.GetYoutubeAlbumUrl(projection.SourceId),
-            ArtistInfoDTO.FromProjection(projection.ArtistProjection),
-            songsPage
+            ArtistInfoDTO.FromProjection(projection.ArtistProjection)
         );
     }
 };

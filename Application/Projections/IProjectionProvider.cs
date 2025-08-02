@@ -20,6 +20,6 @@ public interface IProjectionProvider
     Expression<Func<Artist, ArtistInfoWithCountsProjection>> GetArtistInfoWithCountsProjection();
     
     
-    Expression<Func<Playlist, PlaylistProjection>> GetPlaylistWithSongsProjection(Guid userGuid);
+    Expression<Func<Playlist, PlaylistProjection>> GetPlaylistProjection(Guid userGuid, int page = 1);
     Expression<Func<Playlist, PlaylistSummaryProjection>> GetPlaylistSummaryProjection(Guid userGuid);
 }

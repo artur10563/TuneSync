@@ -46,7 +46,7 @@ public class SongMappingTest : BaseTest
 
 
         
-        var request = new GetUserFavoriteSongsQuery(user.Guid);
+        var request = new GetUserFavoriteSongsQuery(user.Guid, 1);
         var result = await _mediator.Send(request);
 
         Assert.True(result.IsSuccess, string.Join(", ", result.Errors.Select(x => x.Description)));

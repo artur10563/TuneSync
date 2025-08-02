@@ -1,6 +1,6 @@
 using Api.Extensions;
-using Application.CQ.Album.Query.GetArtistList;
 using Application.CQ.Artists.Command.MergeArtists;
+using Application.CQ.Artists.Query.GetArtistList;
 using Application.CQ.Artists.Query.GetArtistSummary;
 using Application.DTOs.Artists;
 using Domain.Primitives;

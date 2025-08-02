@@ -1,17 +1,14 @@
+using Application.CommonValidators;
 using Application.Repositories.Shared;
-using Domain.Errors;
 using FluentValidation;
 using static Domain.Primitives.GlobalVariables.MixConstants;
 
 namespace Application.CQ.Songs.Query.GetSongsMix;
 
-public class GetSongsMixCommandValidator : AbstractValidator<GetSongsMixCommand>
+public class GetSongsMixCommandValidator : PagedRequestValidator<GetSongsMixCommand>
 {
     public GetSongsMixCommandValidator(IUnitOfWork _uow)
     {
-        RuleFor(x => x.page)
-            .Must(page => page > 0)
-            .WithMessage(PageError.InvalidPage.Description);
         
         //Min 2, max 50 unique Albums
         RuleFor(x => x).CustomAsync(async (x, context, cancellationToken) =>

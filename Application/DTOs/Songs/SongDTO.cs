@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Artists;
+﻿using System.Collections;
+using Application.DTOs.Artists;
 using Application.Projections.Songs;
 using Domain.Helpers;
 using static Domain.Primitives.GlobalVariables;

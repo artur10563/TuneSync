@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Application.DTOs.Songs;
+using Application.Extensions;
 using Application.Projections.Playlists;
 using Domain.Entities;
 using Domain.Primitives;
@@ -9,10 +10,8 @@ namespace Infrastructure.Projections;
 
 public static partial class ProjectionHelper
 {
-    public static Expression<Func<Playlist, PlaylistProjection>> GetPlaylistWithSongsProjection(Guid userGuid)
+    public static Expression<Func<Playlist, PlaylistProjection>> GetPlaylistProjection(Guid userGuid, int page)
     {
-        var songProjection = GetSongWithArtistProjection(userGuid);
-        
         Expression<Func<Playlist, PlaylistProjection>> expr = playlist => new PlaylistProjection(
             playlist.Guid,
             playlist.Title,
@@ -22,11 +21,13 @@ public static partial class ProjectionHelper
             playlist.ModifiedAt,
             string.Empty,
             playlist.FavoredBy.Any(x => x.UserGuid == userGuid && x.IsFavorite), 
-            playlist.Songs.Count,
-            playlist.Songs
-                .OrderBy(x => x.CreatedAt)
-                .Select(s => songProjection.Invoke(s))
-                .ToList()
+            playlist.Songs.Count
+            // playlist.Songs
+            //     .Skip((page-1)*GlobalVariables.PaginationConstants.PageSize)
+            //     .Take(GlobalVariables.PaginationConstants.PageSize)
+            //     .OrderBy(x => x.CreatedAt)
+            //     .Select(s => songProjection.Invoke(s))
+            //     .ToList()
         );
 
         return expr.Expand();

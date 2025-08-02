@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.DTOs.Songs;
 using Domain.Primitives;
 using MediatR;
@@ -9,6 +10,6 @@ public record GetSongsMixCommand(
     List<Guid> AlbumGuids, 
     List<Guid> PlaylistGuids, 
     List<Guid> ArtistGuids,
-    int page = 1, 
+    int Page = 1, 
     string? ShuffleSeed = null)
-    : IRequest<PaginatedResult<IEnumerable<SongDTO>>>;
+    : IPaged, IRequest<PaginatedResult<IEnumerable<SongDTO>>>;
