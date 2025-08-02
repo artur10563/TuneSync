@@ -1,4 +1,3 @@
-using Application.CQ.Album.Query.GetArtistList;
 using Application.DTOs.Artists;
 using Application.Extensions;
 using Application.Projections;

@@ -28,8 +28,8 @@ public class ProjectionProvider : IProjectionProvider
     public Expression<Func<Album, AlbumSummaryProjection>> GetAlbumSummaryProjection(Guid userGuid) =>
         ProjectionHelper.GetAlbumSummaryProjection(userGuid);
 
-    public Expression<Func<Playlist, PlaylistProjection>> GetPlaylistWithSongsProjection(Guid userGuid) =>
-        ProjectionHelper.GetPlaylistWithSongsProjection(userGuid);
+    public Expression<Func<Playlist, PlaylistProjection>> GetPlaylistProjection(Guid userGuid, int page = 1) =>
+        ProjectionHelper.GetPlaylistProjection(userGuid, page);
 
     public Expression<Func<Playlist, PlaylistSummaryProjection>> GetPlaylistSummaryProjection(Guid userGuid) =>
         ProjectionHelper.GetPlaylistSummaryProjection(userGuid);

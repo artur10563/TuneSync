@@ -86,5 +86,11 @@ namespace Domain.Primitives
             public const int MinCount = 2;
             public const int MaxCount = 50;
         }
+
+        public static class MetadataKeys
+        {
+            public const string TotalCount = "TotalCount";
+            public const string TotalLength = "TotalLength";
+        }
     }
 }

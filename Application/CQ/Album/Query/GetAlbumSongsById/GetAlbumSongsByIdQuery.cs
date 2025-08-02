@@ -3,7 +3,7 @@ using Application.DTOs.Songs;
 using Domain.Primitives;
 using MediatR;
 
-namespace Application.CQ.Songs.Query.GetUserFavoriteSongs;
+namespace Application.CQ.Album.Query.GetAlbumSongsById;
 
-public sealed record GetUserFavoriteSongsQuery(Guid UserGuid, int Page) 
+public record GetAlbumSongsByIdQuery(Guid AlbumGuid, Guid? UserGuid = null, int Page = 1) 
     : IPaged, IRequest<PaginatedResult<IEnumerable<SongDTO>>>;

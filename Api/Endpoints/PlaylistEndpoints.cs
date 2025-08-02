@@ -4,6 +4,7 @@ using Application.CQ.Playlists.Command.DeletePlaylist;
 using Application.CQ.Playlists.Command.DeleteSongFromPlaylist;
 using Application.CQ.Playlists.Query.GetById;
 using Application.CQ.Playlists.Query.GetPlaylistsByUser;
+using Application.CQ.Playlists.Query.GetPlaylistSongsById;
 using Application.DTOs.Playlists;
 using MediatR;
 
@@ -30,15 +31,28 @@ namespace Api.Endpoints
                 .RequireAuthorization()
                 .WithDescription("Create new playlist").Produces<Guid>();
 
-            group.MapGet("/{guid}", async (ISender sender, HttpContext _httpContext, Guid guid, int page = 1) =>
+            group.MapGet("/{guid}", async (ISender sender, HttpContext _httpContext, Guid guid) =>
                 {
                     var user = await _httpContext.GetCurrentUserAsync();
 
-                    var command = new GetPlaylistByIdCommand(guid, user?.Guid, page);
+                    var command = new GetPlaylistDetailsByIdCommand(guid, user?.Guid);
                     var result = await sender.Send(command);
                     return result.IsFailure ? Results.BadRequest(result.Errors) : Results.Ok(result.Value);
                 })
-                .WithDescription("Get playlist with songs by Guid").Produces<PlaylistDTO>();
+                .WithDescription("Get playlist details by Guid").Produces<PlaylistDTO>();
+
+            group.MapGet("/{guid}/songs", async (ISender sender, HttpContext _httpContext, Guid guid, int page) =>
+            {
+                var user = await _httpContext.GetCurrentUserAsync();
+                
+                var command = new GetPlaylistSongsByIdCommand(user.Guid, guid, page);
+                var result = await sender.Send(command);
+                return result.IsFailure
+                    ? Results.BadRequest(result.Errors)
+                    : !result.Value.Any()
+                        ? Results.NoContent()
+                        : Results.Ok(result.ToPaginatedResponse());
+            }).RequireAuthorization();
 
             group.MapPost("/{playlistGuid}/songs/{songGuid}", async (ISender sender, HttpContext _httpContext,
                     Guid playlistGuid,

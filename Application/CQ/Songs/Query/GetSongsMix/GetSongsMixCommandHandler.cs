@@ -15,7 +15,7 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
     private readonly ISearchService _searchService;
     private readonly IValidator<GetSongsMixCommand> _validator;
     private readonly IProjectionProvider _projectionProvider;
-    
+
     public GetSongsMixCommandHandler(
         IUnitOfWork uow,
         ISearchService searchService,
@@ -38,9 +38,11 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
     {
         var validationErrors = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationErrors.IsValid)
-            return validationErrors.AsErrors(request.page);
+            return validationErrors.AsErrors(request.Page);
 
         var userGuid = request.UserGuid ?? Guid.Empty;
+        var songs = new List<SongDTO>();
+
 
         var artistChildren =
             _uow.ArtistRepository.Where(a => request.ArtistGuids.Contains(a.Guid),
@@ -56,26 +58,21 @@ public class GetSongsMixCommandHandler : IRequestHandler<GetSongsMixCommand, Pag
             || (request.PlaylistGuids.Count != 0 && s.Playlists.Any(ps => request.PlaylistGuids.Contains(ps.Guid)))
             || (allArtist.Count != 0 && allArtist.Contains(s.ArtistGuid))
         ).Distinct();
-        
-        var metadata = new Dictionary<string, object>()
-        {
-            { "totalLength", TimeSpan.FromSeconds(baseQuery.Sum(song => song.AudioLength.TotalSeconds)) }
-        };
-        
-        var songQuery = baseQuery.Select(_projectionProvider.GetSongWithArtistProjection(userGuid));
 
-        var songs = new List<SongDTO>();
+        var songQuery = baseQuery.Select(_projectionProvider.GetSongWithArtistProjection(userGuid));
 
         //Transaction is required for ShuffleSeed to work 
         _uow.TransactedAction(() =>
         {
             songs = _searchService.Shuffle(songQuery, GetRandomDoubleFromSeed(request.ShuffleSeed))
-                .Page(request.page)
+                .Page(request.Page)
                 .ToList()
                 .Select(SongDTO.FromProjection)
                 .ToList();
         });
-        
-        return (songs, request.page, GlobalVariables.PaginationConstants.PageSize, baseQuery.Count(), metadata);
+
+        var songsInfo = baseQuery.GetSongsInfo();
+
+        return new PaginatedResult<IEnumerable<SongDTO>>(songs, request.Page, songsInfo.TotalCount, songsInfo.ToMetadataDictionary());
     }
 }

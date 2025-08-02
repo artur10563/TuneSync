@@ -61,7 +61,7 @@ namespace Api.Endpoints
                     AlbumGuids: ExtractGuids(albumGuids),
                     PlaylistGuids: ExtractGuids(playlistGuids),
                     ArtistGuids: ExtractGuids(artistGuids),
-                    page: page,
+                    Page: page,
                     ShuffleSeed: shuffleSeed);
                 
                 var result = await _sender.Send(command);

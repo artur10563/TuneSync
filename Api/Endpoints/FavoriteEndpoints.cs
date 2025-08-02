@@ -8,6 +8,7 @@ using Application.CQ.Songs.Query.GetUserFavoriteSongs;
 using Application.DTOs.Albums;
 using Application.DTOs.Playlists;
 using Application.DTOs.Songs;
+using Domain.Primitives;
 using MediatR;
 
 namespace Api.Endpoints;
@@ -31,19 +32,19 @@ public static class FavoriteEndpoints
             return result.IsSuccess ? Results.Ok() : Results.BadRequest(result.Errors);
         }).WithDescription("Add/Remove song from favorites");
 
-        favGroup.MapGet("/song", async (ISender _sender, HttpContext _httpContext) =>
+        favGroup.MapGet("/song", async (ISender _sender, HttpContext _httpContext, int page) =>
         {
             var user = await _httpContext.GetCurrentUserAsync();
 
-            var command = new GetUserFavoriteSongsQuery(user!.Guid);
+            var command = new GetUserFavoriteSongsQuery(user!.Guid, page);
             var result = await _sender.Send(command);
 
             return result.IsSuccess
                 ? !result.Value.Any()
                     ? Results.NoContent()
-                    : Results.Ok(result.Value)
+                    : Results.Ok(result.ToPaginatedResponse())
                 : Results.BadRequest(result.Errors);
-        }).WithDescription("Get favorite songs of current user").Produces<IEnumerable<SongDTO>>();
+        }).WithDescription("Get favorite songs of current user").Produces<IEnumerable<PaginatedResponse<IEnumerable<SongDTO>>>>();
         
         #endregion
 

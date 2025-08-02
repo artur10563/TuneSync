@@ -1,7 +1,7 @@
 using Domain.Primitives;
 using FluentValidation;
 
-namespace Application.CQ.Album.Query.GetArtistList;
+namespace Application.CQ.Artists.Query.GetArtistList;
 
 public class GetArtistListQueryValidator : AbstractValidator<GetArtistListQuery>
 {

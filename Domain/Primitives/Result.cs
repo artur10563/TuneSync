@@ -109,6 +109,15 @@ namespace Domain.Primitives
             Metadata = metadata;
         }
         
+        public PaginatedResult(TValue value, int page, int pageSize, int totalCount, Dictionary<string, object>? metadata)
+            : this(value, true, Error.None, page, pageSize, totalCount, metadata)
+        { }
+        
+        public PaginatedResult(TValue value, int page, int totalCount, Dictionary<string, object>? metadata)
+            : this(value, true, Error.None, page, GlobalVariables.PaginationConstants.PageSize, totalCount, metadata)
+        { }
+        
+        
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int TotalCount { get; set; }

@@ -27,7 +27,7 @@ namespace Application.CQ.Songs.Command.CreateSong
 
         public async Task<Result<Song>> Handle(CreateSongCommand request, CancellationToken cancellationToken)
         {
-            var validationResults = _validator.Validate(request);
+            var validationResults = await _validator.ValidateAsync(request, cancellationToken);
             if (!validationResults.IsValid)
                 return validationResults.AsErrors();
 
