@@ -19,40 +19,20 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .WithMany(x => x.Playlists)
                 .HasForeignKey(x => x.CreatedBy)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             builder.Property(x => x.Source).IsRequired();
 
-            builder.Property(x=>x.ThumbnailSource).IsRequired(false);
-            builder.Property(x=>x.ThumbnailId).IsRequired(false);
-            
-            builder.HasMany(p => p.Songs)
-                .WithMany(s => s.Playlists)
-                .UsingEntity<PlaylistSong>(
-                pls =>
-                    pls.HasOne<Song>()
-                    .WithMany()
-                    .HasForeignKey(pls => pls.SongGuid),
-                pls =>
-                    pls.HasOne<Playlist>()
-                    .WithMany()
-                    .HasForeignKey(pls => pls.PlaylistGuid),
-                j =>
-                {
-                    j.ToTable("PlaylistSong");
-                    j.HasKey(ps => new { ps.PlaylistGuid, ps.SongGuid });
-                    j.HasIndex(ps => new { ps.PlaylistGuid, ps.SongGuid }).IsUnique();
+            builder.Property(x => x.ThumbnailSource).IsRequired(false);
+            builder.Property(x => x.ThumbnailId).IsRequired(false);
 
-                    j.HasOne(ps => ps.Playlist)
-                        .WithMany()
-                        .HasForeignKey(ps => ps.PlaylistGuid)
-                        .OnDelete(DeleteBehavior.Cascade);
-                    
-                    j.HasOne(ps => ps.Song)
-                        .WithMany()
-                        .HasForeignKey(ps => ps.SongGuid)
-                        .OnDelete(DeleteBehavior.Cascade);
+            // PlaylistSong join entity
+            builder.HasMany(p => p.PlaylistSongs)
+                .WithOne(ps => ps.Playlist)
+                .HasForeignKey(ps => ps.PlaylistGuid);
 
-                });
+            builder.Metadata
+                .FindNavigation(nameof(Playlist.PlaylistSongs))!
+                .SetPropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

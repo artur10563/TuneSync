@@ -21,13 +21,7 @@ public static partial class ProjectionHelper
             playlist.ModifiedAt,
             string.Empty,
             playlist.FavoredBy.Any(x => x.UserGuid == userGuid && x.IsFavorite), 
-            playlist.Songs.Count
-            // playlist.Songs
-            //     .Skip((page-1)*GlobalVariables.PaginationConstants.PageSize)
-            //     .Take(GlobalVariables.PaginationConstants.PageSize)
-            //     .OrderBy(x => x.CreatedAt)
-            //     .Select(s => songProjection.Invoke(s))
-            //     .ToList()
+            playlist.PlaylistSongs.Count
         );
 
         return expr.Expand();
@@ -40,7 +34,7 @@ public static partial class ProjectionHelper
             playlist.Title,
             string.Empty,
             playlist.FavoredBy.Any(x => x.UserGuid == userGuid && x.IsFavorite),
-            playlist.Songs.Count
+            playlist.PlaylistSongs.Count
             );
         
         return expr;

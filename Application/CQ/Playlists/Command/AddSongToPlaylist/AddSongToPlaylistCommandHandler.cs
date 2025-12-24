@@ -20,16 +20,19 @@ namespace Application.CQ.Playlists.Command.Create
 
         public async Task<Result<Guid>> Handle(AddSongToPlaylistCommand request, CancellationToken cancellationToken)
         {
-            var validationResult = await _validator.ValidateAsync(request);
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
                 return validationResult.AsErrors();
 
-            var playlist = await _uow.PlaylistRepository.GetByGuidAsync(request.PlaylistGuid, includes: p => p.Songs);
-            var song = await _uow.SongRepository.GetByGuidAsync(request.SongGuid);
+            var playlist = await _uow.PlaylistRepository.GetByGuidAsync(request.PlaylistGuid, includes: p => p.PlaylistSongs);
 
-            if (playlist.Songs.Contains(song)) return new Error("Song allready in playlist!");
+            if (playlist.PlaylistSongs.Any(x => x.SongGuid == request.SongGuid)) return new Error("Song already in playlist!");
 
-            playlist!.Songs.Add(song);
+            playlist!.PlaylistSongs.Add(new PlaylistSong
+            {
+                PlaylistGuid = request.PlaylistGuid,
+                SongGuid = request.SongGuid,
+            });
 
             await _uow.SaveChangesAsync();
             return playlist.Guid;
