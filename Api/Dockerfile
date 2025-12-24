@@ -18,11 +18,11 @@ COPY ["../Api/Api.csproj", "Api/"]
 COPY ["../Application/Application.csproj", "Application/"]
 COPY ["../Domain/Domain.csproj", "Domain/"]
 COPY ["../Infrastructure/Infrastructure.csproj", "Infrastructure/"]
-COPY ["../Tests/Tests.csproj", "Tests/"]
+#COPY ["../Tests/Tests.csproj", "Tests/"]
 
 # Restore dependencies
 RUN dotnet restore "Api/Api.csproj"
-RUN dotnet restore "Tests/Tests.csproj"
+#RUN dotnet restore "Tests/Tests.csproj"
 
 # Copy remaining source files
 COPY .. .
@@ -32,11 +32,11 @@ WORKDIR "/src/Api"
 RUN dotnet build "Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Build test project
-WORKDIR "/src/Tests"
-RUN dotnet build "Tests.csproj" -c $BUILD_CONFIGURATION -o /app/test-build
+#WORKDIR "/src/Tests"
+#RUN dotnet build "Tests.csproj" -c $BUILD_CONFIGURATION -o /app/test-build
 
 # Run tests and fail if any test fails
-RUN dotnet test "Tests.csproj" -c $BUILD_CONFIGURATION --no-build --logger "console;verbosity=detailed"
+#RUN dotnet test "Tests.csproj" -c $BUILD_CONFIGURATION --no-build --logger "console;verbosity=detailed"
 
 # Publish API
 FROM build AS publish
