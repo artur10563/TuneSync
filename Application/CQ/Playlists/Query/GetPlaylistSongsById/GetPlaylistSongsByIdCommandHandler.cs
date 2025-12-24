@@ -26,10 +26,12 @@ internal sealed class GetPlaylistSongsByIdCommandHandler : IRequestHandler<GetPl
         var validationErrors = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationErrors.IsValid)
             return validationErrors.AsErrors(request.Page);
-        
+
         var songsQuery = _uow.PlaylistRepository
             .Where(x => x.Guid == request.PlaylistGuid)
-            .SelectMany(x => x.Songs);
+            .SelectMany(x => x.PlaylistSongs)
+            .OrderByDescending(ps => ps.CreatedAt)
+            .Select(ps => ps.Song);
 
         var songs = songsQuery
             .Select(_projectionProvider.GetSongWithArtistProjection(request.UserGuid))

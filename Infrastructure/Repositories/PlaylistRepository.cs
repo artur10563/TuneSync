@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
 
         public override Task<Playlist?> FirstOrDefaultWithDependantAsync(Expression<Func<Playlist, bool>> predicate)
         {
-            return _set.Include(pl => pl.Songs).FirstOrDefaultAsync(predicate);
+            return _set.Include(pl => pl.PlaylistSongs).ThenInclude(ps => ps.Song).FirstOrDefaultAsync(predicate);
         }
     }
 }

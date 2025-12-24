@@ -27,8 +27,10 @@ public class GetUserFavoriteSongsQueryHandler : IRequestHandler<GetUserFavoriteS
         if (!validationErrors.IsValid)
             return validationErrors.AsErrors(GlobalVariables.PaginationConstants.PageSize);
 
-        var ufsQuery = _uow.SongRepository.NoTrackingQueryable()
-            .Where(x => x.FavoredBy.Any(us => us.UserGuid == request.UserGuid && us.IsFavorite));
+        var ufsQuery = _uow.UserSongRepository.NoTrackingQueryable()
+            .Where(us => us.UserGuid == request.UserGuid && us.IsFavorite)
+            .OrderByDescending(us => us.CreatedAt)
+            .Select(us => us.Song);
         
         var ufs = ufsQuery
             .OrderBy(x => x.CreatedAt)

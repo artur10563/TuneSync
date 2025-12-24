@@ -9,8 +9,29 @@ internal class UserSongEntityTypeConfiguration : IEntityTypeConfiguration<UserSo
     public void Configure(EntityTypeBuilder<UserSong> builder)
     {
         builder.ToTable("UserSongs");
+
         builder.HasKey(us => new { us.UserGuid, us.SongGuid });
-        builder.Property(x => x.IsFavorite).IsRequired().HasDefaultValue(false);
-        builder.Property(x => x.IsOffline).IsRequired().HasDefaultValue(false);
+
+        builder.HasOne(us => us.User)
+            .WithMany(u => u.FavoriteSongs)
+            .HasForeignKey(us => us.UserGuid)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(us => us.Song)
+            .WithMany(s => s.FavoredBy)
+            .HasForeignKey(us => us.SongGuid)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(us => us.IsFavorite)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(us => us.IsOffline)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(us => us.CreatedAt)
+            .HasDefaultValueSql("NOW()");
+       
     }
 }

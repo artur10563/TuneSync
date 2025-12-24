@@ -7,6 +7,7 @@ namespace Domain.Entities
         public Guid PlaylistGuid { get; set; }
         public Guid SongGuid { get; set; }
 
+        public DateTime CreatedAt { get; set; } = DateTime.MinValue;
         public virtual Playlist Playlist { get; set; }
         public virtual Song Song { get; set; }
         public PlaylistSong() { }
@@ -14,6 +15,7 @@ namespace Domain.Entities
         {
             PlaylistGuid = playlistGuid;
             SongGuid = songGuid;
+            CreatedAt = DateTime.UtcNow;
         }
     }
 }

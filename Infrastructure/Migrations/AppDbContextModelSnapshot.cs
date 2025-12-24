@@ -141,6 +141,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
 
+                    b.Property<Guid?>("SongGuid")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasColumnType("text");
@@ -160,6 +163,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatedBy");
 
+                    b.HasIndex("SongGuid");
+
                     b.ToTable("Playlist", (string)null);
                 });
 
@@ -171,12 +176,14 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("SongGuid")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
                     b.HasKey("PlaylistGuid", "SongGuid");
 
                     b.HasIndex("SongGuid");
-
-                    b.HasIndex("PlaylistGuid", "SongGuid")
-                        .IsUnique();
 
                     b.ToTable("PlaylistSong", (string)null);
                 });
@@ -334,6 +341,11 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("SongGuid")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
                     b.Property<bool>("IsFavorite")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -394,13 +406,17 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.Song", null)
+                        .WithMany("Playlists")
+                        .HasForeignKey("SongGuid");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.PlaylistSong", b =>
                 {
                     b.HasOne("Domain.Entities.Playlist", "Playlist")
-                        .WithMany()
+                        .WithMany("PlaylistSongs")
                         .HasForeignKey("PlaylistGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -473,17 +489,21 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.UserSong", b =>
                 {
-                    b.HasOne("Domain.Entities.Song", null)
+                    b.HasOne("Domain.Entities.Song", "Song")
                         .WithMany("FavoredBy")
                         .HasForeignKey("SongGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.User", null)
+                    b.HasOne("Domain.Entities.User", "User")
                         .WithMany("FavoriteSongs")
                         .HasForeignKey("UserGuid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Song");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.Album", b =>
@@ -507,11 +527,15 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Playlist", b =>
                 {
                     b.Navigation("FavoredBy");
+
+                    b.Navigation("PlaylistSongs");
                 });
 
             modelBuilder.Entity("Domain.Entities.Song", b =>
                 {
                     b.Navigation("FavoredBy");
+
+                    b.Navigation("Playlists");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

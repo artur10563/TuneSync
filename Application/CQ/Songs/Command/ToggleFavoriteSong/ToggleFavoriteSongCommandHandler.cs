@@ -30,6 +30,7 @@ public class ToggleFavoriteSongCommandHandler : IRequestHandler<ToggleFavoriteSo
         else
         {
             existingRecord.IsFavorite = !existingRecord.IsFavorite;
+            existingRecord.CreatedAt = DateTime.UtcNow;
         }
 
         await _uow.SaveChangesAsync();
