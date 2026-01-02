@@ -15,7 +15,9 @@ builder.Services.DIFromContainer(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
-    var clients = builder.Configuration.GetSection("CORS:Clients").Get<string[]>() ?? [];
+    var clients = (builder.Configuration.GetSection("CORS:Clients").Get<string[]>() ?? [])
+        .Select(url => url.TrimEnd('/'))
+        .ToArray();
     options.AddPolicy("AllowAngularClient", corsBuilder =>
     {
         corsBuilder.WithOrigins(clients)
