@@ -9,7 +9,7 @@ namespace Application.Projections;
 
 public interface IProjectionProvider
 {
-    Expression<Func<Song, SongProjection>> GetSongWithArtistProjection(Guid userGuid);
+    Expression<Func<Song, SongProjection>> GetSongWithArtistProjection(Guid? userGuid);
     
     
     Expression<Func<Album, AlbumProjection>> GetAlbumWithArtistProjection(Guid userGuid);

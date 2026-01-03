@@ -45,14 +45,14 @@ namespace Api.Endpoints
             {
                 var user = await _httpContext.GetCurrentUserAsync();
                 
-                var command = new GetPlaylistSongsByIdCommand(user.Guid, guid, page);
+                var command = new GetPlaylistSongsByIdCommand(user?.Guid, guid, page);
                 var result = await sender.Send(command);
                 return result.IsFailure
                     ? Results.BadRequest(result.Errors)
                     : !result.Value.Any()
                         ? Results.NoContent()
                         : Results.Ok(result.ToPaginatedResponse());
-            }).RequireAuthorization();
+            });//.RequireAuthorization();
 
             group.MapPost("/{playlistGuid}/songs/{songGuid}", async (ISender sender, HttpContext _httpContext,
                     Guid playlistGuid,

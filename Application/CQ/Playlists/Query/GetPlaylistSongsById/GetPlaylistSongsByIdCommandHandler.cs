@@ -34,7 +34,7 @@ internal sealed class GetPlaylistSongsByIdCommandHandler : IRequestHandler<GetPl
             .Select(ps => ps.Song);
 
         var songs = songsQuery
-            .Select(_projectionProvider.GetSongWithArtistProjection(request.UserGuid))
+            .Select(_projectionProvider.GetSongWithArtistProjection(request?.UserGuid))
             .Page(request.Page)
             .Select(SongDTO.FromProjection);
         

@@ -12,7 +12,7 @@ namespace Infrastructure.Projections;
 
 public class ProjectionProvider : IProjectionProvider
 {
-    public Expression<Func<Song, SongProjection>> GetSongWithArtistProjection(Guid userGuid) =>
+    public Expression<Func<Song, SongProjection>> GetSongWithArtistProjection(Guid? userGuid) =>
         ProjectionHelper.GetSongWithArtistProjection(userGuid);
 
 
