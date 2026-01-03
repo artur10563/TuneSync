@@ -8,7 +8,7 @@ namespace Infrastructure.Projections;
 
 public static partial class ProjectionHelper
 {
-    public static Expression<Func<Song, SongProjection>> GetSongWithArtistProjection(Guid userGuid)
+    public static Expression<Func<Song, SongProjection>> GetSongWithArtistProjection(Guid? userGuid)
     {
         var artistProjection = GetArtistInfoProjection();
 
@@ -24,7 +24,7 @@ public static partial class ProjectionHelper
             artistProjection.Invoke(song.Artist),
             song.AlbumGuid,
             song.Album != null ? song.Album.Title : null,
-            song.FavoredBy.Any(us => us.UserGuid == userGuid && us.IsFavorite)
+            userGuid != null && song.FavoredBy.Any(us => us.UserGuid == userGuid && us.IsFavorite)
         );
 
         return expr.Expand();
