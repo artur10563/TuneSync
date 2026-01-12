@@ -83,7 +83,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
                 {
                     var httpClient = new HttpClient();
                     await using var stream = await httpClient.GetStreamFromUrlAsync(playlistThumbnail.Url, cancellationToken);
-                    playlistThumbnailId = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
+                    (_, playlistThumbnailId) = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
                 }
                 
                 album = new Album(
@@ -125,7 +125,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
                     _logger.Log($"Video info retrieved", LogLevel.Information);
 
-                    var fileGuid = await _storageService.UploadFileAsync(stream, StorageFolder.Audio);
+                    var (fileGuid, _) = await _storageService.UploadFileAsync(stream, StorageFolder.Audio);
 
                     _logger.Log($"File uploaded to Firebase", LogLevel.Information, fileGuid);
 
@@ -133,7 +133,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
                         song.Title,
                         SongSource.YouTube,
                         song.Id,
-                        new Guid(fileGuid),
+                        fileGuid,
                         videoInfo.Duration,
                         (int)stream.GetKilobytes(),
                         createdBy,

@@ -31,11 +31,11 @@ namespace Application.CQ.Songs.Command.CreateSong
             if (!validationResults.IsValid)
                 return validationResults.AsErrors();
 
-            var filePath = await _fileStorage.UploadFileAsync(request.AudioFileStream, StorageFolder.Audio);
+            var (filePath, _) = await _fileStorage.UploadFileAsync(request.AudioFileStream, StorageFolder.Audio);
 
             var song = new Song(title: request.Title,
                 artistGuid: request.ArtistGuid,
-                audioPath: new Guid(filePath),
+                audioPath: filePath,
                 source: GlobalVariables.SongSource.File,
                 sourceId: null,
                 audioSize: (int)(request.AudioFileStream.Length/1000),

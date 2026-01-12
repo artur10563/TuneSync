@@ -28,31 +28,36 @@ namespace Infrastructure.Services
         /// <param name="fileStream">File as fileStream</param>
         /// <param name="folder">File folder</param>
         /// <returns>Path from which the file can be downloaded</returns>
-        public async Task<string> UploadFileAsync(Stream fileStream, StorageFolder folder)
+        public async Task<FileUploadResult> UploadFileAsync(Stream fileStream, StorageFolder folder)
         {
+            //returned Guid for audio, folderName/Guid for other jpg and other files?
             var guid = NewGuid();
             var folderName = folder.GetPath();
-            switch (folder)
-            {
-                case StorageFolder.Audio:
-                    await _fileStorage.Child(folderName).Child(guid + ".mp3").PutAsync(fileStream: fileStream);
-                    return guid.ToString();
-                case StorageFolder.Images:
-                    await _fileStorage.Child(folderName).Child(guid + ".jpg").PutAsync(fileStream);
-                    break;
-                case StorageFolder.None:
-                    await _fileStorage.Child(folderName).Child(guid.ToString()).PutAsync(fileStream); //TODO: add extension
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(folder), folder, null);
-            }
             
-             return folderName + "/" + guid;
+            var objectName = folder switch 
+            {
+                StorageFolder.Audio => $"{folderName}/{guid}.mp3",
+                StorageFolder.Images => $"{folderName}/{guid}.jpg",
+                _ => $"{StorageFolder.Dump.GetPath()}/{guid}"
+            };
+            
+            var newObject = new Google.Apis.Storage.v1.Data.Object
+            {
+                Bucket = _bucketName,
+                Name = objectName
+            };
+
+            await _storageClient.UploadObjectAsync(
+                newObject,
+                fileStream
+            );
+
+            return new FileUploadResult(guid, objectName);
         }
 
         public async IAsyncEnumerable<string> GetFileNames(StorageFolder? folder = null)
         {
-            var objects = _storageClient.ListObjectsAsync(_bucketName,folder?.GetPath());
+            var objects = _storageClient.ListObjectsAsync(_bucketName, folder?.GetPath());
             await foreach (var item in objects)
             {
                 yield return item.Name;

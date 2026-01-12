@@ -258,7 +258,6 @@ namespace Infrastructure.Services
                 {
                     throw new Exception("yt-dlp did not return any output.");
                 }
-
                 return output;
             }
         }

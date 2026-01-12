@@ -58,7 +58,7 @@ public static class AdminEndpoints
                 {
                     var httpClient = new HttpClient();
                     await using var stream = await httpClient.GetStreamFromUrlAsync(thumbnailId);
-                    thumbnailId = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
+                    (_, thumbnailId) = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
                 }
 
                 album.ThumbnailId = thumbnailId;
