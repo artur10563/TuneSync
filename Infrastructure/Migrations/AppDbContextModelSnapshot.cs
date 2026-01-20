@@ -203,11 +203,14 @@ namespace Infrastructure.Migrations
                     b.Property<TimeSpan>("AudioLength")
                         .HasColumnType("interval");
 
-                    b.Property<Guid>("AudioPath")
+                    b.Property<Guid?>("AudioPath")
                         .HasColumnType("uuid");
 
                     b.Property<int>("AudioSize")
                         .HasColumnType("integer");
+
+                    b.Property<string>("AudioSource")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()

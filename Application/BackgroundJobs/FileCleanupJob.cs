@@ -1,5 +1,6 @@
 using Application.Repositories.Shared;
 using Application.Services;
+using Domain.Enums;
 using Domain.Primitives;
 
 namespace Application.BackgroundJobs;
@@ -26,14 +27,20 @@ public sealed class FileCleanupJob
 
         var dbFiles = _uow.SongRepository
             .NoTrackingQueryable()
-            .Select(x => x.GetAudioPath())
+            .Where(x => x.AudioPath != null)
+            .Select(x => x.AudioPath!.Value.ToString())
             .ToHashSet()
             .Union(
                 _uow.AlbumRepository
-                    .Where(x => x.ThumbnailSource == GlobalVariables.PlaylistSource.YouTubeMusic && x.ThumbnailId != null, asNoTracking: true)
+                    .NoTrackingQueryable()
+                    .Where(x => x.ThumbnailSource == GlobalVariables.PlaylistSource.YouTubeMusic && x.ThumbnailId != null)
                     .Select(x => x.ThumbnailId)
                     .ToHashSet()
-            );
+            ).ToHashSet();
+        
+        var filePaths = dbFiles
+            .Select(id => $"{StorageFolder.Audio.GetPath()}/{id}")
+            .ToHashSet();
 
         var imgExtension = ".jpg";
         var audioExtension = ".mp3";
@@ -46,13 +53,12 @@ public sealed class FileCleanupJob
             
             var fileName = file.Replace(imgExtension, "").Replace(audioExtension, "");
 
-            if (dbFiles.Contains(fileName)) continue;
+            if (filePaths.Contains(fileName)) continue;
 
-            if (await _storageService.TryDeleteFileAsync(file))
-            {
-                _logger.Log("Deleted file", LogLevel.Information, fileName);
-                ++counter;
-            }
+            if (!await _storageService.TryDeleteFileAsync(file)) continue;
+            
+            _logger.Log("Deleted file", LogLevel.Information, fileName);
+            ++counter;
         }
         _logger.Log("File cleanup completed", LogLevel.Information, counter);
         return counter;

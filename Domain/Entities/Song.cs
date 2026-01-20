@@ -7,9 +7,12 @@ namespace Domain.Entities
     public class Song : EntityBase
     {
         public string Title { get; set; }
-        public string Source { get; set; } //File, Youtube, Deezer etc.
+
+        //File, Youtube, Deezer. Indicates where song entity was created from. Should never be changed after creation
+        public string Source { get; set; }
         public string? SourceId { get; set; } // Youtube video id, deezer id and etc.
-        public Guid AudioPath { get; set; }
+        public string? AudioSource { get; set; } // File, Youtube, Deezer. Indicates where audio was retrieved from.
+        public Guid? AudioPath { get; set; }
         public TimeSpan AudioLength { get; set; } //seconds
         public int AudioSize { get; set; } //kb
 
@@ -25,13 +28,18 @@ namespace Domain.Entities
         public Guid? AlbumGuid { get; set; }
         public virtual Album? Album { get; set; }
 
-        public Song(string title, string source, string? sourceId, Guid audioPath, TimeSpan audioLength, int audioSize, Guid? createdBy,
+        private Song()
+        {
+        }
+
+        public Song(string title, string source, string? sourceId, Guid? audioPath, TimeSpan audioLength, int audioSize, Guid? createdBy,
             Guid artistGuid, Guid? albumGuid = null)
         {
             Title = SanitizeTitle(title);
             Source = source;
             SourceId = sourceId;
             AudioPath = audioPath;
+            AudioSource = source;
             AudioLength = audioLength;
             AudioSize = audioSize;
             CreatedBy = createdBy;
@@ -39,7 +47,30 @@ namespace Domain.Entities
             AlbumGuid = albumGuid;
         }
 
-        private string SanitizeTitle(string title, params string[] additionalFilters)
+        public static Song CreateWithAudio(string title, string source, string? sourceId, Guid? audioPath, TimeSpan audioLength, int audioSize, Guid? createdBy,
+            Guid artistGuid, Guid? albumGuid = null)
+        {
+            return new Song(title, source, sourceId, audioPath, audioLength, audioSize, createdBy, artistGuid, albumGuid);
+        }
+        public static Song CreateWithoutAudio(string title, string source, string? sourceId, Guid? createdBy,
+            Guid artistGuid, Guid? albumGuid = null)
+        {
+            return new Song
+            {
+                Title = SanitizeTitle(title),
+                Source = source,
+                SourceId = sourceId,
+                AudioPath = null,
+                AudioLength = TimeSpan.Zero,
+                AudioSize = 0,
+                CreatedBy = createdBy,
+                ArtistGuid = artistGuid,
+                AlbumGuid = albumGuid,
+                AudioSource = null
+            };
+        }
+
+        private static string SanitizeTitle(string title, params string[] additionalFilters)
         {
             string pattern = @"(\[.*?\]|\(.*?\))";
             string result = Regex.Replace(title, pattern, "", RegexOptions.IgnoreCase);
@@ -59,9 +90,12 @@ namespace Domain.Entities
             return result;
         }
 
-        public string GetAudioPath()
+        public string? GetAudioPath()
         {
-            return StorageFolder.Audio.GetPath() + "/" + this.AudioPath;
+            if (AudioPath == null)
+                return null;
+
+            return StorageFolder.Audio.GetPath() + "/" + AudioPath;
         }
     }
 }

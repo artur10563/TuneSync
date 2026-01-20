@@ -18,8 +18,8 @@ public class SongMappingTest : BaseTest
         var artist = new Artist("Artist", RandomString(), RandomString());
 
         
-        var song1 = new Song(RandomString(), RandomString(), RandomString(), Guid.NewGuid(), TimeSpan.FromMinutes(3), 1000, user.Guid, artist.Guid);
-        var song2 = new Song(RandomString(), RandomString(), RandomString(), Guid.NewGuid(), TimeSpan.FromMinutes(4), 1200, user.Guid, artist.Guid);
+        var song1 = Song.CreateWithAudio(RandomString(), RandomString(), RandomString(), Guid.NewGuid(), TimeSpan.FromMinutes(3), 1000, user.Guid, artist.Guid);
+        var song2 = Song.CreateWithAudio(RandomString(), RandomString(), RandomString(), Guid.NewGuid(), TimeSpan.FromMinutes(4), 1200, user.Guid, artist.Guid);
 
         var userFavorite1 = new UserSong
         {
@@ -76,7 +76,7 @@ public class SongMappingTest : BaseTest
         var expectedSongCount = 10;
         for (int i = 0; i < expectedSongCount; i++)
         {
-            var song = new Song($"Song {i}", $"source{i}", $"sourceId{i}", Guid.NewGuid(),
+            var song = Song.CreateWithAudio($"Song {i}", $"source{i}", $"sourceId{i}", Guid.NewGuid(),
                 TimeSpan.FromMinutes(3 + i % 5), 1000 + i, createdBy: user.Guid, artistGuid: artist.Guid, albumGuid: album.Guid);
             _uow.SongRepository.Insert(song);
         }

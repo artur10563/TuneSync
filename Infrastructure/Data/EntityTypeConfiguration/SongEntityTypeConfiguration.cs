@@ -18,8 +18,11 @@ namespace Infrastructure.Data.EntityTypeConfiguration
                 .HasMaxLength(GlobalVariables.SongConstants.TitleMaxLength);
 
             builder.Property(s => s.AudioPath)
-                .IsRequired();
+                .IsRequired(false);
 
+            builder.Property(s => s.AudioSource)
+                .IsRequired(false);
+            
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Songs)
                 .HasForeignKey(x => x.CreatedBy)
@@ -28,7 +31,6 @@ namespace Infrastructure.Data.EntityTypeConfiguration
             builder.Property(s => s.Source).IsRequired();
             builder.Property(s => s.SourceId).IsRequired(false);
             builder.HasIndex(x => x.SourceId).IsUnique();
-            
         }
     }
 }
