@@ -30,8 +30,8 @@ namespace Infrastructure.Repositories.Shared
 
         public virtual Task<int> BulkUpdatePropertyAsync<TProperty>(
             Expression<Func<TEntity, bool>> predicate,
-            Func<TEntity, TProperty> propertySelector,
-            Func<TEntity, TProperty> valueSelector)
+            Expression<Func<TEntity, TProperty>> propertySelector,
+            Expression<Func<TEntity, TProperty>> valueSelector)
         {
             return _set
                 .Where(predicate)
