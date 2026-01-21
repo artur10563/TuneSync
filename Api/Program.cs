@@ -3,6 +3,7 @@ using Api.Extensions;
 using Application.BackgroundJobs;
 using Hangfire;
 using Infrastructure;
+using Infrastructure.BackgroundJobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,7 +54,7 @@ using (var scope = app.Services.CreateScope())
     var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
     jobManager.AddOrUpdate<FileCleanupJob>(
         FileCleanupJob.Id,
-        job => job.ExecuteAsync(),
+        job => job.ExecuteAsync(Unit.Value, CancellationToken.None),
         Cron.Weekly(DayOfWeek.Friday)
     );
 }

@@ -11,6 +11,22 @@ namespace Infrastructure.Repositories.Shared
         protected readonly AppDbContext _context;
         protected readonly DbSet<TEntity> _set;
 
+        public IQueryable<TEntity> IgnoreFilter(CommonFilter filter)
+        {
+            return _set.IgnoreQueryFilters([filter.ToString()]);
+        }
+
+        public IQueryable<TEntity> IgnoreFilters(params CommonFilter[] filters)
+        {
+            if (filters.Length == 0)
+            {
+                return _set.IgnoreQueryFilters();
+            }
+
+            return _set.IgnoreQueryFilters(
+                filters.Select(f => f.ToString()).ToArray()
+            );
+        }
         protected BaseRepository(AppDbContext context)
         {
             _context = context;

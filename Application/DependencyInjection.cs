@@ -13,7 +13,6 @@ namespace Application
 
             serviceCollection.AddValidatorsFromAssemblyContaining<IApplicationMarker>();
 
-            serviceCollection.AddBackgroundWorkers();
             return serviceCollection;
         }
     }

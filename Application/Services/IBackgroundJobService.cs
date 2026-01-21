@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Application.BackgroundJobs;
 
 namespace Application.Services;
 
@@ -8,7 +9,7 @@ public interface IBackgroundJobService
     string Enqueue(Expression<Action> methodCall);
 
     /// <returns>Job id</returns>
-    string Enqueue<T>(Expression<Action<T>> methodCall);
+    string Enqueue<T>(Expression<Action<T>> methodCall) where T : IBaseJob;
 
     string GetJobStatus(string jobId);
     /// <returns>True if job is currently running</returns>

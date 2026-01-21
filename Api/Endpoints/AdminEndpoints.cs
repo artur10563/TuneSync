@@ -9,6 +9,7 @@ using Domain.Enums;
 using Domain.Helpers;
 using Domain.Primitives;
 using Hangfire;
+using Infrastructure.BackgroundJobs;
 using MediatR;
 
 namespace Api.Endpoints;

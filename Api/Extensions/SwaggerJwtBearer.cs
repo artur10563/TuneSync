@@ -21,13 +21,12 @@ namespace Api.Extensions
                     BearerFormat = "JWT"
                 });
 
-                options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
                 {
-                    {
-                        new OpenApiSecuritySchemeReference("Bearer"),
-                        new List<string>()
-                    }
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                 });
+                
+                
             });
 
             return services;

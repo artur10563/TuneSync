@@ -1,5 +1,5 @@
+using Application.BackgroundJobs;
 using Application.DTOs.Songs;
-using Application.DTOs.Youtube;
 using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
@@ -8,9 +8,10 @@ using Domain.Enums;
 using Domain.Errors;
 using Domain.Helpers;
 using Domain.Primitives;
+using Microsoft.EntityFrameworkCore;
 using static Domain.Primitives.GlobalVariables;
 
-namespace Application.BackgroundJobs;
+namespace Infrastructure.BackgroundJobs;
 
 internal sealed class YoutubeAlbumCreationContext
 {
@@ -23,7 +24,7 @@ internal sealed class YoutubeAlbumCreationContext
     public string Source { get; init; }
 }
 
-public sealed class DownloadPlaylistFromYoutubeJob
+public sealed class DownloadPlaylistFromYoutubeJob : IDownloadPlaylistFromYoutubeJob
 {
     private readonly IUnitOfWork _uow;
     private readonly IStorageService _storageService;
@@ -38,12 +39,11 @@ public sealed class DownloadPlaylistFromYoutubeJob
         _logger = logger;
     }
 
-
-    public async Task<Result<Guid>> ExecuteAsync(string youtubePlaylistId, Guid createdBy, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> ExecuteAsync(DownloadPlaylistFromYoutubeJobInput input, CancellationToken cancellationToken)
     {
         try
         {
-            var isYTM = YoutubeHelper.IsYoutubeMusic(youtubePlaylistId);
+            var isYTM = YoutubeHelper.IsYoutubeMusic(input.YoutubePlaylistId);
             var source = isYTM
                 ? GlobalVariables.PlaylistSource.YouTubeMusic
                 : GlobalVariables.PlaylistSource.YouTube;
@@ -51,16 +51,16 @@ public sealed class DownloadPlaylistFromYoutubeJob
             _logger.Log($"Fetching playlist from {source}", LogLevel.Information);
 
             //Get all playlist songs
-            var (songs, playlistThumbnail) = await _youtubeService.GetPlaylistVideosAsync(youtubePlaylistId);
+            var (songs, playlistThumbnail) = await _youtubeService.GetPlaylistVideosAsync(input.YoutubePlaylistId);
 
             if (songs.Count > AlbumConstants.MaxYoutubeAlbumLength)
             {
-                _logger.Log("Attempt to download bad album", LogLevel.Warning, new { youtubePlaylistId, count = songs.Count });
+                _logger.Log("Attempt to download bad album", LogLevel.Warning, new { input.YoutubePlaylistId, count = songs.Count });
                 return YoutubeError.MaxYoutubeLengthError;
             }
 
             //Filter out existing songs, so duplicates are not downloaded
-            var (songsToDownload, existingSongs) = GetSongsToDownload(songs);
+            var (songsToDownload, existingSongs) = await GetSongsToDownloadAsync(songs);
 
             //Get or create an artist
             var artist = await CreateOrGetArtistAsync(songs.First().Author);
@@ -69,10 +69,10 @@ public sealed class DownloadPlaylistFromYoutubeJob
             var album = await CreateOrGetAlbumAsync(new YoutubeAlbumCreationContext
             {
                 ArtistGuid = artist.Guid,
-                CreatedBy = createdBy,
+                CreatedBy = input.CreatedBy,
                 IsYoutubeMusic = isYTM,
                 Source = source,
-                PlaylistId = youtubePlaylistId,
+                PlaylistId = input.YoutubePlaylistId,
                 Songs = songs,
                 Thumbnail = playlistThumbnail
             }, cancellationToken);
@@ -94,7 +94,7 @@ public sealed class DownloadPlaylistFromYoutubeJob
 
             foreach (var song in songsToDownload)
             {
-                var newSong = await CreateNewSongAsync(createdBy, song, artist, album);
+                var newSong = await CreateNewSongAsync(input.CreatedBy, song, artist, album);
 
                 _uow.SongRepository.Insert(newSong);
                 await _uow.SaveChangesAsync();
@@ -169,13 +169,13 @@ public sealed class DownloadPlaylistFromYoutubeJob
     }
 
 
-    private (List<YoutubeSongInfo> toDownload, List<Song> existingSongs) GetSongsToDownload(List<YoutubeSongInfo> songs)
+    private async Task<(List<YoutubeSongInfo> toDownload, List<Song> existingSongs)> GetSongsToDownloadAsync(List<YoutubeSongInfo> songs)
     {
         var newSourceIds = songs.Select(s => s.Id);
 
-        var existingSongs = _uow.SongRepository
+        var existingSongs = await _uow.SongRepository.IgnoreFilter(CommonFilter.HasAudioFilter)
             .Where(song => newSourceIds.Contains(song.SourceId))
-            .ToList();
+            .ToListAsync();
 
         var existingSourceIds = existingSongs.Select(es => es.SourceId).ToHashSet();
         var songsToDownload = songs
@@ -225,8 +225,10 @@ public sealed class DownloadPlaylistFromYoutubeJob
             sourceId: ctx.PlaylistId,
             artistGuid: ctx.ArtistGuid,
             thumbnailSource: ctx.Source,
-            thumbnailId: playlistThumbnailId);
-        album.ExpectedSongs = ctx.Songs.Count;
+            thumbnailId: playlistThumbnailId)
+        {
+            ExpectedSongs = ctx.Songs.Count
+        };
         _uow.AlbumRepository.Insert(album);
         _logger.Log($"Created new album", LogLevel.Information, new { album.Guid, album.Title });
 

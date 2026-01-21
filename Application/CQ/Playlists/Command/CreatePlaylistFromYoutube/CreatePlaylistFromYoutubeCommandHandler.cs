@@ -35,8 +35,8 @@ internal class
             return new Error("Playlist is being processed");
         }
 
-        var jobId = _backgroundJob.Enqueue<DownloadPlaylistFromYoutubeJob>(
-            job => job.ExecuteAsync(request.PlaylistId, request.CreatedBy, cancellationToken));
+        var jobId = _backgroundJob.Enqueue<IDownloadPlaylistFromYoutubeJob>(
+            job => job.ExecuteAsync(new DownloadPlaylistFromYoutubeJobInput(request.PlaylistId, request.CreatedBy), cancellationToken));
 
         _logger.Log("Job started", LogLevel.Information, new { jobId, request });
 

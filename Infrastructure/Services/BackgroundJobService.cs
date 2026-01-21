@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Text.Json.Nodes;
+using Application.BackgroundJobs;
 using Application.Services;
 using Hangfire;
 using Hangfire.Storage;
@@ -23,7 +24,7 @@ public class BackgroundJobService : IBackgroundJobService
         return _backgroundClient.Enqueue(methodCall);
     }
 
-    public string Enqueue<T>(Expression<Action<T>> methodCall)
+    public string Enqueue<T>(Expression<Action<T>> methodCall) where T : IBaseJob
     {
         return _backgroundClient.Enqueue<T>(methodCall);
     }

@@ -8,6 +8,8 @@ namespace Application.Repositories.Shared
         void Insert(TEntity entity);
         void Update(TEntity entity);
         void UpdateRange(IEnumerable<TEntity> entities);
+        IQueryable<TEntity> IgnoreFilters(params CommonFilter[] filters);
+        IQueryable<TEntity> IgnoreFilter(CommonFilter filter);
 
         Task<int> BulkUpdatePropertyAsync<TProperty>(
             Expression<Func<TEntity, bool>> predicate,
