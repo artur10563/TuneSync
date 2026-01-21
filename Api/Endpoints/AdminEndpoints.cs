@@ -1,7 +1,11 @@
+using Api.Extensions;
 using Application.BackgroundJobs;
 using Application.CQ.Admin.Albums.Command.DeleteAlbum;
 using Application.CQ.Admin.Artists.Command.DeleteArtist;
 using Application.CQ.Admin.Songs.Command.DeleteSong;
+using Application.CQ.Admin.Songs.Query;
+using Application.CQ.Album.Query.GetAlbumSongsById;
+using Application.DTOs.Songs;
 using Application.Extensions;
 using Application.Repositories.Shared;
 using Application.Services;
@@ -106,10 +110,19 @@ public static class AdminEndpoints
 
 
 
-        utils.MapGet("/example", (string orderBy ) =>
+        group.MapGet("/song/failed", async (HttpContext context, ISender sender, int page = 1) =>
         {
+            var user = await context.GetCurrentUserAsync();
+            var query = new GetFailedSongsQuery(user!.Guid, page);
 
-        });
+            var result = await sender.Send(query);
+
+            return result.IsFailure
+                ? Results.BadRequest(result.Errors)
+                : !result.Value.Any()
+                    ? Results.NoContent()
+                    : Results.Ok(result.ToPaginatedResponse());
+        }).Produces<PaginatedResponse<IEnumerable<SongDTO>>>();
         
         return app;
     }
