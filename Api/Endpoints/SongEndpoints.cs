@@ -27,26 +27,7 @@ namespace Api.Endpoints
                         ? Results.NoContent()
                         : Results.Ok(result.ToPaginatedResponse());
             }).WithName("GetSong").WithDescription("FTS").Produces<List<SongDTO>>();
-
-            songGroup.MapPost("", async (
-                IFormFile audioFile,
-                Guid artistGuid,
-                ISender sender,
-                HttpContext _httpContext
-            ) =>
-            {
-                var user = await _httpContext.GetCurrentUserAsync();
-
-                using var stream = audioFile.OpenReadStream();
-                var command = new CreateSongCommand(audioFile.FileName, artistGuid, stream, user!.Guid);
-                var result = await sender.Send(command);
-
-                return result.IsFailure
-                    ? Results.BadRequest(result.Errors)
-                    : Results.CreatedAtRoute(routeName: "GetSong", routeValues: new { query = result.Value.Guid.ToString() }, value: result.Value);
-            }).DisableAntiforgery().RequireAuthorization().WithDescription("Upload from file"); //TODO: Add Antiforgery
-
-
+            
             songGroup.MapGet("", async (ISender _sender, HttpContext _httpContext,  
                 string albumGuids = "", 
                 string playlistGuids = "", 

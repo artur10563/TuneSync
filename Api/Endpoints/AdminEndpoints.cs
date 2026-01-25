@@ -1,10 +1,9 @@
 using Api.Extensions;
-using Application.BackgroundJobs;
 using Application.CQ.Admin.Albums.Command.DeleteAlbum;
 using Application.CQ.Admin.Artists.Command.DeleteArtist;
 using Application.CQ.Admin.Songs.Command.DeleteSong;
+using Application.CQ.Admin.Songs.Command.ReplaceAudioFileBySongGuid;
 using Application.CQ.Admin.Songs.Query;
-using Application.CQ.Album.Query.GetAlbumSongsById;
 using Application.DTOs.Songs;
 using Application.Extensions;
 using Application.Repositories.Shared;
@@ -27,6 +26,7 @@ public static class AdminEndpoints
     {
         var group = app.MapGroup("api/admin").WithTags("Admin").RequireAuthorization(policy => policy.RequireRole(GlobalVariables.UserConstants.Roles.Admin));
         var utils = group.MapGroup("/utils");
+        var songs = group.MapGroup("/song");
 
         utils.MapPost("/artist", async (IYoutubeService _youtube, IUnitOfWork _uow) =>
         {
@@ -43,7 +43,7 @@ public static class AdminEndpoints
                 _uow.ArtistRepository.Update(channel);
             }
 
-            var rows =await _uow.SaveChangesAsync();
+            var rows = await _uow.SaveChangesAsync();
             return Results.Ok($"Updated {rows} records");
         });
 
@@ -70,7 +70,7 @@ public static class AdminEndpoints
                 _uow.AlbumRepository.Update(album);
             }
 
-            var rows =await _uow.SaveChangesAsync();
+            var rows = await _uow.SaveChangesAsync();
             return Results.Ok($"Updated {rows} records");
         });
         
@@ -81,9 +81,9 @@ public static class AdminEndpoints
         {
             var command = new DeleteSongCommand(guid);
             var result = await sender.Send(command);
-            
-            return result.IsSuccess 
-                ? Results.NoContent() 
+
+            return result.IsSuccess
+                ? Results.NoContent()
                 : Results.BadRequest(result.Errors);
         });
         
@@ -91,9 +91,9 @@ public static class AdminEndpoints
         {
             var command = new DeleteAlbumCommand(guid);
             var result = await sender.Send(command);
-            
-            return result.IsSuccess 
-                ? Results.NoContent() 
+
+            return result.IsSuccess
+                ? Results.NoContent()
                 : Results.BadRequest(result.Errors);
         });
         
@@ -101,16 +101,14 @@ public static class AdminEndpoints
         {
             var command = new DeleteArtistCommand(guid);
             var result = await sender.Send(command);
-            
-            return result.IsSuccess 
-                ? Results.NoContent() 
+
+            return result.IsSuccess
+                ? Results.NoContent()
                 : Results.BadRequest(result.Errors);
         });
 
 
-
-
-        group.MapGet("/song/failed", async (HttpContext context, ISender sender, int page = 1) =>
+        songs.MapGet("/failed", async (HttpContext context, ISender sender, int page = 1) =>
         {
             var user = await context.GetCurrentUserAsync();
             var query = new GetFailedSongsQuery(user!.Guid, page);
@@ -123,7 +121,26 @@ public static class AdminEndpoints
                     ? Results.NoContent()
                     : Results.Ok(result.ToPaginatedResponse());
         }).Produces<PaginatedResponse<IEnumerable<SongDTO>>>();
-        
+
+        songs.MapPut("/{songGuid:guid}/audio", async (
+                Guid songGuid,
+                IFormFile audioFile,
+                ISender sender,
+                HttpContext httpContext
+            ) =>
+            {
+                await using var stream = audioFile.OpenReadStream();
+
+                var command = new ReplaceAudioFileBySongGuidCommand(songGuid, stream);
+                var result = await sender.Send(command);
+
+                return result.IsFailure
+                    ? Results.BadRequest(result.Errors)
+                    : Results.Ok(result.Value);
+            })
+            .DisableAntiforgery()
+            .WithDescription("Upload / Replace song audio file");
+
         return app;
     }
 }

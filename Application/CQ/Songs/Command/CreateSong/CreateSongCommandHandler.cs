@@ -40,7 +40,7 @@ namespace Application.CQ.Songs.Command.CreateSong
                 sourceId: null,
                 audioSize: (int)(request.AudioFileStream.Length/1000),
                 createdBy: request.CreatedBy,
-                audioLength: TimeSpan.Zero); //TODO: fix audioLength for files uploaded from pc
+                audioLength: TimeSpan.Zero);
 
             _uow.SongRepository.Insert(song);
             await _uow.SaveChangesAsync();

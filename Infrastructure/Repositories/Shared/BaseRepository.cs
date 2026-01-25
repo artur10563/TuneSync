@@ -168,10 +168,10 @@ namespace Infrastructure.Repositories.Shared
         }
         
         public virtual async Task<TEntity?> FirstOrDefaultAsync(
-            Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false,
+            Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false, bool ignoreFilters = false,
             params Expression<Func<TEntity, object>>[] includes)
         {
-            IQueryable<TEntity> query = _set;
+            var query = ignoreFilters ? IgnoreFilters() : _set;
 
             foreach (var include in includes)
             {

@@ -30,7 +30,7 @@ namespace Application.Repositories.Shared
 
         Task<TEntity?> FirstOrDefaultAsync(
             Expression<Func<TEntity, bool>> predicate,
-            bool asNoTracking = false,
+            bool asNoTracking = false, bool ignoreFilters = false,
             params Expression<Func<TEntity, object>>[] includes);
 
         IQueryable<TEntity> Queryable();
