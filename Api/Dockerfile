@@ -13,19 +13,12 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copy project files (relative to the Api folder)
-COPY ["../Api/Api.csproj", "Api/"]
-COPY ["../Application/Application.csproj", "Application/"]
-COPY ["../Domain/Domain.csproj", "Domain/"]
-COPY ["../Infrastructure/Infrastructure.csproj", "Infrastructure/"]
-
-# Restore dependencies
-RUN dotnet restore "Api/Api.csproj"
-
-# Copy remaining source files
 COPY .. .
 
-# Build application
+# Restore
+RUN dotnet restore "Api/Api.csproj"
+
+# Build
 WORKDIR "/src/Api"
 RUN dotnet build "Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
