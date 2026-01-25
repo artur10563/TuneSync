@@ -9,6 +9,7 @@ public class AudioMetadataReaderService : IAudioMetadataReaderService
     {
         mp3Stream.Position = 0;
         using var reader = new Mp3FileReader(mp3Stream);
-        return reader.TotalTime;
+        var total = reader.TotalTime;
+        return new TimeSpan(total.Hours, total.Minutes, total.Seconds);
     }
 }
