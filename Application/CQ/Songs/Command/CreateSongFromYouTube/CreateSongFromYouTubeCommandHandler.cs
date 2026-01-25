@@ -65,10 +65,10 @@ namespace Application.CQ.Songs.Command.CreateSongFromYouTube
             
             var fileGuid = await _storage.UploadFileAsync(stream, StorageFolder.Audio);
 
-            var song = new Song(title: videoInfo.Title,
+            var song = Song.CreateWithAudio(title: videoInfo.Title,
                 source: GlobalVariables.SongSource.YouTube,
                 artistGuid: artist.Guid,
-                audioPath: new Guid(fileGuid),
+                audioPath: fileGuid.FileId,
                 sourceId: videoInfo.VideoId,
                 audioLength: videoInfo.Duration,
                 audioSize: (int)stream.GetKilobytes(),

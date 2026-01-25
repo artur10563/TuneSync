@@ -31,16 +31,16 @@ namespace Application.CQ.Songs.Command.CreateSong
             if (!validationResults.IsValid)
                 return validationResults.AsErrors();
 
-            var filePath = await _fileStorage.UploadFileAsync(request.AudioFileStream, StorageFolder.Audio);
+            var (filePath, _) = await _fileStorage.UploadFileAsync(request.AudioFileStream, StorageFolder.Audio);
 
-            var song = new Song(title: request.Title,
+            var song = Song.CreateWithAudio(title: request.Title,
                 artistGuid: request.ArtistGuid,
-                audioPath: new Guid(filePath),
+                audioPath: filePath,
                 source: GlobalVariables.SongSource.File,
                 sourceId: null,
                 audioSize: (int)(request.AudioFileStream.Length/1000),
                 createdBy: request.CreatedBy,
-                audioLength: TimeSpan.Zero); //TODO: fix audioLength for files uploaded from pc
+                audioLength: TimeSpan.Zero);
 
             _uow.SongRepository.Insert(song);
             await _uow.SaveChangesAsync();

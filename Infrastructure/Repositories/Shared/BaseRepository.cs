@@ -11,6 +11,22 @@ namespace Infrastructure.Repositories.Shared
         protected readonly AppDbContext _context;
         protected readonly DbSet<TEntity> _set;
 
+        public IQueryable<TEntity> IgnoreFilter(CommonFilter filter)
+        {
+            return _set.IgnoreQueryFilters([filter.ToString()]);
+        }
+
+        public IQueryable<TEntity> IgnoreFilters(params CommonFilter[] filters)
+        {
+            if (filters.Length == 0)
+            {
+                return _set.IgnoreQueryFilters();
+            }
+
+            return _set.IgnoreQueryFilters(
+                filters.Select(f => f.ToString()).ToArray()
+            );
+        }
         protected BaseRepository(AppDbContext context)
         {
             _context = context;
@@ -30,8 +46,8 @@ namespace Infrastructure.Repositories.Shared
 
         public virtual Task<int> BulkUpdatePropertyAsync<TProperty>(
             Expression<Func<TEntity, bool>> predicate,
-            Func<TEntity, TProperty> propertySelector,
-            Func<TEntity, TProperty> valueSelector)
+            Expression<Func<TEntity, TProperty>> propertySelector,
+            Expression<Func<TEntity, TProperty>> valueSelector)
         {
             return _set
                 .Where(predicate)
@@ -152,10 +168,10 @@ namespace Infrastructure.Repositories.Shared
         }
         
         public virtual async Task<TEntity?> FirstOrDefaultAsync(
-            Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false,
+            Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false, bool ignoreFilters = false,
             params Expression<Func<TEntity, object>>[] includes)
         {
-            IQueryable<TEntity> query = _set;
+            var query = ignoreFilters ? IgnoreFilters() : _set;
 
             foreach (var include in includes)
             {

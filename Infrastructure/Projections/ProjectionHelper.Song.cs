@@ -19,6 +19,7 @@ public static partial class ProjectionHelper
             song.Source,
             song.SourceId,
             song.AudioPath,
+            song.AudioSource,
             song.AudioSize,
             song.AudioLength,
             artistProjection.Invoke(song.Artist),

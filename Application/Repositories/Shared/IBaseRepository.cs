@@ -8,11 +8,13 @@ namespace Application.Repositories.Shared
         void Insert(TEntity entity);
         void Update(TEntity entity);
         void UpdateRange(IEnumerable<TEntity> entities);
+        IQueryable<TEntity> IgnoreFilters(params CommonFilter[] filters);
+        IQueryable<TEntity> IgnoreFilter(CommonFilter filter);
 
         Task<int> BulkUpdatePropertyAsync<TProperty>(
             Expression<Func<TEntity, bool>> predicate,
-            Func<TEntity, TProperty> propertySelector,
-            Func<TEntity, TProperty> valueSelector);
+            Expression<Func<TEntity, TProperty>> propertySelector,
+            Expression<Func<TEntity, TProperty>> valueSelector);
         void Delete(TEntity entity);
 
         Task<List<Guid>> GetUniqueExistingGuidsAsync(List<Guid> inputGuids);
@@ -28,7 +30,7 @@ namespace Application.Repositories.Shared
 
         Task<TEntity?> FirstOrDefaultAsync(
             Expression<Func<TEntity, bool>> predicate,
-            bool asNoTracking = false,
+            bool asNoTracking = false, bool ignoreFilters = false,
             params Expression<Func<TEntity, object>>[] includes);
 
         IQueryable<TEntity> Queryable();

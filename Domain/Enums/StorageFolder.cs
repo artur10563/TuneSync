@@ -7,7 +7,9 @@ public enum StorageFolder
     [StoragePath("images")]
     Images,
     [StoragePath("audio")]
-    Audio
+    Audio,
+    [StoragePath("dump")]
+    Dump,
 }
 	
 public class StoragePathAttribute : Attribute

@@ -42,7 +42,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
     python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
-    /opt/venv/bin/pip install yt-dlp
+    /opt/venv/bin/pip install --upgrade yt-dlp
 
 # Ensure virtual environment is in PATH
 ENV PATH="/opt/venv/bin:$PATH"

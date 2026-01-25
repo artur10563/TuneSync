@@ -18,10 +18,9 @@ namespace Application.CQ.Songs.Command.CreateSong
             RuleFor(x => x.Title).Length(min: GlobalVariables.SongConstants.TitleMinLength, max: GlobalVariables.SongConstants.TitleMaxLength)
                 .WithMessage(SongError.InvalidTitleLength.Description);
 
-            RuleFor(x => x.AudioFileStream).Must((fs) =>
-            {
-                return fs.Length <= GlobalVariables.SongConstants.MaxSizeKB;
-            }).WithMessage(SongError.InvalidSize.Description);
+            RuleFor(x => x.AudioFileStream).Must(
+                fs => fs.Length <= GlobalVariables.SongConstants.MaxSizeKB)
+                .WithMessage(SongError.InvalidSize.Description);
         }
     }
 }

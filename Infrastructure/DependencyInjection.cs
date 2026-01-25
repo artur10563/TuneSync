@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 using Application;
 using Application.CQ.Songs.Command.CreateSong;
@@ -42,7 +41,7 @@ namespace Infrastructure
         public string universe_domain { get; set; }
     }
 
-    public static class DependencyContainer
+    public static partial class DependencyContainer
     {
         public static IServiceCollection DIFromContainer(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
@@ -63,6 +62,7 @@ namespace Infrastructure
             serviceCollection.AddDatabase(configuration);
             serviceCollection.AddRepositories();
             serviceCollection.AddServices();
+            serviceCollection.AddBackgroundWorkers();
 
             serviceCollection.AddJwtAuth(configuration);
 
@@ -105,6 +105,7 @@ namespace Infrastructure
             serviceCollection.AddSingleton<IAuthService, AuthService>();
             serviceCollection.AddSingleton<ILoggerService, LoggerService>();
             serviceCollection.AddScoped<ISearchService, SearchService>();
+            serviceCollection.AddScoped<IAudioMetadataReaderService, AudioMetadataReaderService>();
             
             return serviceCollection;
         }

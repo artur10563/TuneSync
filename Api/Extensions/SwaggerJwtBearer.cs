@@ -1,44 +1,35 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi;
 
 namespace Api.Extensions
 {
     public static class SwaggerJwtBearer
     {
-        public static IServiceCollection AddSwaggerWithJwtAuth(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddSwaggerWithJwtAuth(this IServiceCollection services)
         {
-            serviceCollection.AddSwaggerGen(options =>
+            services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Version = "v1",
                     Title = "api",
-                    Description = ""
+                    Version = "v1"
                 });
 
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
                 });
 
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
                 {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        }, Array.Empty<string>()
-                    }
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                 });
+                
+                
             });
-            return serviceCollection;
+
+            return services;
         }
     }
 }

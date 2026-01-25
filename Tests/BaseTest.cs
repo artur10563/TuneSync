@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Application;
 using Application.CQ.Songs.Command.CreateSong;
 using Application.Projections;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
+using IContainer = DotNet.Testcontainers.Containers.IContainer;
 
 public abstract class BaseTest : IAsyncLifetime
 {
