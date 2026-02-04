@@ -251,12 +251,12 @@ namespace Infrastructure.Services
 
                 if (!string.IsNullOrEmpty(error) && string.IsNullOrEmpty(output))
                 {
-                    throw new Exception($"yt-dlp error: {error}"); //if output present and we have error - just ignore it xd need to refactor this shit later and log
+                    throw new YoutubeFetchException($"yt-dlp error: {error}"); //if output present and we have error - just ignore it xd need to refactor this shit later and log
                 }
 
                 if (string.IsNullOrEmpty(output))
                 {
-                    throw new Exception("yt-dlp did not return any output.");
+                    throw new YoutubeFetchException("yt-dlp did not return any output.");
                 }
                 return output;
             }
@@ -264,6 +264,8 @@ namespace Infrastructure.Services
 
         public async Task<YouTubeVideoInfo> GetVideoInfoAsyncDLP(string videoId)
         {
+            _logger.Log("Trying to get video info", LogLevel.Information);
+            
             string jsonOutput = await RunYtDlpAsync($"--verbose -j https://www.youtube.com/watch?v={videoId}");
 
             using (JsonDocument doc = JsonDocument.Parse(jsonOutput))
@@ -281,12 +283,17 @@ namespace Infrastructure.Services
                         ChannelTitle = root.GetProperty("uploader").GetString()
                     }
                 };
+                
+                _logger.Log("Retrieved video info", LogLevel.Information);
+                
                 return v;
             }
         }
 
         public async Task<Stream> GetAudioStreamAsyncDLP(string videoId)
         {
+            _logger.Log($"Trying to get audio stream", LogLevel.Information);
+            
             var memoryStream = new MemoryStream();
 
             var processStartInfo = CreateProcessStartInfo($"--quiet --no-warnings -f bestaudio -o - https://www.youtube.com/watch?v={videoId}");
@@ -307,9 +314,12 @@ namespace Infrastructure.Services
 
                 if (process.ExitCode != 0)
                 {
-                    throw new Exception($"yt-dlp failed: {stderr}");
+                    _logger.Log($"Failed to get audio stream", LogLevel.Error, videoId);
+                    throw new YoutubeFetchException($"yt-dlp failed: {stderr}");
                 }
             }
+            
+            _logger.Log($"Retrieved audio stream", LogLevel.Information);
 
             memoryStream.Position = 0;
             return memoryStream;

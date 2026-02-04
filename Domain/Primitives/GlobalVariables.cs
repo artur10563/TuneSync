@@ -19,6 +19,11 @@ namespace Domain.Primitives
 
         public static string GetFirebaseMP3Link(Guid fileGuid) => string.Format(FirebaseMediaFileFormat("mp3"), $"{StorageFolder.Audio.GetPath() + "%2F" + fileGuid}");
 
+        public enum AudioSource
+        {
+            File,
+            Youtube
+        }
         public static class SongSource
         {
             public const string File = "File";

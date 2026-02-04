@@ -13,100 +13,80 @@ using static Domain.Primitives.GlobalVariables;
 
 namespace Infrastructure.BackgroundJobs;
 
-internal sealed class YoutubeAlbumCreationContext
-{
-    public string PlaylistId { get; init; }
-    public IReadOnlyList<YoutubeSongInfo> Songs { get; init; }
-    public SongThumbnail Thumbnail { get; init; }
-    public bool IsYoutubeMusic { get; init; }
-    public Guid CreatedBy { get; init; }
-    public Guid ArtistGuid { get; init; }
-    public string Source { get; init; }
-}
-
 public sealed class DownloadPlaylistFromYoutubeJob : IDownloadPlaylistFromYoutubeJob
 {
     private readonly IUnitOfWork _uow;
     private readonly IStorageService _storageService;
     private readonly IYoutubeService _youtubeService;
     private readonly ILoggerService _logger;
+    private readonly ISongService _songService;
 
-    public DownloadPlaylistFromYoutubeJob(IStorageService storageService, IUnitOfWork uow, IYoutubeService youtubeService, ILoggerService logger)
+    private List<YoutubeSongInfo> _songs;
+    private SongThumbnail _playlistThumbnail;
+    private Artist _artist;
+    private Album _album;
+    private string _source;
+
+    public DownloadPlaylistFromYoutubeJob(
+        IStorageService storageService,
+        IUnitOfWork uow,
+        IYoutubeService youtubeService,
+        ILoggerService logger,
+        ISongService songService)
     {
         _storageService = storageService;
         _uow = uow;
         _youtubeService = youtubeService;
         _logger = logger;
+        _songService = songService;
     }
 
     public async Task<Result<Guid>> ExecuteAsync(DownloadPlaylistFromYoutubeJobInput input, CancellationToken cancellationToken)
     {
         try
         {
-            var isYTM = YoutubeHelper.IsYoutubeMusic(input.YoutubePlaylistId);
-            var source = isYTM
-                ? GlobalVariables.PlaylistSource.YouTubeMusic
-                : GlobalVariables.PlaylistSource.YouTube;
+            _source = YoutubeHelper.IsYoutubeMusic(input.YoutubePlaylistId)
+                ? PlaylistSource.YouTubeMusic
+                : PlaylistSource.YouTube;
 
-            _logger.Log($"Fetching playlist from {source}", LogLevel.Information);
+            (_songs, _playlistThumbnail) = await _youtubeService.GetPlaylistVideosAsync(input.YoutubePlaylistId);
+            _logger.Log($"Fetched playlist '{input.YoutubePlaylistId}' with {_songs.Count} songs from {_source}", LogLevel.Information);
 
-            //Get all playlist songs
-            var (songs, playlistThumbnail) = await _youtubeService.GetPlaylistVideosAsync(input.YoutubePlaylistId);
-
-            if (songs.Count > AlbumConstants.MaxYoutubeAlbumLength)
+            if (_songs.Count > AlbumConstants.MaxYoutubeAlbumLength)
             {
-                _logger.Log("Attempt to download bad album", LogLevel.Warning, new { input.YoutubePlaylistId, count = songs.Count });
+                _logger.Log("Playlist exceeds maximum length", LogLevel.Warning, new { input.YoutubePlaylistId, count = _songs.Count });
                 return YoutubeError.MaxYoutubeLengthError;
             }
 
-            //Filter out existing songs, so duplicates are not downloaded
-            var (songsToDownload, existingSongs) = await GetSongsToDownloadAsync(songs);
+            // Plan import
+            var (songsToDownload, songsToUpdate, existingSongs) = await PlanSongImportAsync();
+            _logger.Log($"Import plan: {songsToDownload.Count} new, {songsToUpdate.Count} to update, {existingSongs.Count} existing", LogLevel.Information);
 
-            //Get or create an artist
-            var artist = await CreateOrGetArtistAsync(songs.First().Author);
-
-            //Get or create album
-            var album = await CreateOrGetAlbumAsync(new YoutubeAlbumCreationContext
-            {
-                ArtistGuid = artist.Guid,
-                CreatedBy = input.CreatedBy,
-                IsYoutubeMusic = isYTM,
-                Source = source,
-                PlaylistId = input.YoutubePlaylistId,
-                Songs = songs,
-                Thumbnail = playlistThumbnail
-            }, cancellationToken);
-
-
-            _logger.Log("Artist and album setup completed", LogLevel.Information);
-
-            //Saved EVERY TIME a file is downloaded, since it can't be rolled back
-            _logger.Log("Started processing files", LogLevel.Information);
-
-            foreach (var existingSong in existingSongs)
-            {
-                existingSong.Source = source;
-                existingSong.AlbumGuid = album.Guid;
-            }
-
-            if (existingSongs.Count != 0)
-                _uow.SongRepository.UpdateRange(existingSongs);
-
-            foreach (var song in songsToDownload)
-            {
-                var newSong = await CreateNewSongAsync(input.CreatedBy, song, artist, album);
-
-                _uow.SongRepository.Insert(newSong);
-                await _uow.SaveChangesAsync();
-
-                _logger.Log($"Saved song {newSong.Title}", LogLevel.Information);
-            }
-
+            // Get or create album and artist
+            _artist = await GetOrCreateArtistAsync(_songs.First().Author);
+            _album = await GetOrCreateAlbumAsync(input.CreatedBy, input.YoutubePlaylistId, cancellationToken);
             await _uow.SaveChangesAsync();
 
-            _logger.Log($"Album saved", LogLevel.Information, new { album.Guid, album.Title });
+            
+            // Bulk update existing songs
+            await BulkUpdateExistingSongs(existingSongs);
 
-            return album.Guid;
+            // Create new songs in batch, then save once
+            var newSongs = await CreateNewSongsAsync(songsToDownload, input.CreatedBy);
+            if (newSongs.Any())
+            {
+                foreach (var song in newSongs)
+                    _uow.SongRepository.Insert(song);
+
+                await _uow.SaveChangesAsync();
+                _logger.Log($"Saved {newSongs.Count} new songs for album '{_album.Title}' ({_album.Guid})", LogLevel.Information);
+            }
+
+            // Update existing songs missing audio
+            await ProcessSongsToUpdate(songsToUpdate);
+
+            _logger.Log($"Finished processing album '{_album.Title}' ({_album.Guid})", LogLevel.Information);
+            return _album.Guid;
         }
         catch (Exception e)
         {
@@ -115,124 +95,153 @@ public sealed class DownloadPlaylistFromYoutubeJob : IDownloadPlaylistFromYoutub
         }
     }
 
-    #region Private
+    #region Private workflow steps
 
-    private async Task<Song> CreateNewSongAsync(Guid createdBy, YoutubeSongInfo song, Artist artist, Album album)
+    private async Task<(List<YoutubeSongInfo> toDownload, List<Song> toUpdate, List<Song> existingSongs)> PlanSongImportAsync()
     {
-        Song newSong;
-        // Try to get media info. If failed - still save, but without media info.
-        try
-        {
-            _logger.Log($"Started {song.Title}", LogLevel.Information, new { song.Id, song.Title });
+        var newSourceIds = _songs.Select(s => s.Id).ToHashSet();
 
-            var videoInfo = await _youtubeService.GetVideoInfoAsyncDLP(song.Id);
-
-            _logger.Log($"Video info retrieved", LogLevel.Information);
-
-            _logger.Log($"Trying to get audio stream", LogLevel.Information);
-
-            await using var stream = await _youtubeService.GetAudioStreamAsyncDLP(song.Id);
-
-            _logger.Log($"Audio stream retrieved", LogLevel.Information);
-
-            var (filePathGuid, _) = await _storageService.UploadFileAsync(stream, StorageFolder.Audio);
-
-            _logger.Log($"File uploaded to Firebase", LogLevel.Information, filePathGuid);
-
-            newSong = Song.CreateWithAudio(
-                song.Title,
-                SongSource.YouTube,
-                song.Id,
-                filePathGuid,
-                videoInfo.Duration,
-                (int)stream.GetKilobytes(),
-                createdBy,
-                artist.Guid,
-                album.Guid
-            );
-            _logger.Log($"Creating new song with audio", LogLevel.Information);
-        }
-        catch (Exception e)
-        {
-            newSong = Song.CreateWithoutAudio(
-                song.Title,
-                SongSource.YouTube,
-                song.Id,
-                createdBy,
-                artist.Guid,
-                album.Guid
-            );
-            _logger.Log($"Failed to get audioStream. Creating new song without audio", LogLevel.Information, context: e.Message);
-        }
-
-        return newSong;
-    }
-
-
-    private async Task<(List<YoutubeSongInfo> toDownload, List<Song> existingSongs)> GetSongsToDownloadAsync(List<YoutubeSongInfo> songs)
-    {
-        var newSourceIds = songs.Select(s => s.Id);
-
-        var existingSongs = await _uow.SongRepository.IgnoreFilter(CommonFilter.HasAudioFilter)
-            .Where(song => newSourceIds.Contains(song.SourceId))
+        var existingSongs = await _uow.SongRepository
+            .IgnoreFilter(CommonFilter.HasAudioFilter)
+            .Where(s => s.SourceId != null && newSourceIds.Contains(s.SourceId))
+            .Select(s => new { Song = s, HasAudio = s.AudioPath.HasValue })
             .ToListAsync();
 
-        var existingSourceIds = existingSongs.Select(es => es.SourceId).ToHashSet();
-        var songsToDownload = songs
-            .Where(song => !existingSourceIds.Contains(song.Id))
-            .ToList();
+        var existingIds = existingSongs.Select(x => x.Song.SourceId).ToHashSet();
 
-        return (songsToDownload, existingSongs);
+        var songsToDownload = _songs.Where(s => !existingIds.Contains(s.Id)).ToList();
+        var songsToUpdate = existingSongs.Where(x => !x.HasAudio).Select(x => x.Song).ToList();
+
+        return (songsToDownload, songsToUpdate, existingSongs.Select(x => x.Song).ToList());
     }
 
-    private async Task<Artist> CreateOrGetArtistAsync(SongAuthor ytAuthor)
+    private async Task<Artist> GetOrCreateArtistAsync(SongAuthor ytAuthor)
     {
         var artist = await _uow.ArtistRepository.FirstOrDefaultAsync(x => x.YoutubeChannelId == ytAuthor.Id);
         if (artist != null) return artist;
 
-        // Create artist
         var artistInfo = await _youtubeService.GetChannelInfoAsync(ytAuthor.Id);
         artist = new Artist(
             name: ytAuthor.Title,
             youtubeChannelId: ytAuthor.Id,
-            thumbnailUrl: artistInfo?.Thumbnail?.Url);
+            thumbnailUrl: artistInfo.Thumbnail?.Url);
+
         _uow.ArtistRepository.Insert(artist);
-        _logger.Log($"Created new artist", LogLevel.Information, artistInfo);
+        _logger.Log("Created new artist", LogLevel.Information, artistInfo);
 
         return artist;
     }
 
-    private async Task<Album> CreateOrGetAlbumAsync(YoutubeAlbumCreationContext ctx, CancellationToken cancellationToken)
+    private async Task<Album> GetOrCreateAlbumAsync(Guid createdBy, string playlistId, CancellationToken cancellationToken)
     {
-        var album = await _uow.AlbumRepository.FirstOrDefaultAsync(x => x.SourceId == ctx.PlaylistId,
+        var album = await _uow.AlbumRepository.FirstOrDefaultAsync(
+            x => x.SourceId == playlistId,
             includes: pl => pl.Songs);
 
         if (album != null) return album;
 
-        // Create album
-        var playlistThumbnailId = ctx.Thumbnail.Url;
-
-        if (ctx.IsYoutubeMusic)
+        var thumbnailId = _playlistThumbnail.Url;
+        if (_source == PlaylistSource.YouTubeMusic)
         {
-            var httpClient = new HttpClient();
-            await using var stream = await httpClient.GetStreamFromUrlAsync(ctx.Thumbnail.Url, cancellationToken);
-            (_, playlistThumbnailId) = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
+            await using var stream = await new HttpClient().GetStreamFromUrlAsync(_playlistThumbnail.Url, cancellationToken);
+            (_, thumbnailId) = await _storageService.UploadFileAsync(stream, StorageFolder.Images);
         }
 
         album = new Album(
-            title: ctx.Songs[0].Description,
-            createdBy: ctx.CreatedBy,
-            sourceId: ctx.PlaylistId,
-            artistGuid: ctx.ArtistGuid,
-            thumbnailSource: ctx.Source,
-            thumbnailId: playlistThumbnailId)
+            title: _songs[0].Description,
+            createdBy: createdBy,
+            sourceId: playlistId,
+            artistGuid: _artist.Guid,
+            thumbnailSource: _source,
+            thumbnailId: thumbnailId)
         {
-            ExpectedSongs = ctx.Songs.Count
+            ExpectedSongs = _songs.Count
         };
+
         _uow.AlbumRepository.Insert(album);
-        _logger.Log($"Created new album", LogLevel.Information, new { album.Guid, album.Title });
+        _logger.Log("Created new album", LogLevel.Information, new { album.Guid, album.Title });
 
         return album;
+    }
+
+    private async Task BulkUpdateExistingSongs(List<Song> existingSongs)
+    {
+        if (existingSongs.Count == 0) return;
+
+        var guids = existingSongs.Select(s => s.Guid).ToHashSet();
+
+        await _uow.SongRepository.BulkUpdatePropertyAsync(
+            s => guids.Contains(s.Guid),
+            (x => x.Source, _ => _source),
+            (x => x.AlbumGuid!, _ => _album.Guid));
+
+        _logger.Log($"Updated {existingSongs.Count} existing songs in bulk", LogLevel.Information);
+    }
+
+    private async Task<List<Song>> CreateNewSongsAsync(List<YoutubeSongInfo> songsToDownload, Guid createdBy)
+    {
+        var newSongs = new List<Song>();
+
+        foreach (var songInfo in songsToDownload)
+        {
+            try
+            {
+                var videoInfo = await _youtubeService.GetVideoInfoAsyncDLP(songInfo.Id);
+                await using var audioStream = await _youtubeService.GetAudioStreamAsyncDLP(songInfo.Id);
+                var (filePathGuid, _) = await _storageService.UploadFileAsync(audioStream, StorageFolder.Audio);
+
+                newSongs.Add(Song.CreateWithAudio(
+                    songInfo.Title,
+                    SongSource.YouTube,
+                    songInfo.Id,
+                    filePathGuid,
+                    videoInfo.Duration,
+                    (int)audioStream.GetKilobytes(),
+                    createdBy,
+                    _artist.Guid,
+                    _album.Guid));
+            }
+            catch (YoutubeFetchException e)
+            {
+                _logger.Log($"Failed to fetch audio for '{songInfo.Title}', creating without audio", LogLevel.Warning, context: e.Message);
+                newSongs.Add(Song.CreateWithoutAudio(
+                    songInfo.Title,
+                    SongSource.YouTube,
+                    songInfo.Id,
+                    createdBy,
+                    _artist.Guid,
+                    _album.Guid));
+            }
+        }
+
+        return newSongs;
+    }
+
+    private async Task ProcessSongsToUpdate(List<Song> songsToUpdate)
+    {
+        foreach (var song in songsToUpdate)
+        {
+            if (song.SourceId == null)
+            {
+                _logger.Log("Skipping song without SourceId", LogLevel.Warning, new { song.Title });
+                continue;
+            }
+
+
+            try
+            {
+                await using var stream = await _youtubeService.GetAudioStreamAsyncDLP(song.SourceId);
+                await _songService.ReplaceAudioFileAsync(song, AudioSource.Youtube, stream);
+                _logger.Log($"Updated song '{song.Title}' ({song.Guid})", LogLevel.Information);
+            }
+            catch (YoutubeFetchException e)
+            {
+                _logger.Log($"Failed to fetch audio for '{song.Title}'", LogLevel.Warning, context: e.Message);
+            }
+        }
+
+        if (songsToUpdate.Count != 0)
+            _logger.Log($"Updated {songsToUpdate.Count} songs with missing audio", LogLevel.Information);
     }
 
     #endregion

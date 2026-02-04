@@ -27,6 +27,7 @@ namespace Infrastructure.Repositories.Shared
                 filters.Select(f => f.ToString()).ToArray()
             );
         }
+
         protected BaseRepository(AppDbContext context)
         {
             _context = context;
@@ -44,26 +45,31 @@ namespace Infrastructure.Repositories.Shared
             _set.Update(entity);
         }
 
-        public virtual Task<int> BulkUpdatePropertyAsync<TProperty>(
-            Expression<Func<TEntity, bool>> predicate,
-            Expression<Func<TEntity, TProperty>> propertySelector,
-            Expression<Func<TEntity, TProperty>> valueSelector)
+        public Task<int> BulkUpdatePropertyAsync(Expression<Func<TEntity, bool>> predicate,
+            params (Expression<Func<TEntity, object>> property, Expression<Func<TEntity, object>> value)[] updates)
         {
             return _set
                 .Where(predicate)
                 .ExecuteUpdateAsync(setters =>
-                    setters
-                        .SetProperty(propertySelector, valueSelector)
-                        .SetProperty(x => x.ModifiedAt, x => DateTime.UtcNow)
+                    {
+                        foreach (var prop in updates)
+                        {
+                            setters.SetProperty(prop.property, prop.value);
+                        }
+
+                        setters
+                            .SetProperty(x => x.ModifiedAt, x => DateTime.UtcNow);
+                    }
                 );
         }
-        
+
         public virtual void UpdateRange(IEnumerable<TEntity> entities)
         {
             foreach (var entity in entities)
             {
                 entity.ModifiedAt = DateTime.Now.ToUniversalTime();
             }
+
             _set.UpdateRange(entities);
         }
 
@@ -94,7 +100,7 @@ namespace Infrastructure.Repositories.Shared
         {
             return _set.AsQueryable();
         }
-        
+
         public virtual IQueryable<TEntity> NoTrackingQueryable()
         {
             return _set.AsNoTracking().AsQueryable();
@@ -156,9 +162,9 @@ namespace Infrastructure.Repositories.Shared
         {
             if (inputGuids == null || inputGuids.Count == 0)
                 return [];
-            
+
             var distinctGuids = inputGuids.Distinct().ToList();
-            
+
             var existingGuids = await _set
                 .Where(entity => distinctGuids.Contains(entity.Guid))
                 .Select(entity => entity.Guid)
@@ -166,7 +172,7 @@ namespace Infrastructure.Repositories.Shared
 
             return existingGuids;
         }
-        
+
         public virtual async Task<TEntity?> FirstOrDefaultAsync(
             Expression<Func<TEntity, bool>> predicate, bool asNoTracking = false, bool ignoreFilters = false,
             params Expression<Func<TEntity, object>>[] includes)

@@ -11,10 +11,10 @@ namespace Application.Repositories.Shared
         IQueryable<TEntity> IgnoreFilters(params CommonFilter[] filters);
         IQueryable<TEntity> IgnoreFilter(CommonFilter filter);
 
-        Task<int> BulkUpdatePropertyAsync<TProperty>(
+        Task<int> BulkUpdatePropertyAsync(
             Expression<Func<TEntity, bool>> predicate,
-            Expression<Func<TEntity, TProperty>> propertySelector,
-            Expression<Func<TEntity, TProperty>> valueSelector);
+            params (Expression<Func<TEntity, object>> property, Expression<Func<TEntity, object>> value)[] updates);
+        
         void Delete(TEntity entity);
 
         Task<List<Guid>> GetUniqueExistingGuidsAsync(List<Guid> inputGuids);
