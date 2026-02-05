@@ -1,5 +1,5 @@
 ﻿using Api.Extensions;
-using Application.CQ.Songs.Command.CreateSong;
+using Application.CQ.Songs.Query.GetSongByGuid;
 using Application.CQ.Songs.Query.GetSongFromDb;
 using MediatR;
 using Application.CQ.Songs.Query.GetSongsMix;
@@ -54,10 +54,20 @@ namespace Api.Endpoints
                         : Results.Ok(result.ToPaginatedResponse());
 
             }).RequireAuthorization().WithDescription("Shuffle based on multiple albums or playlists or artists").Produces<PaginatedResponse<IEnumerable<SongDTO>>>();
+
+            songGroup.MapGet("/{guid:guid}", async (ISender sender, HttpContext httpContext, Guid guid) =>
+            {
+                var user = await httpContext.GetCurrentUserAsync();
+                var command = new GetSongByGuidCommand(guid, user?.Guid);
+                var result = await sender.Send(command);
+                
+                return result.IsFailure 
+                    ? Results.BadRequest(result.Errors) 
+                    : Results.Ok(result.Value);
+            });
             
             return app;
         }
-
         private static List<Guid> ExtractGuids(string commaSeparated)
         {
             return commaSeparated
