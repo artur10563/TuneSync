@@ -51,6 +51,8 @@ namespace Infrastructure.Services
                 newObject,
                 fileStream
             );
+            
+            _logger.Log($"File uploaded to Firebase", LogLevel.Information, new { guid, objectName });
 
             return new FileUploadResult(guid, objectName);
         }

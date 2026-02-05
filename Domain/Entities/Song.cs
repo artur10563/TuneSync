@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Domain.Entities.Shared;
 using Domain.Enums;
+using Domain.Primitives;
 
 namespace Domain.Entities
 {
@@ -45,6 +46,16 @@ namespace Domain.Entities
             CreatedBy = createdBy;
             ArtistGuid = artistGuid;
             AlbumGuid = albumGuid;
+        }
+
+        public Song UpdateAudioInfo(int audioSizeKb, GlobalVariables.AudioSource audioSource, TimeSpan audioLength, Guid pathGuid)
+        {
+            AudioSize = audioSizeKb;
+            AudioSource = audioSource.ToString();
+            AudioLength = audioLength;
+            AudioPath = pathGuid;
+
+            return this;
         }
 
         public static Song CreateWithAudio(string title, string source, string? sourceId, Guid? audioPath, TimeSpan audioLength, int audioSize, Guid? createdBy,

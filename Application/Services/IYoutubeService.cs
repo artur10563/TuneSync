@@ -29,4 +29,6 @@ namespace Application.Services
         /// <returns>Full url for YTM and only ID for others</returns>
         Task<AlbumInfo> GetPlaylistInfoAsync(string playlistId);
     }
+
+    public class YoutubeFetchException(string message) : Exception(message);
 }

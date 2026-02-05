@@ -106,6 +106,7 @@ namespace Infrastructure
             serviceCollection.AddSingleton<ILoggerService, LoggerService>();
             serviceCollection.AddScoped<ISearchService, SearchService>();
             serviceCollection.AddScoped<IAudioMetadataReaderService, AudioMetadataReaderService>();
+            serviceCollection.AddScoped<ISongService, SongService>();
             
             return serviceCollection;
         }

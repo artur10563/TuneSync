@@ -30,7 +30,7 @@ namespace Application.DTOs.Songs
                 projection.Title,
                 projection.CreatedAt,
                 projection.Source,
-                SourceUrl: projection.Source == SongSource.YouTube ? YoutubeHelper.GetYoutubeChannel(projection.SourceId!) : "",
+                SourceUrl: projection.Source == SongSource.YouTube ? YoutubeHelper.GetYoutubeVideo(projection.SourceId!) : "",
                 YoutubeHelper.GetYoutubeThumbnail(projection.SourceId), 
                 AudioPath: projection.AudioPath.HasValue ? GetFirebaseMP3Link(projection.AudioPath.Value) : string.Empty,
                 projection.AudioSize,
